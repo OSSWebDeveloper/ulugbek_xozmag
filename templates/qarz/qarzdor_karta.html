@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block sarlavha %}{{ qarzdor.toliq_ism }}{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">{{ qarzdor.toliq_ism }} &mdash; {{ qarzdor.hudud.nom }}</div>
+
+  <div class="quti">
+    <div class="qator">
+      <div>
+        <div style="font-size:14px;text-transform:uppercase;color:#6b6b6b">Telefon</div>
+        <div style="font-size:22px;font-weight:700">{{ qarzdor.telefon|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:14px;text-transform:uppercase;color:#6b6b6b">Jami olgan</div>
+        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_qarz|floatformat:0 }}</div>
+      </div>
+      <div>
+        <div style="font-size:14px;text-transform:uppercase;color:#6b6b6b">Jami to'lagan</div>
+        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_tolov|floatformat:0 }}</div>
+      </div>
+      <div style="background:#ffe9a8;padding:8px;border:3px solid #1c1c1c">
+        <div style="font-size:14px;text-transform:uppercase">Qolgan qarzi</div>
+        <div style="font-size:30px;font-weight:800">{{ qarzdor.balans|floatformat:0 }} so'm</div>
+      </div>
+    </div>
+
+    <div class="qator" style="margin-top:14px">
+      <a class="tugma yashil" href="{% url 'qarz:qarz_boshlash' qarzdor.pk %}" style="flex:2">
+        + Yangi qarz yozish
+      </a>
+      <a class="tugma oq" href="{% url 'qarz:qarzdor_tahrir' qarzdor.pk %}">Ma'lumotini tahrirlash</a>
+      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">Bosh sahifa</a>
+    </div>
+  </div>
+
+  <div class="qator" style="align-items:flex-start">
+    <div class="quti" style="flex:2">
+      <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:10px">Qarzlar tarixi</h2>
+      {% for q in qarzlar %}
+        <table class="jadval" style="margin-bottom:14px">
+          <thead>
+            <tr>
+              <th colspan="3">
+                {{ q.sana|date:"d.m.Y H:i" }} &mdash; hujjat #{{ q.pk }}
+                {% if not q.yakunlangan %}(TUGALLANMAGAN){% endif %}
+              </th>
+              <th class="son">{{ q.jami|floatformat:0 }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for qator in q.qatorlar.all %}
+              <tr>
+                <td>{{ qator.mahsulot_nomi }}</td>
+                <td class="son">{{ qator.miqdor|floatformat:"-3" }} {{ qator.birlik }}</td>
+                <td class="son">x {{ qator.narx|floatformat:0 }}</td>
+                <td class="son">{{ qator.summa|floatformat:0 }}</td>
+              </tr>
+            {% endfor %}
+            {% if not q.yakunlangan %}
+              <tr>
+                <td colspan="4">
+                  <a class="tugma kichik sariq" href="{% url 'qarz:qarz_tahrir' q.pk %}">Davom ettirish</a>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      {% empty %}
+        <div class="bosh-holat">Hali qarz yozilmagan.</div>
+      {% endfor %}
+    </div>
+
+    <div class="quti" style="flex:1">
+      <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:10px">To'lov qabul qilish</h2>
+      <form method="post" action="{% url 'qarz:tolov_qoshish' qarzdor.pk %}">
+        {% csrf_token %}
+        {% for maydon in tolov_form %}
+          <div class="maydon">
+            <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
+            {{ maydon }}
+          </div>
+        {% endfor %}
+        <button type="submit" class="tugma yashil keng">To'lovni yozish</button>
+      </form>
+
+      {% if tolovlar %}
+        <table class="jadval" style="margin-top:14px">
+          <thead><tr><th>Sana</th><th class="son">Summa</th><th style="width:1%"></th></tr></thead>
+          <tbody>
+            {% for t in tolovlar %}
+              <tr>
+                <td>{{ t.sana|date:"d.m.Y" }}</td>
+                <td class="son">{{ t.summa|floatformat:0 }}</td>
+                <td>
+                  <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}">
+                    {% csrf_token %}
+                    <button class="tugma kichik qizil" type="submit">X</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:820px">
+  <div class="sarlavha">{% if tahrir %}Qarzdorni tahrirlash{% else %}Yangi qarzdor{% endif %}</div>
+
+  <form method="post" class="quti">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}<div class="xato">{{ form.non_field_errors }}</div>{% endif %}
+
+    {% for maydon in form %}
+      <div class="maydon">
+        <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
+        {{ maydon }}
+        {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="qator" style="margin-top:18px">
+      <a class="tugma oq" href="{% url 'qarz:boshlash' %}" style="flex:1">Bekor qilish</a>
+      <button type="submit" class="tugma yashil" style="flex:2">
+        {% if tahrir %}Saqlash{% else %}Yaratish va qarz yozish{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

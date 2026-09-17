@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:760px">
+  <div class="sarlavha">
+    {% if mahsulot %}{{ mahsulot.nom }} &mdash; tahrirlash{% else %}Omborga yangi tovar{% endif %}
+  </div>
+
+  <form method="post" class="quti">
+    {% csrf_token %}
+    {% for maydon in form %}
+      <div class="maydon">
+        <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
+        {% if maydon.name == "faol" %}
+          <div style="display:flex;align-items:center;gap:10px">
+            {{ maydon }} <span>Ro'yxatda ko'rinsin</span>
+          </div>
+        {% else %}
+          {{ maydon }}
+        {% endif %}
+        {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="qator" style="margin-top:18px">
+      <a class="tugma oq" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
+      <button type="submit" class="tugma yashil" style="flex:2">Saqlash</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

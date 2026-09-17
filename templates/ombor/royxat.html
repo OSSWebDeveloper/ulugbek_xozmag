@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">Ombor (sklad)</div>
+
+  <div class="quti">
+    <form method="get" class="qator">
+      <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
+             placeholder="Tovar nomi" autocomplete="off">
+      <button type="submit" class="tugma" style="flex:1">Qidirish</button>
+      <a class="tugma yashil" href="{% url 'ombor:mahsulot_yangi' %}" style="flex:1">+ Yangi tovar</a>
+    </form>
+    {% if tugagan %}
+      <div class="xabar error" style="margin-top:10px">Diqqat: {{ tugagan }} ta tovar tugagan.</div>
+    {% endif %}
+  </div>
+
+  <div class="quti">
+    <table class="jadval">
+      <thead>
+        <tr>
+          <th>Tovar</th>
+          <th>Birlik</th>
+          <th class="son">Narxi</th>
+          <th class="son">Qoldiq</th>
+          <th style="width:1%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mahsulotlar %}
+          <tr class="{% if m.qoldiq <= 0 %}ogohlantirish{% endif %}">
+            <td><b>{{ m.nom }}</b>{% if not m.faol %} <small>(o'chirilgan)</small>{% endif %}</td>
+            <td>{{ m.birlik }}</td>
+            <td class="son">{{ m.narx|floatformat:0 }}</td>
+            <td class="son"><b>{{ m.qoldiq_son }}</b></td>
+            <td style="white-space:nowrap">
+              <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">Kirim</a>
+              <a class="tugma kichik oq" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">Tahrir</a>
+              <a class="tugma kichik oq" href="{% url 'ombor:harakatlar' m.pk %}">Tarix</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="bosh-holat">Sklad bo'sh. Tovar qo'shing.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

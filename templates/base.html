@@ -1,0 +1,39 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block sarlavha %}Ulug'bek Xozmak{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/uslub.css' %}">
+</head>
+<body>
+  <header class="bosh-panel">
+    <div class="logo">ULUG&#39;BEK XOZMAK</div>
+    <nav>
+      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">Bosh sahifa</a>
+      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">Qarzdorlar</a>
+      <a class="tugma oq" href="{% url 'ombor:royxat' %}">Ombor</a>
+    </nav>
+    <div class="ong">
+      <button type="button" class="richag" id="richag" role="switch" aria-pressed="false"
+              title="Sensorli ekran va sichqoncha rejimi o'rtasida almashtirish">
+        <span class="yorliq">Rejim<small class="holat">Sichqoncha</small></span>
+        <span class="yo-l"><span class="dasta"></span></span>
+      </button>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="xabarlar">
+      {% for xabar in messages %}
+        <div class="xabar {{ xabar.tags }}">{{ xabar }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="sahifa">{% block tana %}{% endblock %}</main>
+
+  <script src="{% static 'js/rejim.js' %}"></script>
+  {% block skript %}{% endblock %}
+</body>
+</html>

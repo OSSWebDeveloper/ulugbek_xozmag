@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">Qarzdor keldi. Qaysi biri?</div>
+
+  <div class="qator">
+    <a class="tugma ulkan" href="{% url 'qarz:qidirish' %}">
+      Oldin qarz olgan
+      <span class="izoh">Daftarda bor mijoz &mdash; ismi yoki telefoni bo'yicha topamiz</span>
+    </a>
+
+    <a class="tugma ulkan yashil" href="{% url 'qarz:yangi_qarzdor' %}">
+      Yangi qarzdor
+      <span class="izoh">Birinchi marta qarz olyapti &mdash; ma'lumotini yozamiz</span>
+    </a>
+  </div>
+
+  <div class="quti" style="margin-top:14px">
+    <div class="qator">
+      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">Qarzdorlar ro'yxati</a>
+      <a class="tugma oq" href="{% url 'ombor:royxat' %}">Ombor (sklad)</a>
+      <a class="tugma oq" href="{% url 'ombor:mahsulot_yangi' %}">Omborga tovar qo'shish</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

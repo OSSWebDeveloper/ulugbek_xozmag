@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:620px">
+  <div class="sarlavha">Kirim: {{ mahsulot.nom }}</div>
+
+  <div class="quti">
+    <div style="font-size:20px;margin-bottom:10px">
+      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq_son }} {{ mahsulot.birlik }}</b>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      {% for maydon in form %}
+        <div class="maydon">
+          <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
+          {{ maydon }}
+          {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="qator" style="margin-top:18px">
+        <a class="tugma oq" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
+        <button type="submit" class="tugma yashil" style="flex:2">Omborga qo'shish</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">{{ mahsulot.nom }} &mdash; kirim/chiqim tarixi</div>
+
+  <div class="quti">
+    <div style="font-size:20px;margin-bottom:10px">
+      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq_son }} {{ mahsulot.birlik }}</b>
+    </div>
+    <table class="jadval">
+      <thead>
+        <tr><th>Sana</th><th>Turi</th><th class="son">Miqdor</th><th>Izoh</th></tr>
+      </thead>
+      <tbody>
+        {% for h in harakatlar %}
+          <tr>
+            <td>{{ h.sana|date:"d.m.Y H:i" }}</td>
+            <td>{{ h.get_tur_display }}</td>
+            <td class="son">{{ h.miqdor|floatformat:"-3" }}</td>
+            <td>{{ h.izoh }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="bosh-holat">Harakat yo'q.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <a class="tugma oq" href="{% url 'ombor:royxat' %}">&larr; Omborga qaytish</a>
+</div>
+{% endblock %}

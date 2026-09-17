@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block sarlavha %}Qarz yozish &mdash; {{ qarzdor.toliq_ism }}{% endblock %}
+
+{% block tana %}
+<div class="kassa">
+
+  {# ------------- CHAP: qarz qatorlari ------------- #}
+  <div>
+    <div class="chek">
+      <div class="chek-bosh">
+        <span>
+          {{ qarzdor.toliq_ism }}
+          <span class="kichkina">&nbsp;|&nbsp; {{ qarzdor.hudud.nom }}
+            {% if qarzdor.telefon %}&nbsp;|&nbsp; {{ qarzdor.telefon }}{% endif %}</span>
+        </span>
+        <span class="kichkina">
+          Eski qarzi: <b>{{ qarzdor.balans|floatformat:0 }}</b> so'm &nbsp;|&nbsp; Hujjat #{{ qarz.pk }}
+        </span>
+      </div>
+
+      {% if qatorlar %}
+        <table class="jadval">
+          <thead>
+            <tr>
+              <th style="width:1%">#</th>
+              <th>Tovar</th>
+              <th class="son">Miqdor</th>
+              <th class="son">Narxi</th>
+              <th class="son">Summa</th>
+              <th style="width:1%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for qator in qatorlar %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><b>{{ qator.mahsulot_nomi }}</b></td>
+                <td class="son">{{ qator.miqdor|floatformat:"-3" }} {{ qator.birlik }}</td>
+                <td class="son">{{ qator.narx|floatformat:0 }}</td>
+                <td class="son"><b>{{ qator.summa|floatformat:0 }}</b></td>
+                <td>
+                  <form method="post" action="{% url 'qarz:qator_ochirish' qator.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="tugma kichik qizil">O'chirish</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="bosh-holat">
+          Hali tovar qo'shilmadi.<br>
+          O'ng tarafdagi <b>&laquo;Yangi tovar&raquo;</b> tugmasini bosing.
+        </div>
+      {% endif %}
+
+      <div class="jami-satr">
+        <span>JAMI</span>
+        <span>{{ qarz.jami|floatformat:0 }} so'm</span>
+      </div>
+    </div>
+
+    <div class="qator" style="margin-top:10px">
+      <a class="tugma oq" href="{% url 'qarz:qarzdor_karta' qarzdor.pk %}" style="flex:1">Qarzdor kartasi</a>
+      <form method="post" action="{% url 'qarz:qarz_yakunlash' qarz.pk %}" style="flex:2; display:flex">
+        {% csrf_token %}
+        <button type="submit" class="tugma yashil keng">Yakunlash va daftarga yozish</button>
+      </form>
+    </div>
+  </div>
+
+  {# ------------- O'NG: raqamlar klaviaturasi ------------- #}
+  <div class="ong-panel">
+    <button type="button" class="tugma keng sariq" id="yangi-tovar" style="margin-bottom:10px">
+      + Yangi tovar <span class="yorliq-tugma faqat-sichqoncha">F2</span>
+    </button>
+
+    <form method="post" action="{% url 'qarz:qator_qoshish' qarz.pk %}" id="qator-forma">
+      {% csrf_token %}
+      <input type="hidden" name="mahsulot" id="mahsulot-id">
+
+      <div class="tanlangan-tovar" id="tanlangan">
+        <div class="nom" style="color:#6b6b6b">Tovar tanlanmagan</div>
+      </div>
+
+      <div class="kiritish-maydon faol" data-maydon="miqdor">
+        <span class="nomi">Miqdor</span>
+        <input type="text" class="qiymat raqam-maydon" name="miqdor" id="miqdor"
+               inputmode="decimal" autocomplete="off" data-numpadsiz placeholder="0">
+        <span class="birlik" id="miqdor-birlik">&mdash;</span>
+      </div>
+
+      <div class="kiritish-maydon" data-maydon="narx">
+        <span class="nomi">Narxi</span>
+        <input type="text" class="qiymat raqam-maydon" name="narx" id="narx"
+               inputmode="decimal" autocomplete="off" data-numpadsiz placeholder="0">
+        <span class="birlik">so'm</span>
+      </div>
+
+      <div class="summa-satr">
+        <span>SUMMA</span>
+        <span id="summa">0</span>
+      </div>
+
+      <div class="raqamlar" id="raqamlar">
+        <button type="button" class="tugma" data-raqam="7">7</button>
+        <button type="button" class="tugma" data-raqam="8">8</button>
+        <button type="button" class="tugma" data-raqam="9">9</button>
+        <button type="button" class="tugma" data-raqam="4">4</button>
+        <button type="button" class="tugma" data-raqam="5">5</button>
+        <button type="button" class="tugma" data-raqam="6">6</button>
+        <button type="button" class="tugma" data-raqam="1">1</button>
+        <button type="button" class="tugma" data-raqam="2">2</button>
+        <button type="button" class="tugma" data-raqam="3">3</button>
+        <button type="button" class="tugma" data-raqam="0">0</button>
+        <button type="button" class="tugma amal" data-raqam=".">,</button>
+        <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+      </div>
+
+      <div class="qator tor" style="gap:6px">
+        <button type="button" class="tugma qizil" style="flex:1" id="tozala-tugma"
+                title="Kiritilganni tozalash">C</button>
+        <button type="submit" class="tugma yashil" style="flex:3" id="qosh-tugma" disabled>
+          Qo'shish <span class="yorliq-tugma faqat-sichqoncha">Enter</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ------------- Tovar tanlash oynasi ------------- #}
+<div class="oyna-fon" id="tovar-oyna">
+  <div class="oyna">
+    <div class="oyna-bosh">
+      <span>Skladdan tovar tanlang</span>
+      <button type="button" class="tugma qizil kichik" data-yop>Yopish (Esc)</button>
+    </div>
+    <div class="oyna-tana">
+      <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomini yozing..."
+             autocomplete="off" style="margin-bottom:10px">
+      <div class="tovar-setka">
+        {% for m in mahsulotlar %}
+          <button type="button" class="tovar-karta {% if m.qoldiq <= 0 %}yoq{% endif %}"
+                  data-id="{{ m.pk }}" data-nom="{{ m.nom }}"
+                  data-narx="{{ m.narx|stringformat:'f' }}"
+                  data-qoldiq="{{ m.qoldiq_son }}" data-birlik="{{ m.birlik }}">
+            <span class="t-nom">{{ m.nom }}</span>
+            <span class="t-narx">{{ m.narx|floatformat:0 }} so'm / {{ m.birlik }}</span>
+            <span class="t-qoldiq">
+              {% if m.qoldiq > 0 %}Omborda: {{ m.qoldiq_son }} {{ m.birlik }}
+              {% else %}TUGAGAN{% endif %}
+            </span>
+          </button>
+        {% empty %}
+          <div class="bosh-holat">
+            Sklad bo'sh.
+            <a class="tugma yashil" href="{% url 'ombor:mahsulot_yangi' %}">Tovar qo'shish</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block skript %}
+<script src="{% static 'js/kassa.js' %}"></script>
+{% endblock %}
