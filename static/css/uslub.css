@@ -155,15 +155,33 @@ body.rejim-sensor .tugma.kichik .ikon { width: 19px; height: 19px; }
 .ikon { width: 20px; height: 20px; flex: none; }
 .tugma.kichik .ikon { width: 16px; height: 16px; }
 
-/* Bosh sahifadagi ulkan tanlov kartalari */
-.tanlov {
+/* Bosh sahifa: kvadrat tanlov kartalari, ekran o'rtasida */
+.bosh-sahifa {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 210px;
-  padding: 28px;
+  gap: var(--oraliq);
+}
+.tanlov-setka {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--oraliq);
+  width: 100%;
+  max-width: 720px;
+}
+.tanlov-setka.uchta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.tanlov {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 20px;
   border-radius: var(--radius);
   border: 1px solid var(--chegara);
   background: var(--panel);
@@ -173,18 +191,40 @@ body.rejim-sensor .tugma.kichik .ikon { width: 19px; height: 19px; }
   cursor: pointer;
   transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
-.tanlov:hover { transform: translateY(-3px); box-shadow: var(--soya-2); border-color: var(--chegara-2); }
+.tanlov:hover { transform: translateY(-3px); box-shadow: var(--soya-2); border-color: var(--asosiy); }
+.tanlov:active { transform: translateY(0); }
 .tanlov .belgi {
-  width: 52px; height: 52px;
+  width: 62px; height: 62px;
   display: grid; place-items: center;
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--asosiy-yengil);
   color: var(--asosiy);
 }
-.tanlov .belgi .ikon { width: 26px; height: 26px; }
+.tanlov .belgi .ikon { width: 30px; height: 30px; }
 .tanlov.yangi .belgi { background: var(--yashil-yengil); color: var(--yashil); }
-.tanlov .bosh { font-size: calc(var(--katta-matn) + 5px); font-weight: 700; letter-spacing: -.02em; }
-.tanlov .izoh { color: var(--matn-2); font-size: var(--matn); }
+.tanlov.yangi:hover { border-color: var(--yashil); }
+.tanlov .bosh {
+  font-size: calc(var(--katta-matn) + 3px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+.tanlov .izoh { color: var(--matn-2); font-size: 14px; line-height: 1.35; }
+
+/* Yordamchi kvadratchalar */
+.tanlov.kichik { gap: 10px; padding: 14px; }
+.tanlov.kichik .belgi { width: 46px; height: 46px; border-radius: 14px; background: var(--panel-2); color: var(--matn-2); }
+.tanlov.kichik .belgi .ikon { width: 23px; height: 23px; }
+.tanlov.kichik .bosh { font-size: var(--matn); font-weight: 600; }
+.tanlov.kichik:hover .belgi { background: var(--asosiy-yengil); color: var(--asosiy); }
+
+/* Past ekranda kartalar kichrayadi, scroll chiqmasin */
+@media (max-height: 760px) {
+  .tanlov-setka { max-width: 600px; }
+}
+@media (max-height: 640px) {
+  .tanlov-setka { max-width: 480px; }
+}
 
 /* ---------- Sahifa ---------- */
 .sahifa { padding: var(--oraliq); flex: 1; min-height: 0; overflow: auto; }

@@ -1,13 +1,8 @@
 {% extends "base.html" %}
 
 {% block tana %}
-<div class="sahifa-keng">
-  <div class="sarlavha">
-    Qarzdor keldi
-    <span class="kichik">— qaysi biri?</span>
-  </div>
-
-  <div class="qator">
+<div class="bosh-sahifa">
+  <div class="tanlov-setka">
     <a class="tanlov" href="{% url 'qarz:qidirish' %}">
       <span class="belgi"><svg class="ikon"><use href="#i-qidir"></use></svg></span>
       <span class="bosh">Oldin qarz olgan</span>
@@ -21,18 +16,19 @@
     </a>
   </div>
 
-  <div class="quti" style="margin-top:var(--oraliq)">
-    <div class="qator">
-      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">
-        <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdorlar ro'yxati
-      </a>
-      <a class="tugma oq" href="{% url 'ombor:royxat' %}">
-        <svg class="ikon"><use href="#i-quti"></use></svg> Ombor (sklad)
-      </a>
-      <a class="tugma oq" href="{% url 'ombor:mahsulot_yangi' %}">
-        <svg class="ikon"><use href="#i-plus"></use></svg> Omborga tovar qo'shish
-      </a>
-    </div>
+  <div class="tanlov-setka uchta">
+    <a class="tanlov kichik" href="{% url 'qarz:qarzdorlar' %}">
+      <span class="belgi"><svg class="ikon"><use href="#i-odamlar"></use></svg></span>
+      <span class="bosh">Qarzdorlar</span>
+    </a>
+    <a class="tanlov kichik" href="{% url 'ombor:royxat' %}">
+      <span class="belgi"><svg class="ikon"><use href="#i-quti"></use></svg></span>
+      <span class="bosh">Ombor</span>
+    </a>
+    <a class="tanlov kichik" href="{% url 'ombor:mahsulot_yangi' %}">
+      <span class="belgi"><svg class="ikon"><use href="#i-plus"></use></svg></span>
+      <span class="bosh">Tovar qo'shish</span>
+    </a>
   </div>
 </div>
 {% endblock %}
