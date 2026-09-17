@@ -34,21 +34,29 @@ python manage.py createsuperuser
    - oxirida **Yakunlash** — qarz daftarga yoziladi.
 5. **Qarzdor kartasi** — jami olgan / to'lagan / qolgan qarz, qarzlar tarixi, to'lov qabul qilish.
 
-## Sensor / sichqoncha rejimi
+## Sensor rejimi
 
-O'ng yuqoridagi **richag** ikki rejimni almashtiradi (tanlov brauzerda saqlanadi):
+Yon menyu ostidagi **richag** sensor rejimini yoqadi/o'chiradi (tanlov brauzerda saqlanadi).
+U faqat shu narsalarni o'zgartiradi — o'lchamlar va joylashuv **o'zgarmaydi**:
 
-| | Sichqoncha rejimi | Sensor rejimi |
+| | O'chiq (sichqoncha) | Yoniq (sensor) |
 |---|---|---|
-| Tugma balandligi | 52 px | 66 px |
-| Shrift | 15 px | 18 px |
-| Raqam maydoni bosilganda | klaviaturadan yoziladi | ekranda numpad chiqadi |
+| O'ngdagi raqamlar klaviaturasi | yo'q | bor |
+| Raqam maydoni bosilganda | klaviaturadan yoziladi | ekranda numpad qalqib chiqadi |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
+
+## Ish tartibi: naqd sotuv
+
+Bosh sahifadagi **Sotuv** — qarzga yozilmaydigan savdo: tovarlar qo'shiladi,
+«Mijoz berdi» ga olingan pul kiritiladi, qaytim o'zi hisoblanadi, yakunlangach
+tovarlar ombordan ayriladi. Kunlik tushum **Sotuvlar** sahifasida ko'rinadi.
 
 ## Tuzilishi
 
 - `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov
-- `ombor/` — Mahsulot, OmborHarakati (kirim/chiqim tarixi)
+- `sotuv/` — Sotuv, SotuvQator (naqd savdo)
+- `ombor/` — Mahsulot, OmborHarakati; `ombor/xizmat.py` — qoldiqni o'zgartiruvchi
+  yagona joy (qarz ham, sotuv ham shuni chaqiradi)
 - `templates/`, `static/css/uslub.css`, `static/js/` — interfeys
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 
