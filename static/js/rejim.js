@@ -3,6 +3,7 @@
   "use strict";
 
   var KALIT = "ux_rejim";
+  var MAVZU_KALIT = "ux_mavzu";
 
   function rejimniOqi() {
     try {
@@ -27,6 +28,28 @@
 
   function sensorMi() {
     return document.body.classList.contains("rejim-sensor");
+  }
+
+  // ---------- Kechki / kunduzgi ko'rinish ----------
+  function mavzuniOqi() {
+    try {
+      return localStorage.getItem(MAVZU_KALIT) === "kunduzgi" ? "kunduzgi" : "kechki";
+    } catch (e) {
+      return "kechki";
+    }
+  }
+
+  function mavzuniQoy(mavzu) {
+    document.body.classList.toggle("kunduzgi", mavzu === "kunduzgi");
+    var richag = document.getElementById("mavzu-richag");
+    if (richag) richag.setAttribute("aria-pressed", mavzu === "kechki" ? "true" : "false");
+    try {
+      localStorage.setItem(MAVZU_KALIT, mavzu);
+    } catch (e) { /* localStorage yopiq bo'lsa ham ishlayversin */ }
+  }
+
+  function kechkimi() {
+    return !document.body.classList.contains("kunduzgi");
   }
 
   // ---------- Qalqib chiquvchi numpad ----------
@@ -120,6 +143,14 @@
   // ---------- Ishga tushirish ----------
   document.addEventListener("DOMContentLoaded", function () {
     rejimniQoy(rejimniOqi());
+    mavzuniQoy(mavzuniOqi());
+
+    var mavzuRichag = document.getElementById("mavzu-richag");
+    if (mavzuRichag) {
+      mavzuRichag.addEventListener("click", function () {
+        mavzuniQoy(kechkimi() ? "kunduzgi" : "kechki");
+      });
+    }
 
     var richag = document.getElementById("richag");
     if (richag) {

@@ -35,9 +35,59 @@
   --kok: #4d8dff;
   --kok-fon: rgba(77, 141, 255, .14);
 
+  --asosiy-matn: #22190a;   /* sariq tugma ustidagi yozuv */
+  --tasdiq-matn: #0a2617;   /* yashil tugma ustidagi yozuv */
+
   --soya: 0 2px 6px rgba(0, 0, 0, .35);
   --soya-2: 0 10px 30px rgba(0, 0, 0, .45);
 }
+
+/* ================= Kunduzgi mavzu =================
+   Kechki rejim o'chirilganda shu ranglar ishlaydi. */
+body.kunduzgi {
+  --fon: #eceff4;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --panel-3: #e8ecf2;
+  --chegara: #dce2ea;
+  --chegara-2: #c2cbd8;
+
+  --matn-rang: #121820;
+  --matn-2: #55636f;
+  --matn-3: #7d8b9a;
+
+  --urgu: #e29100;
+  --urgu-quyuq: #c87d00;
+  --urgu-fon: rgba(226, 145, 0, .15);
+  --tasdiq: #0b7d45;
+  --tasdiq-quyuq: #096637;
+  --tasdiq-fon: rgba(11, 125, 69, .12);
+  --xato: #d93025;
+  --xato-fon: rgba(217, 48, 37, .1);
+  --kok: #1a67d2;
+  --kok-fon: rgba(26, 103, 210, .12);
+
+  --asosiy-matn: #2b1f00;
+  --tasdiq-matn: #ffffff;
+
+  --soya: 0 1px 3px rgba(16, 24, 40, .12);
+  --soya-2: 0 14px 34px rgba(16, 24, 40, .2);
+}
+/* Oddiy (rangsiz) tugmalar kunduzgi mavzuda oq fonda turadi */
+body.kunduzgi .tugma:not(.asosiy):not(.yashil):not(.tinch):not(.xato) { background: var(--panel); }
+body.kunduzgi .tugma:not(.asosiy):not(.yashil):not(.xato):hover {
+  background: var(--panel-3); border-color: var(--chegara-2);
+}
+body.kunduzgi .richag .dasta { background: #ffffff; }
+body.kunduzgi ::-webkit-scrollbar-track { background: var(--panel-2); }
+body.kunduzgi ::-webkit-scrollbar-thumb { background: #c2cbd8; }
+body.kunduzgi .oyna-fon { background: rgba(16, 24, 40, .45); }
+body.kunduzgi .tugma.xato { color: var(--xato); }
+body.kunduzgi .xabar.success { color: #0b5b35; }
+body.kunduzgi .xabar.error { color: #a01b12; }
+body.kunduzgi .xabar.warning { color: #8a5a00; }
+body.kunduzgi .xabar.info { color: #14539c; }
+body.kunduzgi .qaytim-quti .nomi { color: #0b7d45; }
 
 /* Rejim richagi o'lchamlarga tegmaydi: u faqat raqamlar klaviaturasini
    ko'rsatadi yoki yashiradi. Shuning uchun ekran "sakramaydi". */
@@ -76,11 +126,11 @@ body {
 }
 
 .yon-menyu .logo {
+  color: var(--asosiy-matn);
   width: 46px; height: 46px;
   display: grid; place-items: center;
   border-radius: 12px;
   background: linear-gradient(150deg, var(--urgu), var(--urgu-quyuq));
-  color: #22190a;
   margin-bottom: 8px;
   flex: none;
 }
@@ -144,9 +194,15 @@ body {
   border-radius: 50%;
   transition: left .18s cubic-bezier(.4, 0, .2, 1), background .18s ease;
 }
-body.rejim-sensor .richag { color: var(--tasdiq); border-color: rgba(46, 204, 113, .35); }
-body.rejim-sensor .richag .yo-l { background: var(--tasdiq); }
-body.rejim-sensor .richag .dasta { left: 23px; background: #0d2a19; }
+/* Sensor richagi yoqiq */
+body.rejim-sensor #richag { color: var(--tasdiq); border-color: rgba(46, 204, 113, .35); }
+body.rejim-sensor #richag .yo-l { background: var(--tasdiq); }
+body.rejim-sensor #richag .dasta { left: 23px; }
+
+/* Kechki rejim richagi yoqiq (sayt quyuq turganda) */
+body:not(.kunduzgi) #mavzu-richag { color: var(--kok); border-color: rgba(77, 141, 255, .35); }
+body:not(.kunduzgi) #mavzu-richag .yo-l { background: var(--kok); }
+body:not(.kunduzgi) #mavzu-richag .dasta { left: 23px; }
 
 /* ================= Ish maydoni ================= */
 .ish {
@@ -214,9 +270,9 @@ body.rejim-sensor .richag .dasta { left: 23px; background: #0d2a19; }
 .tugma:active { transform: translateY(1px); }
 .tugma:focus-visible { outline: 2px solid var(--urgu); outline-offset: 2px; }
 
-.tugma.asosiy { background: var(--urgu); border-color: var(--urgu); color: #22190a; }
+.tugma.asosiy { background: var(--urgu); border-color: var(--urgu); color: var(--asosiy-matn); }
 .tugma.asosiy:hover { background: var(--urgu-quyuq); border-color: var(--urgu-quyuq); }
-.tugma.yashil { background: var(--tasdiq); border-color: var(--tasdiq); color: #0a2617; }
+.tugma.yashil { background: var(--tasdiq); border-color: var(--tasdiq); color: var(--tasdiq-matn); }
 .tugma.yashil:hover { background: var(--tasdiq-quyuq); border-color: var(--tasdiq-quyuq); }
 .tugma.tinch { background: transparent; border-color: var(--chegara); color: var(--matn-2); }
 .tugma.tinch:hover { background: var(--panel-2); color: var(--matn-rang); }
@@ -693,6 +749,77 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
 .qaytim-quti .qiymati {
   font-size: calc(var(--katta-matn) + 4px); font-weight: 700;
   letter-spacing: -.02em; color: var(--tasdiq); font-variant-numeric: tabular-nums;
+}
+
+/* ================= Ekran klaviaturasi ================= */
+.kb-panel {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--chegara-2);
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, .35);
+}
+.kb-panel.ochiq { display: flex; }
+
+.kb-bosh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--oraliq);
+}
+.kb-nomi {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--matn-3);
+}
+
+.kb-qator { display: flex; gap: 6px; justify-content: center; }
+
+.kb-tugma {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--matn-rang);
+  background: var(--panel-2);
+  border: 1px solid var(--chegara);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .1s ease, transform .08s ease;
+}
+.kb-tugma:hover { background: var(--panel-3); }
+.kb-tugma:active { transform: translateY(1px); background: var(--urgu-fon); border-color: var(--urgu); }
+
+.kb-tugma.kb-amal { flex: 1.5; font-size: 15px; color: var(--matn-2); background: var(--panel-3); }
+.kb-tugma.kb-amal.yoqiq { background: var(--urgu); border-color: var(--urgu); color: var(--asosiy-matn); }
+.kb-tugma.kb-bosh-joy { flex: 6; font-size: 14px; color: var(--matn-2); }
+.kb-tugma.kb-apostrof { flex: 1.2; }
+.kb-tugma.kb-tayyor {
+  flex: 2.4;
+  font-size: 15px;
+  background: var(--tasdiq);
+  border-color: var(--tasdiq);
+  color: var(--tasdiq-matn);
+}
+.kb-tugma.kb-tayyor:hover { background: var(--tasdiq-quyuq); }
+
+/* Klaviatura ochiqda modal oyna biroz tepaga suriladi */
+body.kb-ochiq .oyna { max-height: 52vh; }
+
+@media (max-height: 620px) {
+  .kb-tugma { min-height: 42px; font-size: 17px; }
+  .kb-panel { gap: 5px; padding: 8px 10px 10px; }
 }
 
 /* ================= Tovar tanlash oynasi ================= */

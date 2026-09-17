@@ -34,16 +34,24 @@ python manage.py createsuperuser
    - oxirida **Yakunlash** — qarz daftarga yoziladi.
 5. **Qarzdor kartasi** — jami olgan / to'lagan / qolgan qarz, qarzlar tarixi, to'lov qabul qilish.
 
-## Sensor rejimi
+## Ikkita richag
 
-Yon menyu ostidagi **richag** sensor rejimini yoqadi/o'chiradi (tanlov brauzerda saqlanadi).
-U faqat shu narsalarni o'zgartiradi — o'lchamlar va joylashuv **o'zgarmaydi**:
+Yon menyu ostida ikkita richag bor, ikkalasining tanlovi ham brauzerda saqlanadi.
 
-| | O'chiq (sichqoncha) | Yoniq (sensor) |
+**Sensor** — o'lchamlar va joylashuvni **o'zgartirmaydi**, faqat:
+
+| | O'chiq | Yoniq |
 |---|---|---|
 | O'ngdagi raqamlar klaviaturasi | yo'q | bor |
-| Raqam maydoni bosilganda | klaviaturadan yoziladi | ekranda numpad qalqib chiqadi |
+| Raqamli maydon bosilganda | klaviaturadan yoziladi | numpad qalqib chiqadi |
+| Matn maydoni bosilganda | klaviaturadan yoziladi | saytning o'z ekran klaviaturasi chiqadi |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
+
+**Kechki** — quyuq (yoqiq) va yorug' (o'chiq) ko'rinish o'rtasida almashtiradi.
+
+Ekran klaviaturasi (`static/js/klaviatura.js`) Windows klaviaturasi emas, saytning o'ziniki:
+QWERTY, katta harf (⇧), raqam/belgi rejimi (123) va o'zbekcha apostrof (`o'`, `g'`) uchun
+alohida tugma.
 
 ## Ish tartibi: naqd sotuv
 
