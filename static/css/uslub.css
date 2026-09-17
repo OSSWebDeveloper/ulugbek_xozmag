@@ -730,7 +730,52 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
   border-bottom: 1px solid var(--chegara);
   background: var(--panel-2);
 }
+.oyna-qidiruv { padding: var(--oraliq) var(--oraliq) 0; flex: none; position: relative; z-index: 5; }
 .oyna-tana { padding: var(--oraliq); overflow: auto; }
+
+/* Qidiruv maydoni ostidagi tezkor ro'yxat.
+   Pastdagi tovar kartalari filtrlanmaydi — ular joyida qoladi. */
+.qidiruv-quti { position: relative; }
+.tovar-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0; right: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--chegara-2);
+  border-radius: var(--radius-s);
+  box-shadow: var(--soya-2);
+  max-height: 44vh;
+  overflow: auto;
+  z-index: 10;
+  display: none;
+}
+.tovar-dropdown.ochiq { display: block; }
+.dropdown-qator {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--chegara);
+  color: var(--matn-rang);
+  font-family: inherit;
+  font-size: var(--matn);
+  text-align: left;
+  cursor: pointer;
+}
+.dropdown-qator:last-child { border-bottom: none; }
+.dropdown-qator:hover, .dropdown-qator.nishonda { background: var(--panel-3); }
+.dropdown-qator .d-nom { flex: 1; font-weight: 600; }
+.dropdown-qator .d-nom mark { background: var(--urgu-fon); color: var(--urgu); padding: 0 1px; border-radius: 3px; }
+.dropdown-qator .d-narx {
+  color: var(--urgu); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.dropdown-qator .d-qoldiq { color: var(--matn-2); font-size: 12px; white-space: nowrap; }
+.dropdown-qator.yoq { opacity: .45; cursor: not-allowed; }
+.dropdown-qator.yoq:hover { background: transparent; }
+.dropdown-bosh { padding: 14px; color: var(--matn-2); text-align: center; }
 
 .tovar-setka {
   display: grid;

@@ -10,9 +10,14 @@ Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
         <svg class="ikon"><use href="#i-yopish"></use></svg> Yopish (Esc)
       </button>
     </div>
+    <div class="oyna-qidiruv">
+      <div class="qidiruv-quti">
+        <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomini yozing..."
+               autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tovar-dropdown">
+        <div class="tovar-dropdown" id="tovar-dropdown" role="listbox"></div>
+      </div>
+    </div>
     <div class="oyna-tana">
-      <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomini yozing..."
-             autocomplete="off" style="margin-bottom:var(--oraliq)">
       <div class="tovar-setka">
         {% for m in mahsulotlar %}
           <button type="button" class="tovar-karta {% if m.qoldiq <= 0 %}yoq{% endif %}"

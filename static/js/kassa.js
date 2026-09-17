@@ -83,19 +83,83 @@
   function oynaOch() {
     oyna.classList.add("ochiq");
     qidiruv.value = "";
-    filtrla("");
+    dropdownYop();
     if (!sensorMi()) qidiruv.focus();
   }
 
   function oynaYop() {
     oyna.classList.remove("ochiq");
+    dropdownYop();
   }
 
-  function filtrla(matn) {
-    var q = matn.toLowerCase().trim();
-    document.querySelectorAll(".tovar-karta").forEach(function (k) {
-      k.style.display = !q || k.dataset.nom.toLowerCase().indexOf(q) !== -1 ? "" : "none";
+  // ---------- Qidiruv dropdowni ----------
+  // Pastdagi kartalar hech qachon yashirilmaydi; natijalar maydon ostida chiqadi.
+  var dropdown, nishonda = -1;
+
+  function himoya(matn) {
+    return matn.replace(/[&<>"]/g, function (b) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[b];
     });
+  }
+
+  function belgila(nom, soz) {
+    var joy = nom.toLowerCase().indexOf(soz);
+    if (joy === -1) return himoya(nom);
+    return himoya(nom.slice(0, joy)) + "<mark>" + himoya(nom.slice(joy, joy + soz.length)) +
+           "</mark>" + himoya(nom.slice(joy + soz.length));
+  }
+
+  function dropdownYop() {
+    dropdown.classList.remove("ochiq");
+    dropdown.innerHTML = "";
+    qidiruv.setAttribute("aria-expanded", "false");
+    nishonda = -1;
+  }
+
+  function dropdownYangila() {
+    var soz = qidiruv.value.toLowerCase().trim();
+    if (!soz) return dropdownYop();
+
+    var topilgan = [].slice.call(document.querySelectorAll(".tovar-karta"))
+      .filter(function (k) { return k.dataset.nom.toLowerCase().indexOf(soz) !== -1; });
+
+    if (!topilgan.length) {
+      dropdown.innerHTML = '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
+    } else {
+      dropdown.innerHTML = topilgan.map(function (k) {
+        var yoq = k.classList.contains("yoq");
+        return '<button type="button" class="dropdown-qator' + (yoq ? " yoq" : "") +
+          '" role="option" data-id="' + k.dataset.id + '">' +
+          '<span class="d-nom">' + belgila(k.dataset.nom, soz) + "</span>" +
+          '<span class="d-narx">' + chiroyli(son(k.dataset.narx)) + "</span>" +
+          '<span class="d-qoldiq">' +
+          (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik) + "</span></button>";
+      }).join("");
+    }
+    dropdown.classList.add("ochiq");
+    qidiruv.setAttribute("aria-expanded", "true");
+    nishonda = -1;
+  }
+
+  function qatorlar() {
+    return dropdown.querySelectorAll(".dropdown-qator:not(.yoq)");
+  }
+
+  function nishonQoy(yangi) {
+    var r = qatorlar();
+    if (!r.length) return;
+    r.forEach(function (el) { el.classList.remove("nishonda"); });
+    nishonda = (yangi + r.length) % r.length;
+    r[nishonda].classList.add("nishonda");
+    r[nishonda].scrollIntoView({ block: "nearest" });
+  }
+
+  function dropdowndanTanla(id) {
+    var karta = document.querySelector('.tovar-karta[data-id="' + id + '"]');
+    if (karta && !karta.classList.contains("yoq")) {
+      dropdownYop();
+      tovarTanla(karta);
+    }
   }
 
   // ---------- Naqd sotuv: mijoz bergan pul -> qaytim ----------
@@ -132,12 +196,38 @@
     document.getElementById("yangi-tovar").addEventListener("click", oynaOch);
     document.getElementById("tozala-tugma").addEventListener("click", tozalaHammasi);
 
+    dropdown = document.getElementById("tovar-dropdown");
+
     oyna.addEventListener("click", function (e) {
       if (e.target === oyna || e.target.closest("[data-yop]")) return oynaYop();
+
+      var qator = e.target.closest(".dropdown-qator");
+      if (qator) {
+        if (!qator.classList.contains("yoq")) dropdowndanTanla(qator.dataset.id);
+        return;
+      }
+      // Ro'yxatdan tashqariga bosilsa ro'yxat yopiladi
+      if (!e.target.closest(".qidiruv-quti")) dropdownYop();
+
       var karta = e.target.closest(".tovar-karta");
       if (karta && !karta.classList.contains("yoq")) tovarTanla(karta);
     });
-    qidiruv.addEventListener("input", function () { filtrla(this.value); });
+
+    qidiruv.addEventListener("input", dropdownYangila);
+    qidiruv.addEventListener("keydown", function (e) {
+      if (!dropdown.classList.contains("ochiq")) return;
+      if (e.key === "ArrowDown") { e.preventDefault(); nishonQoy(nishonda + 1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); nishonQoy(nishonda - 1); }
+      else if (e.key === "Enter") {
+        e.preventDefault();
+        var r = qatorlar();
+        var tanlov = nishonda >= 0 ? r[nishonda] : r[0];
+        if (tanlov) dropdowndanTanla(tanlov.dataset.id);
+      } else if (e.key === "Escape") {
+        e.stopPropagation();
+        dropdownYop();
+      }
+    });
 
     // Maydonni bosish uni faol qiladi (numpad shunga yozadi)
     document.querySelectorAll("[data-maydon]").forEach(function (el) {
