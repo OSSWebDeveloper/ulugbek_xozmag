@@ -40,8 +40,8 @@ O'ng yuqoridagi **richag** ikki rejimni almashtiradi (tanlov brauzerda saqlanadi
 
 | | Sichqoncha rejimi | Sensor rejimi |
 |---|---|---|
-| Tugma balandligi | 56 px | 82 px |
-| Shrift | 17 px | 21 px |
+| Tugma balandligi | 52 px | 66 px |
+| Shrift | 15 px | 18 px |
 | Raqam maydoni bosilganda | klaviaturadan yoziladi | ekranda numpad chiqadi |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
 
@@ -49,7 +49,8 @@ O'ng yuqoridagi **richag** ikki rejimni almashtiradi (tanlov brauzerda saqlanadi
 
 - `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov
 - `ombor/` — Mahsulot, OmborHarakati (kirim/chiqim tarixi)
-- `templates/`, `static/css/uslub.css`, `static/js/` — sodda kassa uslubidagi interfeys
+- `templates/`, `static/css/uslub.css`, `static/js/` — interfeys
+- `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 
 ## Keyin qilinadigan ishlar
 
