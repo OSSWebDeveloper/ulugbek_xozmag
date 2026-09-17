@@ -21,10 +21,10 @@
 
 /* Sensorli rejim: hamma narsa kattalashadi */
 body.rejim-sensor {
-  --tugma-balandlik: 82px;
-  --matn: 21px;
-  --katta-matn: 28px;
-  --oraliq: 14px;
+  --tugma-balandlik: 72px;   /* barmoq uchun yetarli, ekranga sig'adi */
+  --matn: 20px;
+  --katta-matn: 26px;
+  --oraliq: 12px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +35,10 @@ body {
   background: var(--fon);
   color: var(--matn-rang);
   -webkit-tap-highlight-color: transparent;
+  /* Kassa ekrani scroll qilinmasligi uchun: sahifa - to'liq ekran ustuni */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---------- Yuqori panel ---------- */
@@ -59,6 +63,9 @@ body {
 }
 
 .bosh-panel nav { display: flex; gap: var(--oraliq); flex: 1; }
+/* Navigatsiya kamdan-kam bosiladi - u sensorli rejimda ham ixcham qoladi */
+.bosh-panel .tugma { min-height: 50px; }
+body.rejim-sensor .bosh-panel .tugma { min-height: 58px; }
 .bosh-panel .ong { margin-left: auto; display: flex; align-items: center; gap: var(--oraliq); }
 
 /* ---------- Tugmalar ---------- */
@@ -90,7 +97,8 @@ body {
 .tugma.qizil { background: var(--qizil); }
 .tugma.oq { background: var(--panel); color: var(--matn-rang); }
 .tugma.sariq { background: var(--sariq); color: #111; }
-.tugma.kichik { min-height: 40px; padding: 0 12px; font-size: 15px; border-width: 2px; }
+.tugma.kichik { min-height: 40px; padding: 0 12px; font-size: 15px; border-width: 2px;
+                white-space: nowrap; }
 .tugma.keng { width: 100%; }
 .tugma[disabled] { background: var(--kulrang); cursor: not-allowed; opacity: .6; }
 
@@ -111,7 +119,7 @@ body {
 }
 
 /* ---------- Sahifa ---------- */
-.sahifa { padding: var(--oraliq); }
+.sahifa { padding: var(--oraliq); flex: 1; min-height: 0; overflow: auto; }
 .sahifa-keng { max-width: 1400px; margin: 0 auto; }
 .sarlavha {
   font-size: var(--katta-matn);
@@ -181,6 +189,7 @@ table.jadval tr.ogohlantirish td { background: #ffe0e0; }
 .xabarlar { padding: 0 var(--oraliq); }
 .xabar {
   border: 3px solid var(--chegara);
+  flex: none;
   padding: 12px 16px;
   margin-top: var(--oraliq);
   font-weight: 700;
@@ -230,11 +239,22 @@ body.rejim-sensor .richag .dasta { left: 40px; }
   display: grid;
   grid-template-columns: 1fr 420px;
   gap: var(--oraliq);
-  align-items: start;
+  height: 100%;
+  min-height: 0;
 }
-body.rejim-sensor .kassa { grid-template-columns: 1fr 520px; }
+body.rejim-sensor .kassa { grid-template-columns: 1fr 480px; }
+.kassa > div { display: flex; flex-direction: column; min-height: 0; }
 
-.chek { background: var(--panel); border: 3px solid var(--chegara); }
+.chek {
+  background: var(--panel);
+  border: 3px solid var(--chegara);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* Qatorlar ko'payib ketsa faqat shu joy scroll bo'ladi */
+.chek-royxat { flex: 1; min-height: 0; overflow: auto; }
 .chek-bosh {
   background: var(--chegara);
   color: #fff;
@@ -261,7 +281,16 @@ body.rejim-sensor .kassa { grid-template-columns: 1fr 520px; }
 }
 
 /* O'ng panel - raqamlar klaviaturasi */
-.ong-panel { background: var(--panel); border: 3px solid var(--chegara); padding: var(--oraliq); }
+.ong-panel {
+  background: var(--panel);
+  border: 3px solid var(--chegara);
+  padding: var(--oraliq);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ong-panel form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
 .tanlangan-tovar {
   border: 3px solid var(--chegara);
@@ -297,7 +326,7 @@ body.rejim-sensor .kassa { grid-template-columns: 1fr 520px; }
   font-size: calc(var(--katta-matn) + 4px);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  min-height: var(--tugma-balandlik);
+  min-height: calc(var(--tugma-balandlik) * .78);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -311,7 +340,8 @@ body.rejim-sensor .kassa { grid-template-columns: 1fr 520px; }
 .summa-satr {
   display: flex;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 8px 14px;
+  flex: none;
   background: var(--chegara);
   color: #fff;
   font-size: var(--katta-matn);
@@ -324,8 +354,19 @@ body.rejim-sensor .kassa { grid-template-columns: 1fr 520px; }
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-bottom: var(--oraliq);
+  flex: 1;
+  min-height: 200px;   /* bundan pastga siqilmaydi */
 }
-.raqamlar .tugma { padding: 0; font-size: calc(var(--katta-matn) + 6px); background: var(--panel); color: var(--matn-rang); }
+.raqamlar .tugma {
+  padding: 0;
+  font-size: calc(var(--katta-matn) + 6px);
+  background: var(--panel);
+  color: var(--matn-rang);
+  min-height: 0;   /* balandlikni setka beradi */
+  height: 100%;
+}
+/* Juda past ekranda o'ng panel ichida scroll bo'lsin, siqilib ketmasin */
+.ong-panel { overflow: auto; }
 .raqamlar .tugma.amal { background: #d9d9d9; font-size: var(--katta-matn); }
 .raqamlar .tugma.qizil { background: var(--qizil); color: #fff; }
 
@@ -408,3 +449,10 @@ body:not(.rejim-sensor) .faqat-sensor { display: none !important; }
   .bosh-panel { flex-wrap: wrap; }
   .logo { border-right: none; }
 }
+
+/* Raqamli maydon, lekin matn chapda tursin (telefon) */
+.chap-tekis { text-align: left; }
+
+/* Belgilash katakchasi barmoq bilan ham bosilsin */
+input[type="checkbox"] { width: 26px; height: 26px; }
+body.rejim-sensor input[type="checkbox"] { width: 32px; height: 32px; }

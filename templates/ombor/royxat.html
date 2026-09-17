@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load xozmak %}
 
 {% block tana %}
 <div class="sahifa-keng">
@@ -32,8 +33,8 @@
           <tr class="{% if m.qoldiq <= 0 %}ogohlantirish{% endif %}">
             <td><b>{{ m.nom }}</b>{% if not m.faol %} <small>(o'chirilgan)</small>{% endif %}</td>
             <td>{{ m.birlik }}</td>
-            <td class="son">{{ m.narx|floatformat:0 }}</td>
-            <td class="son"><b>{{ m.qoldiq_son }}</b></td>
+            <td class="son">{{ m.narx|pul }}</td>
+            <td class="son"><b>{{ m.qoldiq|tekis }}</b></td>
             <td style="white-space:nowrap">
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">Kirim</a>
               <a class="tugma kichik oq" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">Tahrir</a>

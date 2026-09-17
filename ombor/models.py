@@ -4,6 +4,14 @@ from decimal import Decimal
 from django.db import models
 
 
+def tekis_son(son):
+    """Decimal dan ortiqcha nollarni olib tashlab matn qaytaradi."""
+    son = son or Decimal("0")
+    if son == son.to_integral_value():
+        return f"{son.to_integral_value():f}"
+    return f"{son.normalize():f}"
+
+
 class Birlik(models.TextChoices):
     DONA = "dona", "dona"
     KG = "kg", "kg"
@@ -33,9 +41,13 @@ class Mahsulot(models.Model):
 
     @property
     def qoldiq_son(self):
-        """Qoldiqni chiroyli ko'rsatish uchun: 5.000 -> 5"""
-        q = self.qoldiq.normalize() if self.qoldiq else Decimal("0")
-        return q
+        """Qoldiq matn ko'rinishida: 120.000 -> '120', 2.500 -> '2.5'"""
+        return tekis_son(self.qoldiq)
+
+    @property
+    def narx_son(self):
+        """Narx matn ko'rinishida: 55000.00 -> '55000' (JS uchun toza son)"""
+        return tekis_son(self.narx)
 
 
 class HarakatTuri(models.TextChoices):

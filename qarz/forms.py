@@ -5,6 +5,10 @@ from .models import Qarzdor, Tolov
 
 
 class QarzdorForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["hudud"].empty_label = "— Hududni tanlang —"
+
     class Meta:
         model = Qarzdor
         fields = ["ism", "familiya", "telefon", "hudud"]
@@ -13,7 +17,7 @@ class QarzdorForm(forms.ModelForm):
                                           "placeholder": "Ism"}),
             "familiya": forms.TextInput(attrs={"class": "kirish", "autocomplete": "off",
                                                "placeholder": "Familiya"}),
-            "telefon": forms.TextInput(attrs={"class": "kirish raqam-maydon",
+            "telefon": forms.TextInput(attrs={"class": "kirish raqam-maydon chap-tekis",
                                               "autocomplete": "off",
                                               "placeholder": "+998 __ ___ __ __",
                                               "inputmode": "tel"}),

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load xozmak %}
 
 {% block sarlavha %}{{ qarzdor.toliq_ism }}{% endblock %}
 
@@ -14,15 +15,15 @@
       </div>
       <div>
         <div style="font-size:14px;text-transform:uppercase;color:#6b6b6b">Jami olgan</div>
-        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_qarz|floatformat:0 }}</div>
+        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_qarz|pul }}</div>
       </div>
       <div>
         <div style="font-size:14px;text-transform:uppercase;color:#6b6b6b">Jami to'lagan</div>
-        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_tolov|floatformat:0 }}</div>
+        <div style="font-size:22px;font-weight:700">{{ qarzdor.jami_tolov|pul }}</div>
       </div>
       <div style="background:#ffe9a8;padding:8px;border:3px solid #1c1c1c">
         <div style="font-size:14px;text-transform:uppercase">Qolgan qarzi</div>
-        <div style="font-size:30px;font-weight:800">{{ qarzdor.balans|floatformat:0 }} so'm</div>
+        <div style="font-size:30px;font-weight:800">{{ qarzdor.balans|pul }} so'm</div>
       </div>
     </div>
 
@@ -46,16 +47,16 @@
                 {{ q.sana|date:"d.m.Y H:i" }} &mdash; hujjat #{{ q.pk }}
                 {% if not q.yakunlangan %}(TUGALLANMAGAN){% endif %}
               </th>
-              <th class="son">{{ q.jami|floatformat:0 }}</th>
+              <th class="son">{{ q.jami|pul }}</th>
             </tr>
           </thead>
           <tbody>
             {% for qator in q.qatorlar.all %}
               <tr>
                 <td>{{ qator.mahsulot_nomi }}</td>
-                <td class="son">{{ qator.miqdor|floatformat:"-3" }} {{ qator.birlik }}</td>
-                <td class="son">x {{ qator.narx|floatformat:0 }}</td>
-                <td class="son">{{ qator.summa|floatformat:0 }}</td>
+                <td class="son">{{ qator.miqdor|tekis }} {{ qator.birlik }}</td>
+                <td class="son">x {{ qator.narx|pul }}</td>
+                <td class="son">{{ qator.summa|pul }}</td>
               </tr>
             {% endfor %}
             {% if not q.yakunlangan %}
@@ -92,7 +93,7 @@
             {% for t in tolovlar %}
               <tr>
                 <td>{{ t.sana|date:"d.m.Y" }}</td>
-                <td class="son">{{ t.summa|floatformat:0 }}</td>
+                <td class="son">{{ t.summa|pul }}</td>
                 <td>
                   <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}">
                     {% csrf_token %}

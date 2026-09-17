@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load xozmak %}
 
 {% block tana %}
 <div class="sahifa-keng">
@@ -42,7 +43,7 @@
               <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
               <td>{{ q.hudud.nom }}</td>
               <td>{{ q.telefon|default:"&mdash;" }}</td>
-              <td class="son">{{ q.balans|floatformat:0 }}</td>
+              <td class="son">{{ q.balans|pul }}</td>
               <td>
                 <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
                    onclick="event.stopPropagation()">Qarz yozish</a>

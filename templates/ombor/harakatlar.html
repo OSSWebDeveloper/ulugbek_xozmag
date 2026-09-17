@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load xozmak %}
 
 {% block tana %}
 <div class="sahifa-keng">
@@ -6,7 +7,7 @@
 
   <div class="quti">
     <div style="font-size:20px;margin-bottom:10px">
-      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq_son }} {{ mahsulot.birlik }}</b>
+      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</b>
     </div>
     <table class="jadval">
       <thead>
@@ -17,7 +18,7 @@
           <tr>
             <td>{{ h.sana|date:"d.m.Y H:i" }}</td>
             <td>{{ h.get_tur_display }}</td>
-            <td class="son">{{ h.miqdor|floatformat:"-3" }}</td>
+            <td class="son">{{ h.miqdor|tekis }}</td>
             <td>{{ h.izoh }}</td>
           </tr>
         {% empty %}

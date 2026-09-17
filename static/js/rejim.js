@@ -55,7 +55,7 @@
       '      <button type="button" class="tugma" data-raqam="2">2</button>' +
       '      <button type="button" class="tugma" data-raqam="3">3</button>' +
       '      <button type="button" class="tugma" data-raqam="0">0</button>' +
-      '      <button type="button" class="tugma amal" data-raqam=".">,</button>' +
+      '      <button type="button" class="tugma amal belgi-tugma" data-raqam=".">,</button>' +
       '      <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>' +
       '    </div>' +
       '    <div class="qator tor" style="gap:6px">' +
@@ -72,16 +72,19 @@
       if (!t) return;
       var ekran = fon.querySelector(".numpad-ekran");
       if (t.dataset.raqam) {
-        var q = ekran.textContent === "0" && t.dataset.raqam !== "." ? "" : ekran.textContent;
-        if (t.dataset.raqam === "." && q.indexOf(".") !== -1) return;
-        ekran.textContent = q + t.dataset.raqam;
+        var belgi = t.dataset.raqam === "." ? qalqigich.dataset.belgi || "." : t.dataset.raqam;
+        var q = ekran.textContent === "0" ? "" : ekran.textContent;
+        if (belgi === "." && q.indexOf(".") !== -1) return;
+        if (belgi === "+" && q !== "") return;   // "+" faqat boshida
+        ekran.textContent = q + belgi;
       } else if (t.dataset.amal === "ochir") {
-        ekran.textContent = ekran.textContent.slice(0, -1) || "0";
+        var bosh = qalqigich.dataset.belgi === "+" ? "" : "0";
+        ekran.textContent = ekran.textContent.slice(0, -1) || bosh;
       } else if (t.dataset.amal === "tozala") {
-        ekran.textContent = "0";
+        ekran.textContent = qalqigich.dataset.belgi === "+" ? "" : "0";
       } else if (t.dataset.amal === "tayyor") {
         if (joriyMaydon) {
-          joriyMaydon.value = ekran.textContent;
+          joriyMaydon.value = ekran.textContent === "0" ? "" : ekran.textContent;
           joriyMaydon.dispatchEvent(new Event("input", { bubbles: true }));
         }
         numpadYop();
@@ -96,7 +99,13 @@
     var yorliq = maydon.closest(".maydon") ? maydon.closest(".maydon").querySelector("label") : null;
     qalqigich.querySelector(".numpad-nomi").textContent =
       yorliq ? yorliq.textContent.trim() : "Raqam kiriting";
-    qalqigich.querySelector(".numpad-ekran").textContent = maydon.value || "0";
+
+    // Telefon uchun vergul emas, "+" kerak; boshlang'ich qiymat ham bo'sh
+    var telefonmi = maydon.type === "tel" || maydon.inputMode === "tel" ||
+                    maydon.name === "telefon";
+    qalqigich.dataset.belgi = telefonmi ? "+" : ".";
+    qalqigich.querySelector(".belgi-tugma").textContent = telefonmi ? "+" : ",";
+    qalqigich.querySelector(".numpad-ekran").textContent = maydon.value || (telefonmi ? "" : "0");
     qalqigich.classList.add("ochiq");
   }
 

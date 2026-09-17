@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load xozmak %}
 {% load static %}
 
 {% block sarlavha %}Qarz yozish &mdash; {{ qarzdor.toliq_ism }}{% endblock %}
@@ -16,10 +17,11 @@
             {% if qarzdor.telefon %}&nbsp;|&nbsp; {{ qarzdor.telefon }}{% endif %}</span>
         </span>
         <span class="kichkina">
-          Eski qarzi: <b>{{ qarzdor.balans|floatformat:0 }}</b> so'm &nbsp;|&nbsp; Hujjat #{{ qarz.pk }}
+          Oldingi qarzi: <b>{{ oldingi_qarz|pul }}</b> so'm &nbsp;|&nbsp; Hujjat #{{ qarz.pk }}
         </span>
       </div>
 
+      <div class="chek-royxat">
       {% if qatorlar %}
         <table class="jadval">
           <thead>
@@ -37,9 +39,9 @@
               <tr>
                 <td>{{ forloop.counter }}</td>
                 <td><b>{{ qator.mahsulot_nomi }}</b></td>
-                <td class="son">{{ qator.miqdor|floatformat:"-3" }} {{ qator.birlik }}</td>
-                <td class="son">{{ qator.narx|floatformat:0 }}</td>
-                <td class="son"><b>{{ qator.summa|floatformat:0 }}</b></td>
+                <td class="son">{{ qator.miqdor|tekis }} {{ qator.birlik }}</td>
+                <td class="son">{{ qator.narx|pul }}</td>
+                <td class="son"><b>{{ qator.summa|pul }}</b></td>
                 <td>
                   <form method="post" action="{% url 'qarz:qator_ochirish' qator.pk %}">
                     {% csrf_token %}
@@ -56,10 +58,11 @@
           O'ng tarafdagi <b>&laquo;Yangi tovar&raquo;</b> tugmasini bosing.
         </div>
       {% endif %}
+      </div>
 
       <div class="jami-satr">
         <span>JAMI</span>
-        <span>{{ qarz.jami|floatformat:0 }} so'm</span>
+        <span>{{ qarz.jami|pul }} so'm</span>
       </div>
     </div>
 
@@ -145,12 +148,12 @@
         {% for m in mahsulotlar %}
           <button type="button" class="tovar-karta {% if m.qoldiq <= 0 %}yoq{% endif %}"
                   data-id="{{ m.pk }}" data-nom="{{ m.nom }}"
-                  data-narx="{{ m.narx|stringformat:'f' }}"
+                  data-narx="{{ m.narx_son }}"
                   data-qoldiq="{{ m.qoldiq_son }}" data-birlik="{{ m.birlik }}">
             <span class="t-nom">{{ m.nom }}</span>
-            <span class="t-narx">{{ m.narx|floatformat:0 }} so'm / {{ m.birlik }}</span>
+            <span class="t-narx">{{ m.narx|pul }} so'm / {{ m.birlik }}</span>
             <span class="t-qoldiq">
-              {% if m.qoldiq > 0 %}Omborda: {{ m.qoldiq_son }} {{ m.birlik }}
+              {% if m.qoldiq > 0 %}Omborda: {{ m.qoldiq|tekis }} {{ m.birlik }}
               {% else %}TUGAGAN{% endif %}
             </span>
           </button>

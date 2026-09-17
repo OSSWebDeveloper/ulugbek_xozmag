@@ -97,6 +97,8 @@ def qarz_tahrir(request, pk):
         "qarzdor": qarz.qarzdor,
         "qatorlar": qarz.qatorlar.all(),
         "mahsulotlar": mahsulotlar,
+        # Shu hujjatdan oldingi qarzi (hozir yozilayotgani hisobga olinmaydi)
+        "oldingi_qarz": qarz.qarzdor.balans - qarz.jami,
     })
 
 
