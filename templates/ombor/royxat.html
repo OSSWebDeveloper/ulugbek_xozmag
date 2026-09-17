@@ -45,7 +45,7 @@
               <b>{{ m.nom }}</b>
               {% if not m.faol %} <span class="nishon">yashirilgan</span>{% endif %}
             </td>
-            <td style="color:var(--matn-2)">{{ m.birlik }}</td>
+            <td class="sust">{{ m.birlik }}</td>
             <td class="son">{{ m.narx|pul }}</td>
             <td class="son">
               {% if m.qoldiq > 0 %}
@@ -58,10 +58,10 @@
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
                 <svg class="ikon"><use href="#i-kirim"></use></svg> Kirim
               </a>
-              <a class="tugma kichik oq" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">
+              <a class="tugma tinch kichik" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">
                 <svg class="ikon"><use href="#i-qalam"></use></svg>
               </a>
-              <a class="tugma kichik oq" href="{% url 'ombor:harakatlar' m.pk %}">
+              <a class="tugma tinch kichik" href="{% url 'ombor:harakatlar' m.pk %}">
                 <svg class="ikon"><use href="#i-tarix"></use></svg>
               </a>
             </td>

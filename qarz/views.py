@@ -1,12 +1,13 @@
 """Qarz daftari ko'rinishlari."""
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.contrib import messages
-from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
-from ombor.models import HarakatTuri, Mahsulot, OmborHarakati
+from ombor.models import Mahsulot
+from ombor.xizmat import OmborXatosi, ayir, qaytar, songa
 
 from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
@@ -97,23 +98,12 @@ def qarz_tahrir(request, pk):
         "qarzdor": qarz.qarzdor,
         "qatorlar": qarz.qatorlar.all(),
         "mahsulotlar": mahsulotlar,
+        "qator_manzili": reverse("qarz:qator_qoshish", args=[qarz.pk]),
         # Shu hujjatdan oldingi qarzi (hozir yozilayotgani hisobga olinmaydi)
         "oldingi_qarz": qarz.qarzdor.balans - qarz.jami,
     })
 
 
-def _songa(qiymat, nom):
-    """Matnni Decimal ga aylantiradi. (son, xato_matni) qaytaradi."""
-    try:
-        son = Decimal(str(qiymat).replace(",", ".").strip())
-    except (InvalidOperation, AttributeError, TypeError):
-        return None, f"{nom} xato kiritildi."
-    if son <= 0:
-        return None, f"{nom} noldan katta bo'lishi kerak."
-    return son, None
-
-
-@transaction.atomic
 def qator_qoshish(request, pk):
     """Qarzga tovar qatorini qo'shadi va ombordan ayiradi."""
     qarz = get_object_or_404(Qarz, pk=pk)
@@ -121,47 +111,32 @@ def qator_qoshish(request, pk):
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
     mahsulot = get_object_or_404(Mahsulot, pk=request.POST.get("mahsulot"))
-    miqdor, xato = _songa(request.POST.get("miqdor"), "Miqdor")
+    miqdor, xato = songa(request.POST.get("miqdor"), "Miqdor")
     if xato:
         messages.error(request, xato)
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
-    narx, xato = _songa(request.POST.get("narx") or mahsulot.narx, "Narx")
+    narx, xato = songa(request.POST.get("narx") or mahsulot.narx, "Narx")
     if xato:
         messages.error(request, xato)
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
-    mahsulot = Mahsulot.objects.select_for_update().get(pk=mahsulot.pk)
-    if miqdor > mahsulot.qoldiq:
-        messages.error(
-            request,
-            f"Omborda yetarli emas. {mahsulot.nom}: {mahsulot.qoldiq_son} {mahsulot.birlik} qoldi.",
-        )
+    try:
+        ayir(mahsulot.pk, miqdor, f"Qarz #{qarz.pk} - {qarz.qarzdor.toliq_ism}")
+    except OmborXatosi as xato:
+        messages.error(request, str(xato))
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
     QarzQator.objects.create(qarz=qarz, mahsulot=mahsulot, miqdor=miqdor, narx=narx)
-    mahsulot.qoldiq -= miqdor
-    mahsulot.save(update_fields=["qoldiq"])
-    OmborHarakati.objects.create(
-        mahsulot=mahsulot, tur=HarakatTuri.CHIQIM, miqdor=miqdor,
-        izoh=f"Qarz #{qarz.pk} - {qarz.qarzdor.toliq_ism}",
-    )
     return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
 
-@transaction.atomic
 def qator_ochirish(request, pk):
     """Qatorni o'chiradi va tovarni omborga qaytaradi."""
     qator = get_object_or_404(QarzQator.objects.select_related("qarz"), pk=pk)
     qarz_pk = qator.qarz.pk
     if request.method == "POST":
-        mahsulot = Mahsulot.objects.select_for_update().get(pk=qator.mahsulot_id)
-        mahsulot.qoldiq += qator.miqdor
-        mahsulot.save(update_fields=["qoldiq"])
-        OmborHarakati.objects.create(
-            mahsulot=mahsulot, tur=HarakatTuri.KIRIM, miqdor=qator.miqdor,
-            izoh=f"Qarz #{qarz_pk} dan qaytarildi",
-        )
+        qaytar(qator.mahsulot_id, qator.miqdor, f"Qarz #{qarz_pk} dan qaytarildi")
         qator.delete()
         messages.success(request, "Qator o'chirildi, tovar omborga qaytdi.")
     return redirect("qarz:qarz_tahrir", pk=qarz_pk)

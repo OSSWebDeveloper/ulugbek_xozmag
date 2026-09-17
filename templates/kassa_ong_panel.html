@@ -1,0 +1,63 @@
+{% comment %}
+Kassa ekranining o'ng paneli — qarz yozishda ham, naqd sotuvda ham bir xil.
+Chaqirilishi: {% include "kassa_ong_panel.html" with amal=<forma manzili> %}
+Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS orqali).
+{% endcomment %}
+<div class="ong-panel">
+  <button type="button" class="tugma asosiy keng" id="yangi-tovar">
+    <svg class="ikon"><use href="#i-plus"></use></svg> Yangi tovar
+    <span class="yorliq-tugma faqat-sichqoncha">F2</span>
+  </button>
+
+  <form method="post" action="{{ amal }}" id="qator-forma">
+    {% csrf_token %}
+    <input type="hidden" name="mahsulot" id="mahsulot-id">
+
+    <div class="tanlangan-tovar" id="tanlangan">
+      <div class="nom bosh-yozuv">Tovar tanlanmagan</div>
+      <div class="pastki">
+        <span id="tovar-qoldiq">&mdash;</span>
+        <span class="narx-qutisi" data-maydon="narx" title="Narxni o'zgartirish uchun bosing">
+          <input type="text" class="narx-kirish raqam-maydon" name="narx" id="narx"
+                 inputmode="decimal" autocomplete="off" data-numpadsiz placeholder="0">
+          <span class="birlik">so'm</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="kiritish-maydon faol" data-maydon="miqdor">
+      <span class="nomi">Miqdor</span>
+      <input type="text" class="qiymat raqam-maydon" name="miqdor" id="miqdor"
+             inputmode="decimal" autocomplete="off" data-numpadsiz placeholder="0">
+      <span class="birlik" id="miqdor-birlik">&mdash;</span>
+    </div>
+
+    <div class="summa-satr">
+      <span class="yorliq">Summa</span>
+      <span class="qiymat" id="summa">0</span>
+    </div>
+
+    <div class="raqamlar" id="raqamlar">
+      <button type="button" class="tugma" data-raqam="7">7</button>
+      <button type="button" class="tugma" data-raqam="8">8</button>
+      <button type="button" class="tugma" data-raqam="9">9</button>
+      <button type="button" class="tugma" data-raqam="4">4</button>
+      <button type="button" class="tugma" data-raqam="5">5</button>
+      <button type="button" class="tugma" data-raqam="6">6</button>
+      <button type="button" class="tugma" data-raqam="1">1</button>
+      <button type="button" class="tugma" data-raqam="2">2</button>
+      <button type="button" class="tugma" data-raqam="3">3</button>
+      <button type="button" class="tugma" data-raqam="0">0</button>
+      <button type="button" class="tugma amal" data-raqam=".">,</button>
+      <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+    </div>
+
+    <div class="qosh-qator">
+      <button type="button" class="tugma tinch" id="tozala-tugma" title="Tozalash">C</button>
+      <button type="submit" class="tugma yashil" style="flex:1" id="qosh-tugma" disabled>
+        <svg class="ikon"><use href="#i-plus"></use></svg> Qo'shish
+        <span class="yorliq-tugma faqat-sichqoncha">Enter</span>
+      </button>
+    </div>
+  </form>
+</div>

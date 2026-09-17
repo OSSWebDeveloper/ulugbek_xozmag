@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ombor",
     "qarz",
+    "sotuv",
 ]
 
 MIDDLEWARE = [

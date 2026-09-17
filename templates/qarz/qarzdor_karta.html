@@ -34,10 +34,10 @@
       <a class="tugma yashil" href="{% url 'qarz:qarz_boshlash' qarzdor.pk %}" style="flex:2">
         <svg class="ikon"><use href="#i-plus"></use></svg> Yangi qarz yozish
       </a>
-      <a class="tugma oq" href="{% url 'qarz:qarzdor_tahrir' qarzdor.pk %}">
+      <a class="tugma tinch" href="{% url 'qarz:qarzdor_tahrir' qarzdor.pk %}">
         <svg class="ikon"><use href="#i-qalam"></use></svg> Ma'lumotini tahrirlash
       </a>
-      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">
+      <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">
         <svg class="ikon"><use href="#i-uy"></use></svg> Bosh sahifa
       </a>
     </div>
@@ -65,15 +65,15 @@
                 {% for qator in q.qatorlar.all %}
                   <tr>
                     <td>{{ qator.mahsulot_nomi }}</td>
-                    <td class="son">{{ qator.miqdor|tekis }} <span style="color:var(--matn-2)">{{ qator.birlik }}</span></td>
-                    <td class="son" style="color:var(--matn-2)">&times; {{ qator.narx|pul }}</td>
+                    <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
+                    <td class="son sust">&times; {{ qator.narx|pul }}</td>
                     <td class="son"><b>{{ qator.summa|pul }}</b></td>
                   </tr>
                 {% endfor %}
                 {% if not q.yakunlangan %}
                   <tr>
                     <td colspan="4">
-                      <a class="tugma kichik amber" href="{% url 'qarz:qarz_tahrir' q.pk %}">
+                      <a class="tugma asosiy kichik" href="{% url 'qarz:qarz_tahrir' q.pk %}">
                         Davom ettirish
                       </a>
                     </td>
@@ -119,8 +119,7 @@
                     <td>
                       <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}">
                         {% csrf_token %}
-                        <button class="tugma kichik oq" type="submit" title="To'lovni o'chirish"
-                                style="color:var(--qizil)">
+                        <button class="tugma xato kichik" type="submit" title="To'lovni o'chirish">
                           <svg class="ikon"><use href="#i-chiqar"></use></svg>
                         </button>
                       </form>

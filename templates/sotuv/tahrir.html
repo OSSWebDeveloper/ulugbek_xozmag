@@ -2,7 +2,7 @@
 {% load xozmak %}
 {% load static %}
 
-{% block sarlavha %}Qarz yozish — {{ qarzdor.toliq_ism }}{% endblock %}
+{% block sarlavha %}Naqd sotuv{% endblock %}
 
 {% block tana %}
 <div class="kassa">
@@ -10,18 +10,15 @@
     <div class="chek">
       <div class="chek-bosh">
         <div>
-          <div class="mijoz">{{ qarzdor.toliq_ism }}</div>
-          <div class="kichkina">
-            {{ qarzdor.hudud.nom }}{% if qarzdor.telefon %} &middot; {{ qarzdor.telefon }}{% endif %}
-            &middot; hujjat #{{ qarz.pk }}
-          </div>
+          <div class="mijoz">Naqd sotuv</div>
+          <div class="kichkina">Qarzga yozilmaydi &middot; chek #{{ sotuv.pk }}</div>
         </div>
-        <div style="text-align:right">
-          <div class="kichkina">Oldingi qarzi</div>
-          <div style="font-weight:650;font-size:var(--katta-matn);font-variant-numeric:tabular-nums">
-            {{ oldingi_qarz|pul }} <span class="kichkina">so'm</span>
-          </div>
-        </div>
+        <form method="post" action="{% url 'sotuv:bekor' sotuv.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="tugma xato kichik" title="Sotuvni butunlay bekor qilish">
+            <svg class="ikon"><use href="#i-yopish"></use></svg> Bekor qilish
+          </button>
+        </form>
       </div>
 
       <div class="chek-royxat">
@@ -46,7 +43,7 @@
                   <td class="son sust">{{ qator.narx|pul }}</td>
                   <td class="son"><b>{{ qator.summa|pul }}</b></td>
                   <td>
-                    <form method="post" action="{% url 'qarz:qator_ochirish' qator.pk %}">
+                    <form method="post" action="{% url 'sotuv:qator_ochirish' qator.pk %}">
                       {% csrf_token %}
                       <button type="submit" class="tugma xato kichik" title="Qatorni o'chirish">
                         <svg class="ikon"><use href="#i-chiqar"></use></svg>
@@ -59,7 +56,7 @@
           </table>
         {% else %}
           <div class="bosh-holat">
-            <svg class="ikon"><use href="#i-chek"></use></svg>
+            <svg class="ikon"><use href="#i-savdo"></use></svg>
             <b>Hali tovar qo'shilmadi</b>
             O'ng tarafdagi «Yangi tovar» tugmasini bosing
           </div>
@@ -68,21 +65,28 @@
 
       <div class="jami-satr">
         <span class="yorliq">Jami</span>
-        <span class="qiymat">{{ qarz.jami|pul }}<small>so'm</small></span>
+        <span class="qiymat" id="jami-summa" data-jami="{{ sotuv.jami|stringformat:'.2f' }}">
+          {{ sotuv.jami|pul }}<small>so'm</small>
+        </span>
       </div>
     </div>
 
-    <div class="chek-tugmalar">
-      <a class="tugma tinch" href="{% url 'qarz:qarzdor_karta' qarzdor.pk %}">
-        <svg class="ikon"><use href="#i-chap"></use></svg> Qarzdor kartasi
-      </a>
-      <form method="post" action="{% url 'qarz:qarz_yakunlash' qarz.pk %}" style="flex:1;display:flex">
-        {% csrf_token %}
-        <button type="submit" class="tugma yashil keng">
-          <svg class="ikon"><use href="#i-belgi"></use></svg> Yakunlash va daftarga yozish
-        </button>
-      </form>
-    </div>
+    <form method="post" action="{% url 'sotuv:yakunlash' sotuv.pk %}" class="tolov-panel">
+      {% csrf_token %}
+      <div class="tolov-maydon">
+        <span class="nomi">Mijoz berdi</span>
+        <input type="text" class="qiymat raqam-maydon" name="tolandi" id="tolandi"
+               inputmode="decimal" autocomplete="off" placeholder="0">
+        <span class="birlik">so'm</span>
+      </div>
+      <div class="qaytim-quti">
+        <span class="nomi">Qaytim</span>
+        <span class="qiymati" id="qaytim">0</span>
+      </div>
+      <button type="submit" class="tugma yashil" style="flex:1.6;min-width:180px">
+        <svg class="ikon"><use href="#i-belgi"></use></svg> Sotuvni yakunlash
+      </button>
+    </form>
   </div>
 
   <div>

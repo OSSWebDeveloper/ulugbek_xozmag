@@ -42,8 +42,8 @@
             <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
             <td>{{ q.hudud.nom }}</td>
             <td>{{ q.telefon|default:"—" }}</td>
-            <td class="son" style="color:var(--matn-2)">{{ q.jami_qarz|pul }}</td>
-            <td class="son" style="color:var(--matn-2)">{{ q.jami_tolov|pul }}</td>
+            <td class="son sust">{{ q.jami_qarz|pul }}</td>
+            <td class="son sust">{{ q.jami_tolov|pul }}</td>
             <td class="son"><b>{{ q.balans|pul }}</b></td>
             <td>
               <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"

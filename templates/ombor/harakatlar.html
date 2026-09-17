@@ -23,7 +23,7 @@
       <tbody>
         {% for h in harakatlar %}
           <tr>
-            <td style="color:var(--matn-2)">{{ h.sana|date:"d.m.Y H:i" }}</td>
+            <td class="sust">{{ h.sana|date:"d.m.Y H:i" }}</td>
             <td>
               <span class="nishon {% if h.tur == 'kirim' %}yashil{% elif h.tur == 'chiqim' %}ogoh{% endif %}">
                 {{ h.get_tur_display }}
@@ -46,7 +46,7 @@
     </table>
   </div>
 
-  <a class="tugma oq" href="{% url 'ombor:royxat' %}">
+  <a class="tugma tinch" href="{% url 'ombor:royxat' %}">
     <svg class="ikon"><use href="#i-chap"></use></svg> Omborga qaytish
   </a>
 </div>

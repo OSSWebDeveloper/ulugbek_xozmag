@@ -3,53 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
   <title>{% block sarlavha %}Ulug'bek Xozmak{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/uslub.css' %}">
 </head>
 <body>
 {% include "ikonlar.html" %}
+{% with bolim=request.resolver_match.url_name ilova=request.resolver_match.app_name %}
 
-  <header class="bosh-panel">
-    <div class="logo">
-      <span class="belgi"><svg class="ikon"><use href="#i-dokon"></use></svg></span>
-      Ulug'bek Xozmak
-    </div>
-    <nav>
-      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">
-        <svg class="ikon"><use href="#i-uy"></use></svg> Bosh sahifa
-      </a>
-      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">
-        <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdorlar
-      </a>
-      <a class="tugma oq" href="{% url 'ombor:royxat' %}">
-        <svg class="ikon"><use href="#i-quti"></use></svg> Ombor
-      </a>
-    </nav>
-    <div class="ong">
+  <aside class="yon-menyu">
+    <span class="logo" title="Ulug'bek Xozmak">
+      <svg class="ikon"><use href="#i-dokon"></use></svg>
+    </span>
+
+    <a class="menyu-tugma {% if bolim == 'boshlash' and ilova == 'qarz' %}faol{% endif %}"
+       href="{% url 'qarz:boshlash' %}">
+      <svg class="ikon"><use href="#i-uy"></use></svg> Bosh
+    </a>
+    <a class="menyu-tugma {% if ilova == 'sotuv' %}faol{% endif %}"
+       href="{% url 'sotuv:boshlash' %}">
+      <svg class="ikon"><use href="#i-savdo"></use></svg> Sotuv
+    </a>
+    <a class="menyu-tugma {% if ilova == 'qarz' and bolim != 'boshlash' %}faol{% endif %}"
+       href="{% url 'qarz:qarzdorlar' %}">
+      <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdor
+    </a>
+    <a class="menyu-tugma {% if ilova == 'ombor' %}faol{% endif %}"
+       href="{% url 'ombor:royxat' %}">
+      <svg class="ikon"><use href="#i-quti"></use></svg> Ombor
+    </a>
+
+    <div class="menyu-pastki">
       <button type="button" class="richag" id="richag" role="switch" aria-pressed="false"
               title="Sensorli ekran va sichqoncha rejimi o'rtasida almashtirish">
-        <span class="yorliq">
-          <b>Rejim</b>
-          <span class="holat">Sichqoncha</span>
-        </span>
         <span class="yo-l"><span class="dasta"></span></span>
+        <span class="holat">Sensor</span>
       </button>
     </div>
-  </header>
+  </aside>
 
-  {% if messages %}
-    <div class="xabarlar">
-      {% for xabar in messages %}
-        <div class="xabar {{ xabar.tags }}">
-          <svg class="ikon"><use href="#{% if 'error' in xabar.tags %}i-ogoh{% else %}i-belgi{% endif %}"></use></svg>
-          <span>{{ xabar }}</span>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+  <div class="ish">
+    {% if messages %}
+      <div class="xabarlar">
+        {% for xabar in messages %}
+          <div class="xabar {{ xabar.tags }}">
+            <svg class="ikon"><use href="#{% if 'error' in xabar.tags %}i-ogoh{% else %}i-belgi{% endif %}"></use></svg>
+            <span>{{ xabar }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-  <main class="sahifa">{% block tana %}{% endblock %}</main>
+    <main class="sahifa">{% block tana %}{% endblock %}</main>
+  </div>
 
+{% endwith %}
   <script src="{% static 'js/rejim.js' %}"></script>
   {% block skript %}{% endblock %}
 </body>

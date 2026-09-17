@@ -16,9 +16,8 @@
     document.body.classList.toggle("rejim-sensor", rejim === "sensor");
     var richag = document.getElementById("richag");
     if (richag) {
+      // Yozuv o'zgarmaydi ("Sensor"), faqat yoqiq/o'chiq holati ko'rinadi
       richag.setAttribute("aria-pressed", rejim === "sensor" ? "true" : "false");
-      var holat = richag.querySelector(".holat");
-      if (holat) holat.textContent = rejim === "sensor" ? "Sensor" : "Sichqoncha";
     }
     try {
       localStorage.setItem(KALIT, rejim);
@@ -41,10 +40,11 @@
     fon.innerHTML =
       '<div class="oyna" style="max-width:400px">' +
       '  <div class="oyna-bosh"><span class="numpad-nomi">Raqam kiriting</span>' +
-      '    <button type="button" class="tugma oq kichik" data-yop>Yopish</button></div>' +
+      '    <button type="button" class="tugma tinch kichik" data-yop>Yopish</button></div>' +
       '  <div class="oyna-tana">' +
-      '    <div class="kiritish-maydon faol"><span class="qiymat numpad-ekran">0</span></div>' +
-      '    <div class="raqamlar">' +
+      '    <div class="kiritish-maydon faol" style="margin-bottom:10px">' +
+      '<span class="qiymat numpad-ekran">0</span></div>' +
+      '    <div class="raqamlar" style="display:grid;min-height:230px;margin-bottom:10px">' +
       '      <button type="button" class="tugma" data-raqam="7">7</button>' +
       '      <button type="button" class="tugma" data-raqam="8">8</button>' +
       '      <button type="button" class="tugma" data-raqam="9">9</button>' +
@@ -59,7 +59,7 @@
       '      <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>' +
       '    </div>' +
       '    <div class="qator tor" style="gap:6px">' +
-      '      <button type="button" class="tugma oq" style="flex:1" data-amal="tozala">Tozalash</button>' +
+      '      <button type="button" class="tugma tinch" style="flex:1" data-amal="tozala">Tozalash</button>' +
       '      <button type="button" class="tugma yashil" style="flex:2" data-amal="tayyor">Tayyor</button>' +
       '    </div>' +
       '  </div>' +
@@ -96,9 +96,12 @@
   function numpadOch(maydon) {
     if (!qalqigich) qalqigich = qalqigichYarat();
     joriyMaydon = maydon;
-    var yorliq = maydon.closest(".maydon") ? maydon.closest(".maydon").querySelector("label") : null;
-    qalqigich.querySelector(".numpad-nomi").textContent =
-      yorliq ? yorliq.textContent.trim() : "Raqam kiriting";
+    // Maydon nomini topamiz: forma yorlig'i yoki kassa maydonining sarlavhasi
+    var idish = maydon.closest(".maydon, .tolov-maydon, .kiritish-maydon, .narx-qutisi");
+    var yorliq = idish ? idish.querySelector("label, .nomi") : null;
+    var nomi = yorliq ? yorliq.textContent.trim() : "";
+    if (!nomi && maydon.placeholder) nomi = maydon.placeholder;
+    qalqigich.querySelector(".numpad-nomi").textContent = nomi || "Raqam kiriting";
 
     // Telefon uchun vergul emas, "+" kerak; boshlang'ich qiymat ham bo'sh
     var telefonmi = maydon.type === "tel" || maydon.inputMode === "tel" ||

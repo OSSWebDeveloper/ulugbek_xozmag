@@ -10,18 +10,18 @@
   <form method="post" class="quti">
     {% csrf_token %}
 
-    {% if form.non_field_errors %}<div class="xato">{{ form.non_field_errors }}</div>{% endif %}
+    {% if form.non_field_errors %}<div class="xato-yozuv">{{ form.non_field_errors }}</div>{% endif %}
 
     {% for maydon in form %}
       <div class="maydon">
         <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
         {{ maydon }}
-        {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
+        {% if maydon.errors %}<div class="xato-yozuv">{{ maydon.errors|striptags }}</div>{% endif %}
       </div>
     {% endfor %}
 
     <div class="qator" style="margin-top:var(--oraliq)">
-      <a class="tugma oq" href="{% url 'qarz:boshlash' %}" style="flex:1">Bekor qilish</a>
+      <a class="tugma tinch" href="{% url 'qarz:boshlash' %}" style="flex:1">Bekor qilish</a>
       <button type="submit" class="tugma yashil" style="flex:2">
         <svg class="ikon"><use href="#i-belgi"></use></svg>
         {% if tahrir %}Saqlash{% else %}Yaratish va qarz yozish{% endif %}

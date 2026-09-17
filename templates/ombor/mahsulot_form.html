@@ -19,12 +19,12 @@
           <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
           {{ maydon }}
         {% endif %}
-        {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
+        {% if maydon.errors %}<div class="xato-yozuv">{{ maydon.errors|striptags }}</div>{% endif %}
       </div>
     {% endfor %}
 
     <div class="qator" style="margin-top:var(--oraliq)">
-      <a class="tugma oq" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
+      <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
       <button type="submit" class="tugma yashil" style="flex:2">
         <svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash
       </button>

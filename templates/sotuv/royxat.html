@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load xozmak %}
+
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">
+    Naqd sotuvlar
+    <span class="kichik">{{ sana|date:"d.m.Y" }}{% if bugunmi %} (bugun){% endif %}</span>
+  </div>
+
+  <div class="quti">
+    <div class="qator">
+      <div class="korsatkich">
+        <div class="nomi">Sotuvlar soni</div>
+        <div class="qiymati">{{ soni }}</div>
+      </div>
+      <div class="korsatkich diqqat">
+        <div class="nomi">Kunlik tushum</div>
+        <div class="qiymati">{{ jami|pul }} so'm</div>
+      </div>
+      <form method="get" style="display:flex;gap:var(--oraliq);align-items:flex-end;flex:2">
+        <div class="maydon" style="flex:1;margin:0">
+          <label for="kun">Kunni tanlang</label>
+          <input type="date" id="kun" name="kun" class="kirish" value="{{ sana|date:'Y-m-d' }}">
+        </div>
+        <button type="submit" class="tugma">Ko'rsatish</button>
+      </form>
+    </div>
+
+    <div class="qator" style="margin-top:var(--oraliq)">
+      <a class="tugma yashil" href="{% url 'sotuv:boshlash' %}" style="flex:2">
+        <svg class="ikon"><use href="#i-plus"></use></svg> Yangi sotuv
+      </a>
+      <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">
+        <svg class="ikon"><use href="#i-uy"></use></svg> Bosh sahifa
+      </a>
+    </div>
+  </div>
+
+  {% for s in sotuvlar %}
+    <div class="jadval-quti">
+      <table class="jadval">
+        <thead>
+          <tr>
+            <th colspan="3">
+              {{ s.sana|date:"H:i" }} &middot; chek #{{ s.pk }}
+              {% if s.qaytim > 0 %}
+                <span class="nishon">qaytim {{ s.qaytim|pul }}</span>
+              {% endif %}
+            </th>
+            <th class="son">{{ s.jami|pul }} so'm</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for qator in s.qatorlar.all %}
+            <tr>
+              <td>{{ qator.mahsulot_nomi }}</td>
+              <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
+              <td class="son sust">&times; {{ qator.narx|pul }}</td>
+              <td class="son"><b>{{ qator.summa|pul }}</b></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% empty %}
+    <div class="quti">
+      <div class="bosh-holat">
+        <svg class="ikon"><use href="#i-savdo"></use></svg>
+        <b>Bu kuni naqd sotuv bo'lmagan</b>
+        <a class="tugma yashil" href="{% url 'sotuv:boshlash' %}" style="margin-top:12px">
+          Yangi sotuv boshlash
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
