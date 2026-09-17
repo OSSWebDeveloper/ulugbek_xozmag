@@ -3,7 +3,10 @@
 
 {% block tana %}
 <div class="sahifa-keng">
-  <div class="sarlavha">Eski qarzdorni topish</div>
+  <div class="sarlavha">
+    Eski qarzdorni topish
+    <span class="kichik">ismi, familiyasi yoki telefoni bo'yicha</span>
+  </div>
 
   <form method="get" class="quti">
     <div class="qator">
@@ -21,12 +24,14 @@
           {% endfor %}
         </select>
       </div>
-      <button type="submit" class="tugma" style="flex:1">Qidirish</button>
+      <button type="submit" class="tugma" style="flex:1">
+        <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
+      </button>
     </div>
   </form>
 
-  <div class="quti">
-    {% if qarzdorlar %}
+  {% if qarzdorlar %}
+    <div class="jadval-quti">
       <table class="jadval">
         <thead>
           <tr>
@@ -42,8 +47,8 @@
             <tr class="bosiladi" onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
               <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
               <td>{{ q.hudud.nom }}</td>
-              <td>{{ q.telefon|default:"&mdash;" }}</td>
-              <td class="son">{{ q.balans|pul }}</td>
+              <td>{{ q.telefon|default:"—" }}</td>
+              <td class="son"><b>{{ q.balans|pul }}</b></td>
               <td>
                 <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
                    onclick="event.stopPropagation()">Qarz yozish</a>
@@ -52,23 +57,33 @@
           {% endfor %}
         </tbody>
       </table>
-      {% if jami_topildi > 100 %}
-        <p style="margin-top:10px">{{ jami_topildi }} ta topildi, birinchi 100 tasi ko'rsatildi.</p>
-      {% endif %}
-    {% else %}
+    </div>
+    {% if jami_topildi > 100 %}
+      <p style="color:var(--matn-2);margin-bottom:var(--oraliq)">
+        {{ jami_topildi }} ta topildi, birinchi 100 tasi ko'rsatildi.
+      </p>
+    {% endif %}
+  {% else %}
+    <div class="quti">
       <div class="bosh-holat">
+        <svg class="ikon"><use href="#i-qidir"></use></svg>
         {% if matn %}
-          &laquo;{{ matn }}&raquo; bo'yicha hech kim topilmadi.
-          <div style="margin-top:16px">
-            <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}">Yangi qarzdor qilib qo'shish</a>
+          <b>&laquo;{{ matn }}&raquo; bo'yicha hech kim topilmadi</b>
+          <div style="margin-top:var(--oraliq)">
+            <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}">
+              <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor qilib qo'shish
+            </a>
           </div>
         {% else %}
-          Ism yoki telefonni yozib qidiring.
+          <b>Ism yoki telefonni yozib qidiring</b>
+          Hududni tanlab ham ro'yxatni ko'rish mumkin
         {% endif %}
       </div>
-    {% endif %}
-  </div>
+    </div>
+  {% endif %}
 
-  <a class="tugma oq" href="{% url 'qarz:boshlash' %}">&larr; Orqaga</a>
+  <a class="tugma oq" href="{% url 'qarz:boshlash' %}">
+    <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+  </a>
 </div>
 {% endblock %}

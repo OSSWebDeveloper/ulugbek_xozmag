@@ -3,12 +3,19 @@
 
 {% block tana %}
 <div class="sahifa-keng">
-  <div class="sarlavha">{{ mahsulot.nom }} &mdash; kirim/chiqim tarixi</div>
+  <div class="sarlavha">
+    {{ mahsulot.nom }}
+    <span class="kichik">— kirim/chiqim tarixi</span>
+  </div>
 
   <div class="quti">
-    <div style="font-size:20px;margin-bottom:10px">
-      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</b>
+    <div class="korsatkich" style="max-width:320px">
+      <div class="nomi">Hozirgi qoldiq</div>
+      <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
     </div>
+  </div>
+
+  <div class="jadval-quti">
     <table class="jadval">
       <thead>
         <tr><th>Sana</th><th>Turi</th><th class="son">Miqdor</th><th>Izoh</th></tr>
@@ -16,18 +23,31 @@
       <tbody>
         {% for h in harakatlar %}
           <tr>
-            <td>{{ h.sana|date:"d.m.Y H:i" }}</td>
-            <td>{{ h.get_tur_display }}</td>
-            <td class="son">{{ h.miqdor|tekis }}</td>
+            <td style="color:var(--matn-2)">{{ h.sana|date:"d.m.Y H:i" }}</td>
+            <td>
+              <span class="nishon {% if h.tur == 'kirim' %}yashil{% elif h.tur == 'chiqim' %}ogoh{% endif %}">
+                {{ h.get_tur_display }}
+              </span>
+            </td>
+            <td class="son"><b>{{ h.miqdor|tekis }}</b></td>
             <td>{{ h.izoh }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="4" class="bosh-holat">Harakat yo'q.</td></tr>
+          <tr>
+            <td colspan="4">
+              <div class="bosh-holat">
+                <svg class="ikon"><use href="#i-tarix"></use></svg>
+                <b>Harakat yo'q</b>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <a class="tugma oq" href="{% url 'ombor:royxat' %}">&larr; Omborga qaytish</a>
+  <a class="tugma oq" href="{% url 'ombor:royxat' %}">
+    <svg class="ikon"><use href="#i-chap"></use></svg> Omborga qaytish
+  </a>
 </div>
 {% endblock %}

@@ -39,9 +39,9 @@
     fon.className = "oyna-fon";
     fon.id = "numpad-oyna";
     fon.innerHTML =
-      '<div class="oyna" style="max-width:420px">' +
+      '<div class="oyna" style="max-width:400px">' +
       '  <div class="oyna-bosh"><span class="numpad-nomi">Raqam kiriting</span>' +
-      '    <button type="button" class="tugma qizil kichik" data-yop>X</button></div>' +
+      '    <button type="button" class="tugma oq kichik" data-yop>Yopish</button></div>' +
       '  <div class="oyna-tana">' +
       '    <div class="kiritish-maydon faol"><span class="qiymat numpad-ekran">0</span></div>' +
       '    <div class="raqamlar">' +
@@ -59,7 +59,7 @@
       '      <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>' +
       '    </div>' +
       '    <div class="qator tor" style="gap:6px">' +
-      '      <button type="button" class="tugma qizil" style="flex:1" data-amal="tozala">Tozalash</button>' +
+      '      <button type="button" class="tugma oq" style="flex:1" data-amal="tozala">Tozalash</button>' +
       '      <button type="button" class="tugma yashil" style="flex:2" data-amal="tayyor">Tayyor</button>' +
       '    </div>' +
       '  </div>' +

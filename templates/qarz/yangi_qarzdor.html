@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
 {% block tana %}
-<div class="sahifa-keng" style="max-width:820px">
-  <div class="sarlavha">{% if tahrir %}Qarzdorni tahrirlash{% else %}Yangi qarzdor{% endif %}</div>
+<div class="sahifa-keng" style="max-width:720px">
+  <div class="sarlavha">
+    {% if tahrir %}Qarzdorni tahrirlash{% else %}Yangi qarzdor{% endif %}
+    {% if not tahrir %}<span class="kichik">— ma'lumotini yozamiz</span>{% endif %}
+  </div>
 
   <form method="post" class="quti">
     {% csrf_token %}
@@ -17,9 +20,10 @@
       </div>
     {% endfor %}
 
-    <div class="qator" style="margin-top:18px">
+    <div class="qator" style="margin-top:var(--oraliq)">
       <a class="tugma oq" href="{% url 'qarz:boshlash' %}" style="flex:1">Bekor qilish</a>
       <button type="submit" class="tugma yashil" style="flex:2">
+        <svg class="ikon"><use href="#i-belgi"></use></svg>
         {% if tahrir %}Saqlash{% else %}Yaratish va qarz yozish{% endif %}
       </button>
     </div>

@@ -6,8 +6,9 @@
   <div class="sarlavha">Kirim: {{ mahsulot.nom }}</div>
 
   <div class="quti">
-    <div style="font-size:20px;margin-bottom:10px">
-      Hozirgi qoldiq: <b>{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</b>
+    <div class="korsatkich" style="margin-bottom:var(--oraliq)">
+      <div class="nomi">Hozirgi qoldiq</div>
+      <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
     </div>
 
     <form method="post">
@@ -19,9 +20,11 @@
           {% if maydon.errors %}<div class="xato">{{ maydon.errors|striptags }}</div>{% endif %}
         </div>
       {% endfor %}
-      <div class="qator" style="margin-top:18px">
+      <div class="qator" style="margin-top:var(--oraliq)">
         <a class="tugma oq" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
-        <button type="submit" class="tugma yashil" style="flex:2">Omborga qo'shish</button>
+        <button type="submit" class="tugma yashil" style="flex:2">
+          <svg class="ikon"><use href="#i-kirim"></use></svg> Omborga qo'shish
+        </button>
       </div>
     </form>
   </div>

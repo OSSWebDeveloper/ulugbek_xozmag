@@ -53,7 +53,8 @@
     mahsulotId.value = "";
     miqdorEl.value = "";
     narxEl.value = "";
-    tanlanganEl.innerHTML = '<div class="nom" style="color:#6b6b6b">Tovar tanlanmagan</div>';
+    tanlanganEl.className = "tanlangan-tovar";
+    tanlanganEl.innerHTML = '<span class="bosh-yozuv">Tovar tanlanmagan</span>';
     faolQoy("miqdor");
     summaYangila();
   }
@@ -62,10 +63,11 @@
     mahsulotId.value = karta.dataset.id;
     narxEl.value = karta.dataset.narx;
     miqdorEl.value = "";
+    tanlanganEl.className = "tanlangan-tovar tanlangan";
     tanlanganEl.innerHTML =
-      '<div class="nom">' + karta.dataset.nom + "</div>" +
-      '<div class="qoldiq">Omborda: ' + karta.dataset.qoldiq + " " + karta.dataset.birlik +
-      " &nbsp;|&nbsp; Narxi: " + chiroyli(son(karta.dataset.narx)) + "</div>";
+      '<span class="nom">' + karta.dataset.nom + "</span>" +
+      '<span class="qoldiq">Omborda: ' + karta.dataset.qoldiq + " " + karta.dataset.birlik +
+      " &middot; narxi " + chiroyli(son(karta.dataset.narx)) + " so'm</span>";
     document.querySelector("#miqdor-birlik").textContent = karta.dataset.birlik;
     oynaYop();
     faolQoy("miqdor");

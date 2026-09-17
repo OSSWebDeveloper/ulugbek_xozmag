@@ -7,17 +7,31 @@
   <link rel="stylesheet" href="{% static 'css/uslub.css' %}">
 </head>
 <body>
+{% include "ikonlar.html" %}
+
   <header class="bosh-panel">
-    <div class="logo">ULUG&#39;BEK XOZMAK</div>
+    <div class="logo">
+      <span class="belgi"><svg class="ikon"><use href="#i-dokon"></use></svg></span>
+      Ulug'bek Xozmak
+    </div>
     <nav>
-      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">Bosh sahifa</a>
-      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">Qarzdorlar</a>
-      <a class="tugma oq" href="{% url 'ombor:royxat' %}">Ombor</a>
+      <a class="tugma oq" href="{% url 'qarz:boshlash' %}">
+        <svg class="ikon"><use href="#i-uy"></use></svg> Bosh sahifa
+      </a>
+      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">
+        <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdorlar
+      </a>
+      <a class="tugma oq" href="{% url 'ombor:royxat' %}">
+        <svg class="ikon"><use href="#i-quti"></use></svg> Ombor
+      </a>
     </nav>
     <div class="ong">
       <button type="button" class="richag" id="richag" role="switch" aria-pressed="false"
               title="Sensorli ekran va sichqoncha rejimi o'rtasida almashtirish">
-        <span class="yorliq">Rejim<small class="holat">Sichqoncha</small></span>
+        <span class="yorliq">
+          <b>Rejim</b>
+          <span class="holat">Sichqoncha</span>
+        </span>
         <span class="yo-l"><span class="dasta"></span></span>
       </button>
     </div>
@@ -26,7 +40,10 @@
   {% if messages %}
     <div class="xabarlar">
       {% for xabar in messages %}
-        <div class="xabar {{ xabar.tags }}">{{ xabar }}</div>
+        <div class="xabar {{ xabar.tags }}">
+          <svg class="ikon"><use href="#{% if 'error' in xabar.tags %}i-ogoh{% else %}i-belgi{% endif %}"></use></svg>
+          <span>{{ xabar }}</span>
+        </div>
       {% endfor %}
     </div>
   {% endif %}

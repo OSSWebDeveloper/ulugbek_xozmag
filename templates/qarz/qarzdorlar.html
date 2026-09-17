@@ -3,7 +3,10 @@
 
 {% block tana %}
 <div class="sahifa-keng">
-  <div class="sarlavha">Qarzdorlar ro'yxati</div>
+  <div class="sarlavha">
+    Qarzdorlar ro'yxati
+    <span class="kichik">eng ko'p qarzdorlar tepada</span>
+  </div>
 
   <form method="get" class="quti">
     <div class="qator">
@@ -19,7 +22,7 @@
     </div>
   </form>
 
-  <div class="quti">
+  <div class="jadval-quti">
     <table class="jadval">
       <thead>
         <tr>
@@ -39,8 +42,8 @@
             <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
             <td>{{ q.hudud.nom }}</td>
             <td>{{ q.telefon|default:"—" }}</td>
-            <td class="son">{{ q.jami_qarz|pul }}</td>
-            <td class="son">{{ q.jami_tolov|pul }}</td>
+            <td class="son" style="color:var(--matn-2)">{{ q.jami_qarz|pul }}</td>
+            <td class="son" style="color:var(--matn-2)">{{ q.jami_tolov|pul }}</td>
             <td class="son"><b>{{ q.balans|pul }}</b></td>
             <td>
               <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
@@ -48,14 +51,23 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="7" class="bosh-holat">Hali qarzdor yo'q.</td></tr>
+          <tr>
+            <td colspan="7">
+              <div class="bosh-holat">
+                <svg class="ikon"><use href="#i-odamlar"></use></svg>
+                <b>Hali qarzdor yo'q</b>
+                <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}"
+                   style="margin-top:12px">Yangi qarzdor qo'shish</a>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
       {% if qarzdorlar %}
         <tfoot>
           <tr>
-            <th colspan="5" style="text-align:right">JAMI QARZ</th>
-            <th class="son" style="font-size:20px">{{ jami_balans|pul }}</th>
+            <th colspan="5" style="text-align:right">Jami qarz</th>
+            <th class="son" style="font-size:var(--katta-matn);font-weight:700">{{ jami_balans|pul }}</th>
             <th></th>
           </tr>
         </tfoot>

@@ -2,25 +2,36 @@
 
 {% block tana %}
 <div class="sahifa-keng">
-  <div class="sarlavha">Qarzdor keldi. Qaysi biri?</div>
+  <div class="sarlavha">
+    Qarzdor keldi
+    <span class="kichik">— qaysi biri?</span>
+  </div>
 
   <div class="qator">
-    <a class="tugma ulkan" href="{% url 'qarz:qidirish' %}">
-      Oldin qarz olgan
-      <span class="izoh">Daftarda bor mijoz &mdash; ismi yoki telefoni bo'yicha topamiz</span>
+    <a class="tanlov" href="{% url 'qarz:qidirish' %}">
+      <span class="belgi"><svg class="ikon"><use href="#i-qidir"></use></svg></span>
+      <span class="bosh">Oldin qarz olgan</span>
+      <span class="izoh">Daftarda bor mijoz — ismi yoki telefoni bo'yicha topamiz</span>
     </a>
 
-    <a class="tugma ulkan yashil" href="{% url 'qarz:yangi_qarzdor' %}">
-      Yangi qarzdor
-      <span class="izoh">Birinchi marta qarz olyapti &mdash; ma'lumotini yozamiz</span>
+    <a class="tanlov yangi" href="{% url 'qarz:yangi_qarzdor' %}">
+      <span class="belgi"><svg class="ikon"><use href="#i-odam-plus"></use></svg></span>
+      <span class="bosh">Yangi qarzdor</span>
+      <span class="izoh">Birinchi marta qarz olyapti — ma'lumotini yozamiz</span>
     </a>
   </div>
 
-  <div class="quti" style="margin-top:14px">
+  <div class="quti" style="margin-top:var(--oraliq)">
     <div class="qator">
-      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">Qarzdorlar ro'yxati</a>
-      <a class="tugma oq" href="{% url 'ombor:royxat' %}">Ombor (sklad)</a>
-      <a class="tugma oq" href="{% url 'ombor:mahsulot_yangi' %}">Omborga tovar qo'shish</a>
+      <a class="tugma oq" href="{% url 'qarz:qarzdorlar' %}">
+        <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdorlar ro'yxati
+      </a>
+      <a class="tugma oq" href="{% url 'ombor:royxat' %}">
+        <svg class="ikon"><use href="#i-quti"></use></svg> Ombor (sklad)
+      </a>
+      <a class="tugma oq" href="{% url 'ombor:mahsulot_yangi' %}">
+        <svg class="ikon"><use href="#i-plus"></use></svg> Omborga tovar qo'shish
+      </a>
     </div>
   </div>
 </div>

@@ -3,21 +3,31 @@
 
 {% block tana %}
 <div class="sahifa-keng">
-  <div class="sarlavha">Ombor (sklad)</div>
+  <div class="sarlavha">
+    Ombor
+    <span class="kichik">skladdagi tovarlar va qoldiqlar</span>
+  </div>
 
   <div class="quti">
     <form method="get" class="qator">
       <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
              placeholder="Tovar nomi" autocomplete="off">
-      <button type="submit" class="tugma" style="flex:1">Qidirish</button>
-      <a class="tugma yashil" href="{% url 'ombor:mahsulot_yangi' %}" style="flex:1">+ Yangi tovar</a>
+      <button type="submit" class="tugma" style="flex:1">
+        <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
+      </button>
+      <a class="tugma yashil" href="{% url 'ombor:mahsulot_yangi' %}" style="flex:1">
+        <svg class="ikon"><use href="#i-plus"></use></svg> Yangi tovar
+      </a>
     </form>
     {% if tugagan %}
-      <div class="xabar error" style="margin-top:10px">Diqqat: {{ tugagan }} ta tovar tugagan.</div>
+      <div class="xabar warning" style="margin-top:var(--oraliq)">
+        <svg class="ikon"><use href="#i-ogoh"></use></svg>
+        <span>{{ tugagan }} ta tovar tugagan — kirim qilish kerak.</span>
+      </div>
     {% endif %}
   </div>
 
-  <div class="quti">
+  <div class="jadval-quti">
     <table class="jadval">
       <thead>
         <tr>
@@ -31,18 +41,42 @@
       <tbody>
         {% for m in mahsulotlar %}
           <tr class="{% if m.qoldiq <= 0 %}ogohlantirish{% endif %}">
-            <td><b>{{ m.nom }}</b>{% if not m.faol %} <small>(o'chirilgan)</small>{% endif %}</td>
-            <td>{{ m.birlik }}</td>
+            <td>
+              <b>{{ m.nom }}</b>
+              {% if not m.faol %} <span class="nishon">yashirilgan</span>{% endif %}
+            </td>
+            <td style="color:var(--matn-2)">{{ m.birlik }}</td>
             <td class="son">{{ m.narx|pul }}</td>
-            <td class="son"><b>{{ m.qoldiq|tekis }}</b></td>
+            <td class="son">
+              {% if m.qoldiq > 0 %}
+                <b>{{ m.qoldiq|tekis }}</b>
+              {% else %}
+                <span class="nishon ogoh">Tugagan</span>
+              {% endif %}
+            </td>
             <td style="white-space:nowrap">
-              <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">Kirim</a>
-              <a class="tugma kichik oq" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">Tahrir</a>
-              <a class="tugma kichik oq" href="{% url 'ombor:harakatlar' m.pk %}">Tarix</a>
+              <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
+                <svg class="ikon"><use href="#i-kirim"></use></svg> Kirim
+              </a>
+              <a class="tugma kichik oq" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">
+                <svg class="ikon"><use href="#i-qalam"></use></svg>
+              </a>
+              <a class="tugma kichik oq" href="{% url 'ombor:harakatlar' m.pk %}">
+                <svg class="ikon"><use href="#i-tarix"></use></svg>
+              </a>
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="bosh-holat">Sklad bo'sh. Tovar qo'shing.</td></tr>
+          <tr>
+            <td colspan="5">
+              <div class="bosh-holat">
+                <svg class="ikon"><use href="#i-quti"></use></svg>
+                <b>Sklad bo'sh</b>
+                <a class="tugma yashil" href="{% url 'ombor:mahsulot_yangi' %}"
+                   style="margin-top:12px">Tovar qo'shish</a>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
