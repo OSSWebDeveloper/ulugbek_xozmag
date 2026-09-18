@@ -3,6 +3,12 @@
    Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi. */
 
 :root {
+  /* Umumiy o'lcham. 1 = 100%, .8 = 80%. Kichraytirilsa bitta ekranga
+     ko'proq sig'adi — jumladan brauzerning o'z ochiluvchi ro'yxatlari ham
+     (ular element shriftidan kelib chiqadi). */
+  --kolam: .8;
+  zoom: var(--kolam);
+
   /* O'lchamlar */
   --menyu-eni: 82px;
   --tugma-balandlik: 50px;
@@ -121,7 +127,7 @@ body {
   color: var(--matn-rang);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
-  height: 100vh;
+  height: calc(100vh / var(--kolam));
   display: flex;
   overflow: hidden;
 }
@@ -231,7 +237,7 @@ body {
 .forma-setka .richag.keng { margin-bottom: 0; padding: 10px 14px; }
 .forma-setka .qoida-satri { margin-top: 0; padding: 9px 12px; }
 .faol-belgi { display: flex; align-items: center; gap: 10px; cursor: pointer; white-space: nowrap; }
-@media (max-width: 760px) { .forma-setka { grid-template-columns: 1fr; } }
+@media (max-width: 608px) { .forma-setka { grid-template-columns: 1fr; } }
 
 /* Ro'yxat sahifalari: sarlavha va qidiruv joyida turadi, faqat jadval siljiydi */
 .sahifa:has(.sahifa-toliq) { overflow: hidden; }
@@ -447,10 +453,10 @@ body:not(.rejim-sensor) .faqat-sensor { display: none !important; }
 .tanlov.kichik .belgi .ikon { width: 21px; height: 21px; }
 .tanlov.kichik .bosh { font-size: var(--matn); font-weight: 600; }
 
-@media (max-height: 700px) {
+@media (max-height: 560px) {
   .tanlov-setka { max-width: 660px; }
 }
-@media (max-height: 600px) {
+@media (max-height: 480px) {
   .tanlov-setka { max-width: 540px; }
 }
 
@@ -899,7 +905,7 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
 /* Klaviatura ochiqda modal oyna biroz tepaga suriladi */
 body.kb-ochiq .oyna { max-height: 52vh; }
 
-@media (max-height: 620px) {
+@media (max-height: 496px) {
   .kb-tugma { min-height: 42px; font-size: 17px; }
   .kb-panel { gap: 5px; padding: 8px 10px 10px; }
 }
@@ -1020,10 +1026,10 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 .tovar-karta.yoq:hover { transform: none; border-color: var(--chegara); background: var(--panel-2); }
 
 /* Past ekranda kassa o'lchamlari kichrayadi — scroll chiqmasligi uchun */
-@media (max-height: 660px) {
+@media (max-height: 528px) {
   :root { --tugma-balandlik: 46px; --oraliq: 12px; }
 }
-@media (max-height: 580px) {
+@media (max-height: 464px) {
   :root { --tugma-balandlik: 42px; --matn: 14px; --katta-matn: 18px; --oraliq: 10px; }
   .ong-panel { padding: 10px; gap: 6px; }
   .ong-panel form { gap: 6px; }
@@ -1114,11 +1120,13 @@ body.rejim-sensor .kirim-raqamlar { margin: 0; }
 
 body.kunduzgi .xato-yozuv { color: var(--xato); }
 
-/* ================= Kichik ekran ================= */
-@media (max-width: 1080px) {
+/* ================= Kichik ekran =================
+   Chegaralar --kolam (0.8) ga ko'paytirilgan: `zoom` media so'rovlardan
+   keyin qo'llanadi, shuning uchun 1080 CSS px = 864 haqiqiy piksel. */
+@media (max-width: 864px) {
   .kassa { grid-template-columns: 1fr; }
 }
-@media (max-width: 760px) {
+@media (max-width: 608px) {
   :root { --menyu-eni: 64px; }
   .menyu-tugma { font-size: 10px; }
   .tanlov-setka, .tanlov-setka.tortta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
