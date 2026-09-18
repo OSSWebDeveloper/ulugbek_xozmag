@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.5.1 — 2026-09-18
+
+Tovar nomlarida santimetr o'rniga metr
+
 ## 1.5.0 — 2026-09-18
 
 To'liq ko'rik: to'lov chegarasi, scrollsiz joylashuv, o'nlab tuzatish
