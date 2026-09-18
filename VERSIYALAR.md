@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.1 — 2026-09-18
+
+Tanlov ekranlarida tugmalar o'rtada
+
 ## 1.9.0 — 2026-09-18
 
 Kirim ichki oynada, qarzdorlar hudud bo'yicha, buxta -> o'ram
