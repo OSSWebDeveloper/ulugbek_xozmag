@@ -24,7 +24,7 @@
 
   --matn-rang: #ffffff;
   --matn-2: #d7d7d7;
-  --matn-3: #9a9a9a;
+  --matn-3: #adadad;        /* --bpmx-faint (#9a9a9a) #404040 ustida 3.6 edi */
 
   --urgu: #468ff3;          /* asosiy amal — my.gov.uz --bpmx-primary */
   --urgu-quyuq: #2f7ae0;
@@ -55,25 +55,26 @@
 /* ================= Kunduzgi mavzu =================
    Kechki rejim o'chirilganda shu ranglar ishlaydi. */
 body.kunduzgi {
-  --fon: #eceff4;
-  --panel: #ffffff;
-  --panel-2: #f4f6f9;
-  --panel-3: #e8ecf2;
-  --chegara: #dce2ea;
-  --chegara-2: #c2cbd8;
+  /* Kunduzgi mavzu ham my.gov.uz portalining yorug' palitrasida. */
+  --fon: #f2f4f7;           /* --bg */
+  --panel: #ffffff;         /* --element-bg */
+  --panel-2: #f8fafc;       /* --light-grey-input */
+  --panel-3: #e2ecf7;       /* --color-light-primary */
+  --chegara: #d5dbe3;       /* --bpmx-border */
+  --chegara-2: #b6c0cd;
 
-  --matn-rang: #121820;
-  --matn-2: #55636f;
-  --matn-3: #7d8b9a;
+  --matn-rang: #202020;     /* --secondary-font-color */
+  --matn-2: #60656b;        /* --bpmx-muted */
+  --matn-3: #6c727b;        /* --bpmx-faint (#999) oq fonda 2.8 edi */
 
-  --urgu: #e29100;
-  --urgu-quyuq: #c87d00;
-  --urgu-fon: rgba(226, 145, 0, .15);
-  --urgu-chek: rgba(226, 145, 0, .4);
-  --urgu-matn: #e29100;     /* kunduzgida urg'u rangining o'zi */
-  --ogoh: #e29100;          /* kunduzgida urg'u ham, ogohlantirish ham sariq */
+  --urgu: #0068e0;          /* --color-primary */
+  --urgu-quyuq: #0153b2;    /* --blue-btn-hover */
+  --urgu-fon: rgba(0, 104, 224, .1);
+  --urgu-chek: rgba(0, 104, 224, .35);
+  --urgu-matn: #0068e0;     /* yorug' fonda urg'u rangining o'zi yetarli */
+  --ogoh: #8a5a00;          /* ogohlantirish — oq fonda o'qilishi uchun quyuqroq sariq */
   --ogoh-fon: rgba(226, 145, 0, .15);
-  --ogoh-chek: rgba(226, 145, 0, .4);
+  --ogoh-chek: rgba(226, 145, 0, .45);
   --tasdiq: #0b7d45;
   --tasdiq-quyuq: #096637;
   --tasdiq-fon: rgba(11, 125, 69, .12);
@@ -81,11 +82,11 @@ body.kunduzgi {
   --xato: #d93025;
   --xato-fon: rgba(217, 48, 37, .1);
   --xato-chek: rgba(217, 48, 37, .35);
-  --kok: #1a67d2;
-  --kok-fon: rgba(26, 103, 210, .12);
-  --kok-chek: rgba(26, 103, 210, .35);
+  --kok: #006397;           /* --darker-blue, oq fonda o'qilishi uchun quyuqroq */
+  --kok-fon: rgba(0, 116, 183, .12);
+  --kok-chek: rgba(0, 99, 151, .35);
 
-  --asosiy-matn: #2b1f00;
+  --asosiy-matn: #ffffff;   /* ko'k tugma ustidagi yozuv — --btn-text */
   --tasdiq-matn: #ffffff;
 
   --soya: 0 1px 3px rgba(16, 24, 40, .12);
@@ -98,13 +99,13 @@ body.kunduzgi .tugma:not(.asosiy):not(.yashil):not(.xato):hover {
 }
 body.kunduzgi .richag .dasta { background: #ffffff; }
 body.kunduzgi ::-webkit-scrollbar-track { background: var(--panel-2); }
-body.kunduzgi ::-webkit-scrollbar-thumb { background: #c2cbd8; }
+body.kunduzgi ::-webkit-scrollbar-thumb { background: #c3cbd6; }
 body.kunduzgi .oyna-fon { background: rgba(16, 24, 40, .45); }
 body.kunduzgi .tugma.xato { color: var(--xato); }
 body.kunduzgi .xabar.success { color: #0b5b35; }
 body.kunduzgi .xabar.error { color: #a01b12; }
 body.kunduzgi .xabar.warning { color: #8a5a00; }
-body.kunduzgi .xabar.info { color: #14539c; }
+body.kunduzgi .xabar.info { color: #0a5680; }
 body.kunduzgi .qaytim-quti .nomi { color: #0b7d45; }
 
 /* Rejim richagi o'lchamlarga tegmaydi: u faqat raqamlar klaviaturasini
