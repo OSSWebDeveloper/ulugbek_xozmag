@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.7.0 — 2026-09-18
+
+Butun sayt 80% o'lchamda — brauzer ro'yxatlari ham sig'adi
+
 ## 1.6.0 — 2026-09-18
 
 Qoldiq butun qadoq va ortig'i bilan: «5 pachka 20 dona»
