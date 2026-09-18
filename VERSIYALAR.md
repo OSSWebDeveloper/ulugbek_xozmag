@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.7.1 — 2026-09-18
+
+Umumiy o'lcham 90%
+
 ## 1.7.0 — 2026-09-18
 
 Butun sayt 80% o'lchamda — brauzer ro'yxatlari ham sig'adi
