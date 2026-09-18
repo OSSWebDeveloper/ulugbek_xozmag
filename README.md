@@ -155,14 +155,14 @@ rulon, buxta, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'sh
 Sayt bitta ekranga sig'ishi kerak — kassir sichqoncha g'ildiragini aylantirib
 o'tirmasin. Buning uchun:
 
-- Butun sayt **80% o'lchamda** chiziladi: `:root { --kolam: .8; zoom: var(--kolam) }`.
+- Butun sayt **90% o'lchamda** chiziladi: `:root { --kolam: .9; zoom: var(--kolam) }`.
   Shu bilan brauzerning **o'z** ochiluvchi ro'yxatlari (`<select>`) ham kichrayadi —
   11 ta birlik endi scrollsiz sig'adi. O'lchamni o'zgartirish uchun faqat
   `--kolam` ni almashtiring.
 - `body` balandligi `calc(100vh / var(--kolam))` — aks holda pastda bo'sh
   chiziq qolardi. `body` ning o'zi hech qachon siljimaydi (`overflow: hidden`).
 - Media so'rovlar chegaralari ham `--kolam` ga ko'paytirilgan: `zoom` ular
-  baholangandan keyin qo'llanadi, ya'ni 1080 CSS px = 864 haqiqiy piksel.
+  baholangandan keyin qo'llanadi, ya'ni 1080 CSS px = 972 haqiqiy piksel.
 - Tovar kartochkasi ikki ustunli (`.forma-setka`) — bir ustunda bo'lganda
   1290×630 ekranga sig'masdi.
 - Kirim ekranida sensorli rejimda maydonlar chapda, raqamlar klaviaturasi
