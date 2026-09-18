@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.8.0 — 2026-09-18
+
+Qalqib chiquvchi numpad yo'q, klaviatura faqat harf
+
 ## 1.7.1 — 2026-09-18
 
 Umumiy o'lcham 90%
