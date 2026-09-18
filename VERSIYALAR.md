@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.5.0 — 2026-09-18
+
+To'liq ko'rik: to'lov chegarasi, scrollsiz joylashuv, o'nlab tuzatish
+
 ## 1.4.0 — 2026-09-18
 
 Yangi tovar formasiga «Birlik o'zgaradi» richagi
