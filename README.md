@@ -54,10 +54,11 @@ eski uslubni ushlab qolmaydi.
 ## Ish tartibi (receptionist uchun)
 
 1. **Bosh sahifa** — qarzdor keldi: *Oldin qarz olgan* yoki *Yangi qarzdor*.
-2. **Oldin olgan** → uch yo'l: ism yozib qidirish, butun ro'yxatni ochish yoki
-   **hududni tanlash**. Hududlar 13 ta katta tugma bo'lib chiqadi, har birida
-   nechta qarzdor va qancha qarz borligi yozilgan; hudud bosilsa o'sha hududning
-   qarzdorlari ko'rinadi. **Qarzdor** bo'limi ham xuddi shunday ochiladi.
+2. **Oldin olgan** → ikki yo'l: butun ro'yxatni ochish yoki **hududni tanlash**.
+   Hududlar 13 ta katta tugma bo'lib chiqadi, har birida nechta qarzdor va qancha
+   qarz borligi yozilgan; hudud bosilsa o'sha hududning qarzdorlari ko'rinadi.
+   **Qarzdor** bo'limi ham xuddi shunday ochiladi. Ism yozib qidirish yo'q —
+   do'konda qarzdor hudud bo'yicha eslanadi.
 3. **Yangi** → Ism, Familiya, Telefon, Hudud to'ldiriladi → **Yaratish** bosilgach darrov
    qarz yozish ekraniga o'tadi.
 4. **Qarz yozish ekrani** (kassa ko'rinishi):

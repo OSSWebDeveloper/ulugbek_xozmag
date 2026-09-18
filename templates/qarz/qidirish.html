@@ -8,25 +8,15 @@
       <span class="kichik">shu hududning qarzdorlari</span>
     {% elif korinish == "hududlar" %}Hududlar
       <span class="kichik">qaysi hudud kerak?</span>
+    {% elif korinish == "royxat" %}Barcha qarzdorlar
+      <span class="kichik">eng ko'p qarzdorlar tepada</span>
     {% else %}Eski qarzdorni topish
-      <span class="kichik">ismi, familiyasi yoki telefoni bo'yicha</span>
+      <span class="kichik">qanday izlaymiz?</span>
     {% endif %}
   </div>
 
-  {# Qidiruv maydoni har doim tepada — ism ma'lum bo'lsa eng tez yo'l #}
-  <form method="get" class="quti">
-    <div class="qator">
-      <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
-             placeholder="Ism, familiya yoki telefon" autocomplete="off"
-             {% if korinish == "tanlov" %}autofocus{% endif %}>
-      <button type="submit" class="tugma" style="flex:1">
-        <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
-      </button>
-    </div>
-  </form>
-
 {% if korinish == "tanlov" %}
-  {# ---------- Ism ma'lum bo'lmasa: ikkita katta tugma ---------- #}
+  {# ---------- Ikkita katta tugma ---------- #}
   <div class="markazda">
   <div class="tanlov-setka ikkita">
     <a class="tanlov qarz" href="?korinish=royxat">
@@ -73,8 +63,25 @@
   </div>
   </div>
 
-{% elif qarzdorlar %}
-  {# ---------- Topilganlar ---------- #}
+{% else %}
+  {# ---------- Qarzdorlar ro'yxati ---------- #}
+  <div class="quti">
+    <div class="qator">
+      <a class="tugma tinch" style="flex:1"
+         href="{% if hudud %}?korinish=hududlar{% else %}{% url 'qarz:qidirish' %}{% endif %}">
+        <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+      </a>
+      {% if hudud %}
+        <a class="tugma" style="flex:1" href="?korinish=royxat">Barcha qarzdorlar</a>
+      {% else %}
+        <a class="tugma" style="flex:1" href="?korinish=hududlar">Hudud bo'yicha</a>
+      {% endif %}
+      <a class="tugma yashil" style="flex:1" href="{% url 'qarz:yangi_qarzdor' %}">
+        <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor
+      </a>
+    </div>
+  </div>
+
   <div class="jadval-quti">
     <table class="jadval">
       <thead>
@@ -88,7 +95,8 @@
       </thead>
       <tbody>
         {% for q in qarzdorlar %}
-          <tr class="bosiladi" onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
+          <tr class="bosiladi {% if q.balans > 0 %}ogohlantirish{% endif %}"
+              onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
             <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
             {% if not hudud %}<td>{{ q.hudud.nom }}</td>{% endif %}
             <td>{{ q.telefon|default:"—" }}</td>
@@ -98,40 +106,20 @@
                  onclick="event.stopPropagation()">Qarz yozish</a>
             </td>
           </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5">
+              <div class="bosh-holat">
+                <svg class="ikon"><use href="#i-odamlar"></use></svg>
+                <b>{% if hudud %}Bu hududda qarzdor yo'q{% else %}Hali qarzdor yo'q{% endif %}</b>
+                <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}"
+                   style="margin-top:12px">Yangi qarzdor qo'shish</a>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-  </div>
-
-  {% if jami_topildi > 100 %}
-    <div class="xabar warning" style="margin-top:var(--oraliq)">
-      <svg class="ikon"><use href="#i-ogoh"></use></svg>
-      <span>{{ jami_topildi }} ta topildi, birinchi 100 tasi ko'rsatildi — aniqroq yozing.</span>
-    </div>
-  {% endif %}
-
-  <div class="qator" style="max-width:320px">
-    <a class="tugma tinch" href="{% if hudud %}?korinish=hududlar{% else %}{% url 'qarz:qidirish' %}{% endif %}">
-      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
-    </a>
-  </div>
-
-{% else %}
-  {# ---------- Hech kim topilmadi ---------- #}
-  <div class="quti">
-    <div class="bosh-holat">
-      <svg class="ikon"><use href="#i-qidir"></use></svg>
-      <b>{% if matn %}«{{ matn }}» bo'yicha hech kim topilmadi{% else %}Bu hududda qarzdor yo'q{% endif %}</b>
-      <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}" style="margin-top:12px">
-        <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor qilib qo'shish
-      </a>
-    </div>
-  </div>
-
-  <div class="qator" style="max-width:320px">
-    <a class="tugma tinch" href="{% url 'qarz:qidirish' %}">
-      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
-    </a>
   </div>
 {% endif %}
 

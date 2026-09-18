@@ -83,8 +83,8 @@ class QarzOqimiTest(TestCase):
         self.assertRedirects(javob, reverse("qarz:qarz_tahrir", args=[self.qarz.pk]))
         self.assertEqual(self.qarzdor.qarzlar.count(), 1)
 
-    def test_qidirish_telefon_boyicha_topadi(self):
-        javob = self.client.get(reverse("qarz:qidirish"), {"q": "901234567"})
+    def test_qidirish_royxatda_qarzdor_korinadi(self):
+        javob = self.client.get(reverse("qarz:qidirish"), {"korinish": "royxat"})
         self.assertContains(javob, "Aliyev")
 
 
@@ -106,6 +106,7 @@ class OmborTest(TestCase):
     def test_qoldiq_matni_ortiqcha_nollarsiz(self):
         self.assertEqual(self.mahsulot.qoldiq_son, "1000")
         self.assertEqual(self.mahsulot.narx_son, "1200")
+
 
 class TolovChegarasiTest(TestCase):
     """Qarzdan ortiq to'lov balansni manfiyga olib ketmasligi kerak."""
@@ -148,6 +149,7 @@ class TolovChegarasiTest(TestCase):
         javob = self.client.post(self.manzil, {"summa": "10000", "izoh": ""}, follow=True)
         self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
         self.assertContains(javob, "Qolgan qarzi 100 000 so&#x27;m")
+
 
 class QarzdorlarKorinishiTest(TestCase):
     """Qarzdorlar bo'limi: tanlov -> hududlar -> ro'yxat."""
@@ -194,8 +196,11 @@ class QarzdorlarKorinishiTest(TestCase):
         javob = self.client.get(reverse("qarz:qidirish"), {"hudud": self.h1.pk})
         self.assertContains(javob, "Aliyev Vali")
 
-    def test_qidirish_ism_boyicha_ishlaydi(self):
-        javob = self.client.get(reverse("qarz:qidirish"), {"q": "karim"})
+    def test_qidirishda_matn_maydoni_yoq(self):
+        """Ism yozib qidirish olib tashlandi — faqat ro'yxat va hududlar."""
+        javob = self.client.get(reverse("qarz:qidirish"))
+        self.assertNotContains(javob, 'name="q"')
+        javob = self.client.get(reverse("qarz:qidirish"), {"korinish": "royxat"})
+        self.assertContains(javob, "Aliyev Vali")
         self.assertContains(javob, "Karimov Olim")
-        self.assertNotContains(javob, "Aliyev Vali")
 

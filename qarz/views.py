@@ -2,7 +2,6 @@
 from decimal import Decimal
 
 from django.contrib import messages
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -43,46 +42,35 @@ def hudud_kartalari():
 def qidirish(request):
     """Eski qarzdorni topish.
 
-    Uch yo'l: ism yozib qidirish, butun ro'yxatni ochish yoki hududni
-    tanlab o'sha hududning qarzdorlarini ko'rish — qarzdorlar
-    sahifasidagi ketma-ketlikning aynan o'zi.
+    Ikki yo'l: butun ro'yxatni ochish yoki hududni tanlab o'sha hududning
+    qarzdorlarini ko'rish — qarzdorlar bo'limidagi ketma-ketlikning o'zi.
     """
-    matn = request.GET.get("q", "").strip()
     hudud_id = request.GET.get("hudud", "")
     korinish = request.GET.get("korinish", "")
 
-    if matn or hudud_id:
+    if hudud_id:
         korinish = "royxat"
     elif korinish not in ("royxat", "hududlar"):
         korinish = "tanlov"
 
     hudud = None
     qarzdorlar = []
-    jami_topildi = 0
     kartalar = []
 
     if korinish == "royxat":
         tanlangan = Qarzdor.objects.select_related("hudud")
-        if matn:
-            tanlangan = tanlangan.filter(
-                Q(ism__icontains=matn) | Q(familiya__icontains=matn)
-                | Q(telefon__icontains=matn)
-            )
         if hudud_id:
             hudud = get_object_or_404(Hudud, pk=hudud_id)
             tanlangan = tanlangan.filter(hudud=hudud)
-        jami_topildi = tanlangan.count()
-        qarzdorlar = tanlangan[:100]
+        qarzdorlar = sorted(tanlangan, key=lambda q: q.balans, reverse=True)
     elif korinish == "hududlar":
         kartalar = hudud_kartalari()
 
     return render(request, "qarz/qidirish.html", {
         "korinish": korinish,
         "qarzdorlar": qarzdorlar,
-        "matn": matn,
         "hudud": hudud,
         "hudud_kartalari": kartalar,
-        "jami_topildi": jami_topildi,
     })
 
 
