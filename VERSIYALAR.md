@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.3.0 — 2026-09-18
+
+Ikkala mavzu ham my.gov.uz palitrasida
+
 ## 1.2.0 — 2026-09-18
 
 Kechki mavzu to'liq my.gov.uz palitrasida (ko'k urg'u)
