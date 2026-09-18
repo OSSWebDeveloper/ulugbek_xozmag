@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.2 — 2026-09-18
+
+Qidiruv maydoni olib tashlandi
+
 ## 1.9.1 — 2026-09-18
 
 Tanlov ekranlarida tugmalar o'rtada
