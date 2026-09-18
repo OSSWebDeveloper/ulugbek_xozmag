@@ -13,16 +13,18 @@
   --radius-s: 9px;
 
   /* Quyuq palitra */
-  --fon: #14181f;
-  --panel: #1c222c;
-  --panel-2: #232b37;
-  --panel-3: #2a3341;
-  --chegara: #2c3644;
-  --chegara-2: #3a4657;
+  /* Kechki mavzu yuzalari — my.gov.uz portalining qiymatlari (neytral kulrang,
+     ko'kimtir emas). Urg'u ranglari o'zimizniki bo'lib qoladi. */
+  --fon: #232323;
+  --panel: #2d2d2d;
+  --panel-2: #404040;
+  --panel-3: #4d4d4d;
+  --chegara: #404040;
+  --chegara-2: #595959;
 
-  --matn-rang: #f2f4f7;
-  --matn-2: #94a2b6;
-  --matn-3: #6b7a90;
+  --matn-rang: #ffffff;
+  --matn-2: #d7d7d7;
+  --matn-3: #9a9a9a;
 
   --urgu: #ffb020;          /* asosiy amal */
   --urgu-quyuq: #e89c0c;
@@ -110,7 +112,7 @@ body {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--fon); }
 ::-webkit-scrollbar-thumb { background: var(--chegara-2); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: #4a5769; }
+::-webkit-scrollbar-thumb:hover { background: #6e6e6e; }
 
 /* ================= Yon menyu ================= */
 .yon-menyu {
@@ -194,7 +196,7 @@ body {
   position: absolute;
   top: 3px; left: 3px;
   width: 18px; height: 18px;
-  background: #cfd8e3;
+  background: #d7d7d7;
   border-radius: 50%;
   transition: left .18s cubic-bezier(.4, 0, .2, 1), background .18s ease;
 }
@@ -270,7 +272,7 @@ body:not(.kunduzgi) #mavzu-richag .dasta { left: 23px; }
   user-select: none;
   transition: background .12s ease, border-color .12s ease, transform .1s ease;
 }
-.tugma:hover { background: #33404f; border-color: #46566a; }
+.tugma:hover { background: #4d4d4d; border-color: #6e6e6e; }
 .tugma:active { transform: translateY(1px); }
 .tugma:focus-visible { outline: 2px solid var(--urgu); outline-offset: 2px; }
 
@@ -431,7 +433,7 @@ body:not(.rejim-sensor) .faqat-sensor { display: none !important; }
   transition: border-color .12s ease, box-shadow .12s ease;
 }
 .kirish::placeholder { color: var(--matn-3); }
-.kirish:hover { border-color: #46566a; }
+.kirish:hover { border-color: #6e6e6e; }
 .kirish:focus {
   outline: none;
   border-color: var(--urgu);
@@ -830,7 +832,7 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 .oyna-fon {
   position: fixed;
   inset: 0;
-  background: rgba(8, 11, 15, .72);
+  background: rgba(0, 0, 0, .66);
   backdrop-filter: blur(3px);
   display: none;
   z-index: 50;
