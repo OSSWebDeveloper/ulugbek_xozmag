@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.6.0 — 2026-09-18
+
+Qoldiq butun qadoq va ortig'i bilan: «5 pachka 20 dona»
+
 ## 1.5.1 — 2026-09-18
 
 Tovar nomlarida santimetr o'rniga metr
