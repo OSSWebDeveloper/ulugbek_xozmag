@@ -20,7 +20,7 @@ TOVARLAR = [
     ("G'isht", Birlik.DONA, 1200, 5000, "", 1),
     ("Bo'yoq oq 5 l", Birlik.LITR, 38000, 40, "", 1),
     ("Kabel 2x2.5", Birlik.METR, 9500, 300, Birlik.BUXTA, 100),
-    ("Polietilen lenta 10 sm", Birlik.METR, 3500, 300, Birlik.RULON, 100),
+    ("Polietilen lenta 0,1 metr", Birlik.METR, 3500, 300, Birlik.RULON, 100),
     ("Mix 100 mm", Birlik.KG, 18000, 75, "", 1),
     ("Plitka kley 25 kg", Birlik.QOP, 47000, 35, "", 1),
     ("Lampochka LED 12W", Birlik.DONA, 15000, 200, Birlik.QUTI, 20),

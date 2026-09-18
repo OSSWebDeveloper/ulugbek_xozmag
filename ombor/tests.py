@@ -12,7 +12,7 @@ class IkkiBirlikModelTest(TestCase):
 
     def setUp(self):
         self.lenta = Mahsulot.objects.create(
-            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
             narx=Decimal("3500"), qoldiq=Decimal("300"),
         )
@@ -58,7 +58,7 @@ class KirimTest(TestCase):
 
     def setUp(self):
         self.lenta = Mahsulot.objects.create(
-            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
             narx=Decimal("3500"), qoldiq=Decimal("300"),
         )
@@ -229,7 +229,7 @@ class MahsulotFormaTest(TestCase):
 
     def test_tahrirlashda_qadoq_soni_sorolmaydi(self):
         tovar = Mahsulot.objects.create(
-            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
             narx=Decimal("3500"), qoldiq=Decimal("300"),
         )
@@ -239,7 +239,7 @@ class MahsulotFormaTest(TestCase):
 
     def test_tahrirlashda_qoldiq_togridan_yoziladi(self):
         tovar = Mahsulot.objects.create(
-            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
             narx=Decimal("3500"), qoldiq=Decimal("300"),
         )
@@ -258,7 +258,7 @@ class SotuvBirligiTest(TestCase):
 
     def setUp(self):
         self.lenta = Mahsulot.objects.create(
-            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
             narx=Decimal("3500"), qoldiq=Decimal("300"),
         )
