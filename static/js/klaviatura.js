@@ -1,6 +1,8 @@
 /* Ekran klaviaturasi — sensorli rejimda matn maydonlari uchun.
-   Windows klaviaturasi emas, saytning o'ziniki.
-   Raqamli maydonlar bu yerga tegmaydi: ular uchun numpad bor (rejim.js). */
+   Windows klaviaturasi emas, saytning o'ziniki: planshetdagidek pastda,
+   butun enlikda turadi va mavzu bilan birga rangini o'zgartiradi.
+   Faqat harf: raqam va maxsus belgi yo'q — raqamli maydonlar uchun
+   sahifaning o'zida raqamlar klaviaturasi bor. */
 (function () {
   "use strict";
 
@@ -10,13 +12,7 @@
     ["z", "x", "c", "v", "b", "n", "m"],
   ];
 
-  var BELGILAR = [
-    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-    ["-", "/", ":", ";", "(", ")", "+", "&", "@", "\""],
-    [".", ",", "?", "!", "%", "№", "="],
-  ];
-
-  var panel, joriyMaydon = null, shift = false, rejim = "harf";
+  var panel, joriyMaydon = null, shift = false;
 
   function sensorMi() {
     return document.body.classList.contains("rejim-sensor");
@@ -39,7 +35,7 @@
   }
 
   function chiz() {
-    var qatorlar = rejim === "harf" ? HARFLAR : BELGILAR;
+    var qatorlar = HARFLAR;
     var html = '<div class="kb-bosh">' +
       '<span class="kb-nomi">Yozing</span>' +
       '<button type="button" class="tugma tinch kichik" data-amal="yop">' +
@@ -50,20 +46,18 @@
     }).join("") + "</div>";
 
     html += '<div class="kb-qator">' + qatorlar[1].map(function (b) {
-      return tugma(shift && rejim === "harf" ? b.toUpperCase() : b);
+      return tugma(shift ? b.toUpperCase() : b);
     }).join("") + "</div>";
 
     html += '<div class="kb-qator">' +
       '<button type="button" class="kb-tugma kb-amal' + (shift ? " yoqiq" : "") +
       '" data-amal="shift">&#8679;</button>' +
       qatorlar[2].map(function (b) {
-        return tugma(shift && rejim === "harf" ? b.toUpperCase() : b);
+        return tugma(shift ? b.toUpperCase() : b);
       }).join("") +
       '<button type="button" class="kb-tugma kb-amal" data-amal="ochir">&#9003;</button></div>';
 
     html += '<div class="kb-qator">' +
-      '<button type="button" class="kb-tugma kb-amal" data-amal="rejim">' +
-      (rejim === "harf" ? "123" : "ABC") + "</button>" +
       tugma("'", "kb-apostrof", "&#39;") +
       '<button type="button" class="kb-tugma kb-bosh-joy" data-belgi=" ">bo\'sh joy</button>' +
       '<button type="button" class="kb-tugma kb-tayyor" data-amal="tayyor">Tayyor</button></div>';
@@ -98,12 +92,11 @@
 
       if (t.dataset.belgi !== undefined) {
         belgiQoy(t.dataset.belgi);
-        if (shift && rejim === "harf") { shift = false; chiz(); }
+        if (shift) { shift = false; chiz(); }
         return;
       }
       var amal = t.dataset.amal;
       if (amal === "shift") { shift = !shift; chiz(); }
-      else if (amal === "rejim") { rejim = rejim === "harf" ? "belgi" : "harf"; shift = false; chiz(); }
       else if (amal === "ochir") ochir();
       else if (amal === "tayyor" || amal === "yop") yop();
     });
@@ -143,7 +136,6 @@
     if (!panel) yarat();
     joriyMaydon = maydon;
     shift = false;
-    rejim = "harf";
     chiz();
     document.body.classList.add("kb-ochiq");
     panel.classList.add("ochiq");

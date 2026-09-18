@@ -77,16 +77,20 @@ Yon menyu ostida ikkita richag bor, ikkalasining tanlovi ham brauzerda saqlanadi
 | | O'chiq | Yoniq |
 |---|---|---|
 | O'ngdagi raqamlar klaviaturasi | yo'q | bor |
-| Raqamli maydon bosilganda | klaviaturadan yoziladi | numpad qalqib chiqadi |
-| Kirim ekranida | numpad yo'q | numpad maydon ostida doim turadi |
+| Kirim ekranida | numpad yo'q | numpad maydon yonida turadi |
 | Matn maydoni bosilganda | klaviaturadan yoziladi | saytning o'z ekran klaviaturasi chiqadi |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
 
 **Kechki** — quyuq (yoqiq) va yorug' (o'chiq) ko'rinish o'rtasida almashtiradi.
 
-Ekran klaviaturasi (`static/js/klaviatura.js`) Windows klaviaturasi emas, saytning o'ziniki:
-QWERTY, katta harf (⇧), raqam/belgi rejimi (123) va o'zbekcha apostrof (`o'`, `g'`) uchun
-alohida tugma.
+Ekran klaviaturasi (`static/js/klaviatura.js`) Windows klaviaturasi emas, saytning
+o'ziniki: planshetdagidek pastda, butun enlikda turadi va mavzu bilan birga rangini
+o'zgartiradi. **Faqat harf** — QWERTY, katta harf (⇧), o'zbekcha apostrof (`o'`, `g'`)
+uchun alohida tugma, bo'sh joy va «Tayyor». Raqam va maxsus belgi yo'q.
+
+Raqamli maydonlar uchun **qalqib chiquvchi oyna yo'q**: raqamlar klaviaturasi maydon
+yonida, sahifaning o'zida turadi (kassaning o'ng paneli, kirim ekranining o'ng ustuni).
+Oyna bo'lib chiqqanda u jonli izohni to'sib qo'yardi.
 
 ## Ish tartibi: naqd sotuv
 

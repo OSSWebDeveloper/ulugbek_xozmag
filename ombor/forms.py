@@ -129,13 +129,12 @@ class KirimForm(forms.Form):
     kiritilayotgani so'raladi; sotuv birligiga o'tkazish `sotuv_miqdori()` da.
     """
 
-    # Maydon kassadagidek matn maydoni: yonidagi raqamlar klaviaturasi unga
-    # yozadi, `data-numpadsiz` esa qalqib chiquvchi numpad ochilmasligi uchun.
+    # Maydon kassadagidek matn maydoni — yonidagi raqamlar klaviaturasi unga yozadi.
     miqdor = VergulliDecimal(
         label="Kirim miqdori", max_digits=12, decimal_places=3, min_value=0,
         widget=forms.TextInput(attrs={"class": "kirish raqam-maydon", "id": "kirim-miqdor",
                                       "inputmode": "decimal", "autocomplete": "off",
-                                      "data-numpadsiz": True, "placeholder": "0"}),
+                                      "placeholder": "0"}),
     )
     birlik = forms.ChoiceField(label="Qaysi birlikda", required=False,
                                widget=forms.RadioSelect(attrs={"class": "birlik-radio"}))
