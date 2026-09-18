@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "xozmak",
+      "name": "xozmag",
       "runtimeExecutable": "python",
       "runtimeArgs": ["manage.py", "runserver", "8000"],
       "port": 8000

@@ -1,4 +1,4 @@
-"""Ulug'bek Xozmak - asosiy manzillar."""
+"""Ulug'bek Xozmag - asosiy manzillar."""
 from django.contrib import admin
 from django.urls import include, path
 

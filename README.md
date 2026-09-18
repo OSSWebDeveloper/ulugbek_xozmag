@@ -1,6 +1,6 @@
-# Ulug'bek Xozmak
+# Ulug'bek Xozmag
 
-Xozmak (qurilish mollari do'koni) uchun **qarz daftari + ombor organiseri**.
+Xozmag (qurilish mollari do'koni) uchun **qarz daftari + ombor organiseri**.
 Eskirgan qog'oz daftar o'rniga ishlaydi.
 
 ## Ishga tushirish
@@ -23,7 +23,7 @@ python manage.py createsuperuser
 
 Ombor ochiq bo'lgani uchun `SECRET_KEY` kodda turmaydi. Birinchi ishga
 tushirishda `.secret_key` fayli o'zi yasaladi va shu kompyuterda qoladi
-(git'ga tushmaydi). Xohlasangiz `XOZMAK_SECRET_KEY` muhit o'zgaruvchisi
+(git'ga tushmaydi). Xohlasangiz `XOZMAG_SECRET_KEY` muhit o'zgaruvchisi
 bilan berish mumkin.
 
 Ma'lumotlar bazasi (`db.sqlite3`) ham git'ga tushmaydi — mijoz ma'lumoti

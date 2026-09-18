@@ -1,14 +1,14 @@
-"""Ulug'bek Xozmak - Django sozlamalari."""
+"""Ulug'bek Xozmag - Django sozlamalari."""
 import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Maxfiy kalit kodda turmaydi (ombor ochiq). Tartib:
-#   1) `XOZMAK_SECRET_KEY` muhit o'zgaruvchisi bo'lsa — o'sha;
+#   1) `XOZMAG_SECRET_KEY` muhit o'zgaruvchisi bo'lsa — o'sha;
 #   2) bo'lmasa `.secret_key` fayli (git'ga tushmaydi) — birinchi ishga
 #      tushirishda o'zi yasaladi va shu kompyuterda qoladi.
-SECRET_KEY = os.environ.get("XOZMAK_SECRET_KEY", "").strip()
+SECRET_KEY = os.environ.get("XOZMAG_SECRET_KEY", "").strip()
 if not SECRET_KEY:
     _kalit_fayl = BASE_DIR / ".secret_key"
     if _kalit_fayl.exists():
