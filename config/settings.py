@@ -1,9 +1,23 @@
 """Ulug'bek Xozmak - Django sozlamalari."""
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-ulugbek-xozmak-prototip-key-almashtiring"
+# Maxfiy kalit kodda turmaydi (ombor ochiq). Tartib:
+#   1) `XOZMAK_SECRET_KEY` muhit o'zgaruvchisi bo'lsa — o'sha;
+#   2) bo'lmasa `.secret_key` fayli (git'ga tushmaydi) — birinchi ishga
+#      tushirishda o'zi yasaladi va shu kompyuterda qoladi.
+SECRET_KEY = os.environ.get("XOZMAK_SECRET_KEY", "").strip()
+if not SECRET_KEY:
+    _kalit_fayl = BASE_DIR / ".secret_key"
+    if _kalit_fayl.exists():
+        SECRET_KEY = _kalit_fayl.read_text(encoding="utf-8").strip()
+    else:
+        from django.core.management.utils import get_random_secret_key
+
+        SECRET_KEY = get_random_secret_key()
+        _kalit_fayl.write_text(SECRET_KEY, encoding="utf-8")
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 

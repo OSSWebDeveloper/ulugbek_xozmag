@@ -19,6 +19,16 @@ Admin panel kerak bo'lsa:
 python manage.py createsuperuser
 ```
 
+### Maxfiy kalit
+
+Ombor ochiq bo'lgani uchun `SECRET_KEY` kodda turmaydi. Birinchi ishga
+tushirishda `.secret_key` fayli o'zi yasaladi va shu kompyuterda qoladi
+(git'ga tushmaydi). Xohlasangiz `XOZMAK_SECRET_KEY` muhit o'zgaruvchisi
+bilan berish mumkin.
+
+Ma'lumotlar bazasi (`db.sqlite3`) ham git'ga tushmaydi — mijoz ma'lumoti
+hech qachon omborga chiqmaydi.
+
 ## Versiya
 
 Dastur versiyasi **yon menyu pastida** ko'rinib turadi (`v1.0.0`) — mijoz
