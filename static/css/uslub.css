@@ -217,6 +217,33 @@ body {
   border-radius: 50%;
   transition: left .18s cubic-bezier(.4, 0, .2, 1), background .18s ease;
 }
+/* Formadagi keng richag — «Birlik o'zgaradi» */
+.richag.keng {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: var(--oraliq);
+  font-size: var(--matn);
+  text-transform: none;
+  letter-spacing: 0;
+  text-align: left;
+}
+.richag.keng .yo-l { flex: none; }
+.richag-kirish { position: absolute; opacity: 0; width: 0; height: 0; }
+.richag-matn { display: flex; flex-direction: column; gap: 3px; }
+.richag-matn b { font-weight: 650; color: var(--matn-rang); }
+.richag-matn small { font-size: 12px; font-weight: 400; color: var(--matn-3); line-height: 1.35; }
+.richag.yoniq { border-color: var(--urgu-chek); background: var(--urgu-fon); }
+.richag.yoniq .yo-l { background: var(--urgu); }
+.richag.yoniq .dasta { left: 23px; }
+.richag.yoniq .richag-matn b { color: var(--urgu-matn); }
+.richag.keng:has(.richag-kirish:focus-visible) { outline: 2px solid var(--urgu); outline-offset: 2px; }
+
+/* `.qator { display: flex }` brauzerning [hidden] qoidasini bosib ketadi */
+[data-ikki][hidden] { display: none !important; }
+
 /* Sensor richagi yoqiq */
 body.rejim-sensor #richag { color: var(--tasdiq); border-color: var(--tasdiq-chek); }
 body.rejim-sensor #richag .yo-l { background: var(--tasdiq); }

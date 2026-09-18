@@ -1,6 +1,6 @@
 /* Ombor ekranlari: ikki birlikli tovarlar uchun jonli hisob.
    Hech narsa yubormaydi — faqat foydalanuvchi nima bo'lishini oldindan ko'rsin.
-   Haqiqiy hisob har doim serverda (ombor/models.py: sotuvga_aylantir). */
+   Haqiqiy hisob har doim serverda (ombor/models.py, ombor/forms.py). */
 (function () {
   "use strict";
 
@@ -13,61 +13,118 @@
     return q.toLocaleString("ru-RU", { maximumFractionDigits: 3 }).replace(/ /g, " ");
   }
 
-  // ---------- Tovar formasi: birliklarning jonli izohi ----------
+  function matnQoy(sinf, matn) {
+    document.querySelectorAll("." + sinf).forEach(function (el) { el.textContent = matn; });
+  }
+
+  // ---------- Tovar formasi ----------
+  // «Birlik o'zgaradi» richagi yoqilsa forma qadoq bo'yicha savol beradi va
+  // qoldiqni o'zi hisoblaydi. O'chiq bo'lsa oddiy tovar kartochkasi qoladi.
   function mahsulotFormasi() {
     var forma = document.getElementById("mahsulot-forma");
     if (!forma) return;
 
+    var richag = document.getElementById("birlik-richag");
+    var belgi = document.getElementById("birlik-ozgaradi");
     var birlik = document.getElementById("id_birlik");
     var olishBirligi = document.getElementById("id_olish_birligi");
     var olishMiqdori = document.getElementById("id_olish_miqdori");
     var narx = document.getElementById("id_narx");
+    var narxBirligi = document.getElementById("narx-birligi");
     var qoldiq = document.getElementById("id_qoldiq");
-    var miqdorMaydon = document.getElementById("olish-miqdori-maydon");
+    var qoldiqMaydon = document.getElementById("qoldiq-maydon");
+    var qadoqSoni = document.getElementById("qadoq-soni");
+    var birlikYorliq = document.getElementById("birlik-yorliq");
     var qoida = document.getElementById("birlik-qoida");
-    if (!birlik || !olishBirligi || !olishMiqdori) return;
+    if (!belgi || !birlik || !olishBirligi || !olishMiqdori) return;
+
+    var yangiMi = forma.dataset.yangi === "1";
 
     function yangila() {
+      var yoniq = belgi.checked;
       var sotuv = birlik.value;
       var olish = olishBirligi.value;
-      var ikki = olish && olish !== sotuv;
 
-      document.getElementById("narx-birlik").textContent = sotuv;
-      document.getElementById("qoldiq-birlik").textContent = sotuv;
-      document.getElementById("olish-birlik-nomi").textContent = olish || "olish birligi";
-      document.getElementById("sotuv-birlik-nomi").textContent = sotuv;
+      richag.classList.toggle("yoniq", yoniq);
+      forma.querySelectorAll("[data-ikki]").forEach(function (el) { el.hidden = !yoniq; });
 
-      miqdorMaydon.hidden = !ikki;
-      if (!ikki) {
+      matnQoy("sotuv-birlik-nomi", sotuv);
+      matnQoy("olish-birlik-nomi", olish || "qadoq");
+      birlikYorliq.textContent = yoniq ? "Sotiladigan birligi" : "Sotuv birligi";
+
+      // Yangi tovarda qoldiq qadoq sonidan chiqadi — qo'lda yozilmaydi.
+      var qoldiqYashirin = yoniq && yangiMi;
+      qoldiqMaydon.hidden = qoldiqYashirin;
+
+      if (!yoniq) {
         qoida.hidden = true;
         return;
       }
 
       var nechta = son(olishMiqdori.value);
+      if (!olish) {
+        qoida.hidden = false;
+        qoida.className = "qoida-satri ogoh";
+        qoida.textContent = "Tovar qaysi birlikda kelishini tanlang.";
+        return;
+      }
+      if (olish === sotuv) {
+        qoida.hidden = false;
+        qoida.className = "qoida-satri ogoh";
+        qoida.textContent = "Kelgan va sotiladigan birlik bir xil — birlik " +
+                            "o'zgarmasa richagni o'chiring.";
+        return;
+      }
       if (nechta <= 0) {
         qoida.hidden = false;
         qoida.className = "qoida-satri ogoh";
-        qoida.textContent = "1 " + olish + " da nechta " + sotuv + " borligini yozing.";
+        qoida.textContent = "1 " + olish + "da nechta " + sotuv + " borligini yozing.";
         return;
       }
 
-      var qatorlar = ["1 " + olish + " = " + chiroyli(nechta) + " " + sotuv];
+      // Narx qadoq bo'yicha kiritilgan bo'lsa bittasiniki hisoblanadi.
+      var qadoqNarxi = 0, dona = 0;
       if (son(narx.value) > 0) {
-        qatorlar.push("1 " + olish + " narxi ≈ " + chiroyli(son(narx.value) * nechta) + " so'm");
+        if (narxBirligi && narxBirligi.value === "olish") {
+          qadoqNarxi = son(narx.value);
+          dona = qadoqNarxi / nechta;
+        } else {
+          dona = son(narx.value);
+          qadoqNarxi = dona * nechta;
+        }
       }
-      if (son(qoldiq.value) > 0) {
-        qatorlar.push("Qoldiq: " + chiroyli(son(qoldiq.value)) + " " + sotuv +
-                      " = " + chiroyli(son(qoldiq.value) / nechta) + " " + olish);
+
+      var qatorlar = ["1 " + olish + " = " + chiroyli(nechta) + " " + sotuv];
+
+      if (qoldiqYashirin) {
+        var qadoq = son(qadoqSoni && qadoqSoni.value);
+        if (qadoq > 0) {
+          qatorlar.push(chiroyli(qadoq) + " " + olish + " = " +
+                        chiroyli(qadoq * nechta) + " " + sotuv + " omborga tushadi");
+        } else {
+          qatorlar.push("qadoq soni yozilmagan — qoldiq 0 bo'ladi");
+        }
+      } else if (son(qoldiq.value) > 0) {
+        qatorlar.push("Qoldiq: " + chiroyli(son(qoldiq.value)) + " " + sotuv + " = " +
+                      chiroyli(son(qoldiq.value) / nechta) + " " + olish);
       }
+
+      if (dona > 0) {
+        qatorlar.push("1 " + sotuv + " " + chiroyli(Math.round(dona)) + " so'm");
+        qatorlar.push("1 " + olish + " " + chiroyli(Math.round(qadoqNarxi)) + " so'm");
+      }
+
       qoida.hidden = false;
       qoida.className = "qoida-satri";
       qoida.textContent = qatorlar.join("  ·  ");
     }
 
-    [birlik, olishBirligi, olishMiqdori, narx, qoldiq].forEach(function (el) {
-      el.addEventListener("change", yangila);
-      el.addEventListener("input", yangila);
-    });
+    [belgi, birlik, olishBirligi, olishMiqdori, narx, narxBirligi, qoldiq, qadoqSoni]
+      .forEach(function (el) {
+        if (!el) return;
+        el.addEventListener("change", yangila);
+        el.addEventListener("input", yangila);
+      });
     yangila();
   }
 
@@ -87,8 +144,8 @@
     var ikki = !!olish && olish !== sotuv;
 
     function tanlanganBirlik() {
-      var belgi = forma.querySelector('input[name="birlik"]:checked');
-      return belgi ? belgi.value : sotuv;
+      var b = forma.querySelector('input[name="birlik"]:checked');
+      return b ? b.value : sotuv;
     }
 
     // Tanlangan tugmani belgilaydi (eski brauzerda CSS :has ishlamasligi mumkin).
@@ -131,11 +188,11 @@
         var t = e.target.closest("button");
         if (!t) return;
         if (t.dataset.raqam) {
-          var belgi = t.dataset.raqam;
+          var b = t.dataset.raqam;
           var q = miqdor.value === "0" ? "" : miqdor.value;
-          if (belgi === "." && q.indexOf(".") !== -1) return;
-          if (belgi === "." && q === "") q = "0";
-          miqdor.value = q + belgi;
+          if (b === "." && q.indexOf(".") !== -1) return;
+          if (b === "." && q === "") q = "0";
+          miqdor.value = q + b;
         } else if (t.dataset.amal === "ochir") {
           miqdor.value = miqdor.value.slice(0, -1);
         }

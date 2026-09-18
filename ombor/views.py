@@ -22,21 +22,34 @@ def royxat(request):
 
 
 def mahsulot_yangi(request):
-    """Skladga yangi tovar turi qo'shish."""
+    """Skladga yangi tovar turi qo'shish.
+
+    «Birlik o'zgaradi» richagi yoqilgan bo'lsa boshlang'ich qoldiq qadoq
+    sonidan hisoblanadi (3 rulon -> 300 metr), tarixga esa ikkala son ham
+    yoziladi.
+    """
     if request.method == "POST":
-        form = MahsulotForm(request.POST)
+        form = MahsulotForm(request.POST, yangi=True)
         if form.is_valid():
             mahsulot = form.save()
             if mahsulot.qoldiq:
+                qadoq = form.cleaned_data.get("qadoq_soni")
+                ikki = mahsulot.ikki_birlikmi and qadoq
                 OmborHarakati.objects.create(
                     mahsulot=mahsulot, tur=HarakatTuri.KIRIM,
-                    miqdor=mahsulot.qoldiq, izoh="Boshlang'ich qoldiq",
+                    miqdor=mahsulot.qoldiq,
+                    kiritilgan_miqdor=qadoq if ikki else None,
+                    kiritilgan_birlik=mahsulot.olish_birligi if ikki else "",
+                    izoh="Boshlang'ich qoldiq",
                 )
-            messages.success(request, f"{mahsulot.nom} skladga qo'shildi.")
+            xabar = f"{mahsulot.nom} skladga qo'shildi"
+            if mahsulot.qoldiq:
+                xabar += f" — {mahsulot.qoldiq_toliq}"
+            messages.success(request, xabar + ".")
             return redirect("ombor:royxat")
     else:
-        form = MahsulotForm()
-    return render(request, "ombor/mahsulot_form.html", {"form": form})
+        form = MahsulotForm(yangi=True)
+    return render(request, "ombor/mahsulot_form.html", {"form": form, "yangi": True})
 
 
 def mahsulot_tahrir(request, pk):
@@ -44,7 +57,7 @@ def mahsulot_tahrir(request, pk):
     mahsulot = get_object_or_404(Mahsulot, pk=pk)
     eski_qoldiq = mahsulot.qoldiq
     if request.method == "POST":
-        form = MahsulotForm(request.POST, instance=mahsulot)
+        form = MahsulotForm(request.POST, instance=mahsulot, yangi=False)
         if form.is_valid():
             mahsulot = form.save()
             farq = mahsulot.qoldiq - eski_qoldiq
@@ -56,7 +69,7 @@ def mahsulot_tahrir(request, pk):
             messages.success(request, "Saqlandi.")
             return redirect("ombor:royxat")
     else:
-        form = MahsulotForm(instance=mahsulot)
+        form = MahsulotForm(instance=mahsulot, yangi=False)
     return render(request, "ombor/mahsulot_form.html", {"form": form, "mahsulot": mahsulot})
 
 

@@ -1,4 +1,6 @@
 """Ombor formalari."""
+from decimal import Decimal
+
 from django import forms
 
 from .models import Mahsulot
@@ -17,9 +19,33 @@ class VergulliDecimal(forms.DecimalField):
 
 
 class MahsulotForm(forms.ModelForm):
+    """Tovar kartochkasi.
+
+    «Birlik o'zgaradi» richagi yoqilsa forma qadoq bo'yicha savol beradi:
+    necha qadoq keldi, qaysi birlikda keldi, qaysi birlikda sotiladi, bitta
+    qadoqda nechta. Qoldiq shundan hisoblanadi — operator metrni o'zi
+    ko'paytirib o'tirmaydi. Narx ham qadoq bo'yicha kiritilishi mumkin.
+    """
+
+    birlik_ozgaradi = forms.BooleanField(
+        label="Birlik o'zgaradi", required=False,
+        widget=forms.CheckboxInput(attrs={"class": "richag-kirish", "id": "birlik-ozgaradi"}),
+    )
+    qadoq_soni = VergulliDecimal(
+        label="Necha qadoq keldi", max_digits=12, decimal_places=3, min_value=0, required=False,
+        widget=forms.TextInput(attrs={"class": "kirish raqam-maydon", "id": "qadoq-soni",
+                                      "inputmode": "decimal", "autocomplete": "off",
+                                      "placeholder": "0"}),
+    )
+    narx_birligi = forms.ChoiceField(
+        label="Narx qaysi birlikda", required=False,
+        choices=[("sotuv", "sotuv birligi uchun"), ("olish", "bitta qadoq uchun")],
+        widget=forms.Select(attrs={"class": "kirish", "id": "narx-birligi"}),
+    )
+
     class Meta:
         model = Mahsulot
-        fields = ["nom", "birlik", "narx", "qoldiq", "olish_birligi", "olish_miqdori", "faol"]
+        fields = ["nom", "birlik", "olish_birligi", "olish_miqdori", "narx", "qoldiq", "faol"]
         field_classes = {
             "narx": VergulliDecimal,
             "qoldiq": VergulliDecimal,
@@ -29,40 +55,73 @@ class MahsulotForm(forms.ModelForm):
             "nom": forms.TextInput(attrs={"class": "kirish", "autocomplete": "off",
                                           "placeholder": "Tovar nomi"}),
             "birlik": forms.Select(attrs={"class": "kirish"}),
-            "narx": forms.NumberInput(attrs={"class": "kirish raqam-maydon", "step": "0.01",
-                                             "inputmode": "decimal"}),
-            "qoldiq": forms.NumberInput(attrs={"class": "kirish raqam-maydon", "step": "0.001",
-                                               "inputmode": "decimal"}),
             "olish_birligi": forms.Select(attrs={"class": "kirish"}),
-            "olish_miqdori": forms.NumberInput(attrs={"class": "kirish raqam-maydon",
-                                                      "step": "0.001", "inputmode": "decimal"}),
+            "olish_miqdori": forms.TextInput(attrs={"class": "kirish raqam-maydon",
+                                                    "inputmode": "decimal", "autocomplete": "off",
+                                                    "placeholder": "0"}),
+            "narx": forms.TextInput(attrs={"class": "kirish raqam-maydon",
+                                           "inputmode": "decimal", "autocomplete": "off",
+                                           "placeholder": "0"}),
+            "qoldiq": forms.TextInput(attrs={"class": "kirish raqam-maydon",
+                                             "inputmode": "decimal", "autocomplete": "off",
+                                             "placeholder": "0"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, yangi=False, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["olish_birligi"].choices = [("", "— boshqa birlikda olinmaydi —")] + [
+        self.yangi = yangi
+        if not yangi:
+            # Mavjud tovarda "necha qadoq keldi" ma'nosiz — qoldiq allaqachon bor,
+            # yangi partiya Kirim ekranidan kiritiladi.
+            del self.fields["qadoq_soni"]
+        self.fields["qoldiq"].required = False
+        self.fields["olish_miqdori"].required = False
+        self.fields["olish_birligi"].choices = [("", "— tanlang —")] + [
             (q, n) for q, n in self.fields["olish_birligi"].choices if q
         ]
+        if not self.is_bound:
+            self.fields["birlik_ozgaradi"].initial = self.instance.ikki_birlikmi
+            self.fields["narx_birligi"].initial = "sotuv"
 
     def clean(self):
-        tozalangan = super().clean()
-        birlik = tozalangan.get("birlik")
-        olish_birligi = tozalangan.get("olish_birligi")
-        olish_miqdori = tozalangan.get("olish_miqdori")
+        t = super().clean()
+        ozgaradi = t.get("birlik_ozgaradi")
+        birlik = t.get("birlik")
+        olish_birligi = t.get("olish_birligi") or ""
+        olish_miqdori = t.get("olish_miqdori")
 
-        if olish_birligi and olish_birligi == birlik:
-            # Ikkalasi bir xil bo'lsa — bu oddiy tovar, ortiqcha maydon tozalanadi.
-            tozalangan["olish_birligi"] = ""
-            olish_birligi = ""
-
-        if olish_birligi and (olish_miqdori is None or olish_miqdori <= 0):
-            self.add_error("olish_miqdori",
-                           f"1 {olish_birligi} da nechta {birlik} borligini yozing "
-                           f"(noldan katta son).")
+        if not ozgaradi:
+            # Oddiy tovar: qanday olinsa shunday sotiladi.
+            t["olish_birligi"] = ""
+            t["olish_miqdori"] = Decimal("1")
+            if t.get("qoldiq") is None:
+                t["qoldiq"] = Decimal("0")
+            return t
 
         if not olish_birligi:
-            tozalangan["olish_miqdori"] = 1
-        return tozalangan
+            self.add_error("olish_birligi", "Tovar qaysi birlikda kelishini tanlang.")
+        elif olish_birligi == birlik:
+            self.add_error("olish_birligi",
+                           "Kelgan va sotiladigan birlik bir xil. Birlik o'zgarmasa "
+                           "richagni o'chiring.")
+        if olish_miqdori is None or olish_miqdori <= 0:
+            self.add_error("olish_miqdori",
+                           f"1 {olish_birligi or 'qadoq'} da nechta {birlik or 'birlik'} "
+                           f"borligini yozing (noldan katta son).")
+        if self.errors:
+            return t
+
+        # Narx qadoq bo'yicha kiritilgan bo'lsa — bitta sotuv birligiga bo'linadi.
+        if t.get("narx_birligi") == "olish" and t.get("narx") is not None:
+            t["narx"] = (t["narx"] / olish_miqdori).quantize(Decimal("0.01"))
+
+        # Yangi tovarda qoldiq qadoqdan hisoblanadi, qo'lda yozilmaydi.
+        if self.yangi:
+            qadoq = t.get("qadoq_soni") or Decimal("0")
+            t["qoldiq"] = (qadoq * olish_miqdori).quantize(Decimal("0.001"))
+        elif t.get("qoldiq") is None:
+            t["qoldiq"] = Decimal("0")
+        return t
 
 
 class KirimForm(forms.Form):

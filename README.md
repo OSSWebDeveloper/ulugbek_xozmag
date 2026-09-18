@@ -100,14 +100,25 @@ masalan **polietilen lenta rulonda olinib metrda sotiladi**.
 Qoida oddiy: **ombor qoldig'i har doim sotuv birligida yuritiladi.** Sotuv, qarz,
 qoldiq va narx — hammasi metrda. Faqat **kirim** paytida rulondan metrga o'tkaziladi.
 
-Tovar kartochkasida (`Ombor → tovar → ✏`) «Boshqa birlikda olinadimi?» bo'limi bor:
+Yangi tovar qo'shishda **«Birlik o'zgaradi»** degan richag bor. O'chiq bo'lsa
+forma oddiy: birlik, narx, qoldiq. Yoqilsa forma qadoq bo'yicha savol beradi va
+qoldiqni o'zi hisoblaydi — operator metrni ko'paytirib o'tirmaydi:
 
-| Maydon | Ma'nosi | Misol |
+| Savol | Misol | Nima bo'ladi |
 |---|---|---|
-| Sotuv birligi | mijozga qanday sotiladi | `metr` |
-| Olish birligi | do'konga qanday keladi (bo'sh bo'lsa — bir xil) | `rulon` |
-| 1 rulonda nechta metr | o'tkazish koeffitsiyenti | `100` |
-| Narxi | **bitta sotuv birligi** narxi | `3 500 so'm / metr` |
+| Necha rulon keldi | `3` | boshlang'ich qoldiq shundan chiqadi |
+| Kelgan birligi | `rulon` | do'konga shu ko'rinishda keladi |
+| Sotiladigan birligi | `metr` | mijozga shunda sotiladi, qoldiq ham shunda |
+| 1 rulonda nechta metr | `100` | o'tkazish koeffitsiyenti |
+| Narxi + qaysi birlikda | `350 000` / bitta qadoq uchun | 1 metr narxi o'zi hisoblanadi: 3 500 |
+
+Pastda jonli izoh turadi:
+*«1 rulon = 100 metr · 3 rulon = 300 metr omborga tushadi · 1 metr 3 500 so'm ·
+1 rulon 350 000 so'm»*. Saqlangach tarixga ham `3 rulon = 300 metr` deb yoziladi.
+
+**Tahrirlashda** «necha qadoq keldi» so'ralmaydi — qoldiq allaqachon bor, yangi
+partiya Kirim ekranidan kiritiladi. O'sha yerda qoldiq sotuv birligida
+ko'rsatiladi va yonida `= 3 rulon` deb turadi.
 
 Shundan keyin:
 

@@ -117,37 +117,129 @@ class KirimTest(TestCase):
 
 
 class MahsulotFormaTest(TestCase):
-    """Tovar kartochkasidagi olish birligi maydonlari."""
+    """«Birlik o'zgaradi» richagi va uning atrofidagi maydonlar."""
 
-    def test_olish_birligi_tanlansa_miqdor_talab_qilinadi(self):
-        javob = self.client.post(reverse("ombor:mahsulot_yangi"), {
+    MANZIL = "ombor:mahsulot_yangi"
+
+    def yubor(self, **qoshimcha):
+        malumot = {
             "nom": "Polietilen lenta", "birlik": Birlik.METR, "narx": "3500",
-            "qoldiq": "0", "olish_birligi": Birlik.RULON, "olish_miqdori": "0",
-            "faol": "on",
-        })
+            "qoldiq": "", "olish_birligi": "", "olish_miqdori": "",
+            "narx_birligi": "sotuv", "faol": "on",
+        }
+        malumot.update(qoshimcha)
+        return self.client.post(reverse(self.MANZIL), malumot)
+
+    # ---------- Richag o'chiq: oddiy tovar ----------
+
+    def test_richag_ochiq_bolsa_oddiy_tovar_yaratiladi(self):
+        self.yubor(nom="Rozetka", birlik=Birlik.DONA, qoldiq="150")
+        tovar = Mahsulot.objects.get(nom="Rozetka")
+        self.assertFalse(tovar.ikki_birlikmi)
+        self.assertEqual(tovar.qoldiq, Decimal("150.000"))
+        self.assertEqual(tovar.olish_miqdori, Decimal("1.000"))
+
+    def test_richag_ochiq_bolsa_olish_birligi_tashlab_yuboriladi(self):
+        """Richag o'chiq turib birlik yuborilsa ham e'tiborga olinmaydi."""
+        self.yubor(nom="Rozetka", birlik=Birlik.DONA, qoldiq="150",
+                   olish_birligi=Birlik.QUTI, olish_miqdori="25")
+        tovar = Mahsulot.objects.get(nom="Rozetka")
+        self.assertFalse(tovar.ikki_birlikmi)
+        self.assertEqual(tovar.olish_miqdori, Decimal("1.000"))
+
+    # ---------- Richag yoqiq: qadoq bo'yicha ----------
+
+    def test_qadoq_sonidan_qoldiq_hisoblanadi(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="3")
+        tovar = Mahsulot.objects.get(nom="Polietilen lenta")
+        self.assertTrue(tovar.ikki_birlikmi)
+        self.assertEqual(tovar.qoldiq, Decimal("300.000"))
+        self.assertEqual(tovar.olish_qoldigi, Decimal("3.000"))
+
+    def test_kasrli_qadoq_ham_hisoblanadi(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="2,5")
+        self.assertEqual(Mahsulot.objects.get(nom="Polietilen lenta").qoldiq,
+                         Decimal("250.000"))
+
+    def test_qadoq_soni_bosh_bolsa_qoldiq_nol(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="")
+        tovar = Mahsulot.objects.get(nom="Polietilen lenta")
+        self.assertEqual(tovar.qoldiq, Decimal("0.000"))
+        self.assertTrue(tovar.ikki_birlikmi)
+
+    def test_qadoq_narxi_bittasiga_bolinadi(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="1",
+                   narx="350000", narx_birligi="olish")
+        tovar = Mahsulot.objects.get(nom="Polietilen lenta")
+        self.assertEqual(tovar.narx, Decimal("3500.00"))
+        self.assertEqual(tovar.olish_narxi, Decimal("350000.00"))
+
+    def test_sotuv_narxi_ozgarmaydi(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="1",
+                   narx="3500", narx_birligi="sotuv")
+        self.assertEqual(Mahsulot.objects.get(nom="Polietilen lenta").narx,
+                         Decimal("3500.00"))
+
+    def test_boshlangich_qoldiq_tarixda_ikkala_birlikda(self):
+        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                   olish_miqdori="100", qadoq_soni="3")
+        harakat = OmborHarakati.objects.get(mahsulot__nom="Polietilen lenta")
+        self.assertEqual(harakat.tur, HarakatTuri.KIRIM)
+        self.assertEqual(harakat.korinish, "3 rulon = 300 metr")
+
+    # ---------- Xatolar ----------
+
+    def test_kelgan_birligi_tanlanmasa_xato(self):
+        javob = self.yubor(birlik_ozgaradi="on", olish_miqdori="100", qadoq_soni="3")
+        self.assertEqual(javob.status_code, 200)
+        self.assertFalse(Mahsulot.objects.filter(nom="Polietilen lenta").exists())
+        self.assertContains(javob, "qaysi birlikda kelishini tanlang")
+
+    def test_ikkala_birlik_bir_xil_bolsa_xato(self):
+        javob = self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.METR,
+                           olish_miqdori="100", qadoq_soni="3")
+        self.assertEqual(javob.status_code, 200)
+        self.assertFalse(Mahsulot.objects.filter(nom="Polietilen lenta").exists())
+        self.assertContains(javob, "richagni o&#x27;chiring")
+
+    def test_qadoqdagi_soni_nol_bolsa_xato(self):
+        javob = self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
+                           olish_miqdori="0", qadoq_soni="3")
         self.assertEqual(javob.status_code, 200)
         self.assertFalse(Mahsulot.objects.filter(nom="Polietilen lenta").exists())
         self.assertContains(javob, "nechta metr borligini yozing")
 
-    def test_toliq_toldirilsa_saqlanadi(self):
-        self.client.post(reverse("ombor:mahsulot_yangi"), {
-            "nom": "Polietilen lenta", "birlik": Birlik.METR, "narx": "3500",
-            "qoldiq": "300", "olish_birligi": Birlik.RULON, "olish_miqdori": "100",
-            "faol": "on",
-        })
-        tovar = Mahsulot.objects.get(nom="Polietilen lenta")
-        self.assertTrue(tovar.ikki_birlikmi)
-        self.assertEqual(tovar.olish_qoldigi, Decimal("3.000"))
+    # ---------- Tahrirlash ----------
 
-    def test_olish_birligi_tanlanmasa_miqdor_birga_qaytadi(self):
-        self.client.post(reverse("ombor:mahsulot_yangi"), {
-            "nom": "Rozetka", "birlik": Birlik.DONA, "narx": "12000",
-            "qoldiq": "150", "olish_birligi": "", "olish_miqdori": "25",
-            "faol": "on",
+    def test_tahrirlashda_qadoq_soni_sorolmaydi(self):
+        tovar = Mahsulot.objects.create(
+            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
+            narx=Decimal("3500"), qoldiq=Decimal("300"),
+        )
+        javob = self.client.get(reverse("ombor:mahsulot_tahrir", args=[tovar.pk]))
+        self.assertNotContains(javob, 'id="qadoq-soni"')
+        self.assertContains(javob, 'id="birlik-ozgaradi"')
+
+    def test_tahrirlashda_qoldiq_togridan_yoziladi(self):
+        tovar = Mahsulot.objects.create(
+            nom="Polietilen lenta 10 sm", birlik=Birlik.METR,
+            olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
+            narx=Decimal("3500"), qoldiq=Decimal("300"),
+        )
+        self.client.post(reverse("ombor:mahsulot_tahrir", args=[tovar.pk]), {
+            "nom": tovar.nom, "birlik": Birlik.METR, "narx": "3500",
+            "qoldiq": "450", "birlik_ozgaradi": "on", "olish_birligi": Birlik.RULON,
+            "olish_miqdori": "100", "narx_birligi": "sotuv", "faol": "on",
         })
-        tovar = Mahsulot.objects.get(nom="Rozetka")
-        self.assertFalse(tovar.ikki_birlikmi)
-        self.assertEqual(tovar.olish_miqdori, Decimal("1.000"))
+        tovar.refresh_from_db()
+        self.assertEqual(tovar.qoldiq, Decimal("450.000"))
+        self.assertEqual(tovar.olish_qoldigi, Decimal("4.500"))
 
 
 class SotuvBirligiTest(TestCase):
