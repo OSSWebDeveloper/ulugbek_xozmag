@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.1.0 — 2026-09-18
+
+Kechki mavzu my.gov.uz palitrasiga o'tkazildi (neytral kulrang fonlar)
+
 ## 1.0.1 — 2026-09-18
 
 Nom to'g'irlandi: Xozmag (xo'jalik magazini)
