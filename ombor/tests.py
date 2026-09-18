@@ -110,7 +110,18 @@ class KirimTest(TestCase):
         harakat = OmborHarakati.objects.get(mahsulot=self.gisht, tur=HarakatTuri.KIRIM)
         self.assertEqual(harakat.korinish, "100 dona")
 
+    def test_nol_kirim_qabul_qilinmaydi(self):
+        javob = self.client.post(reverse("ombor:kirim", args=[self.gisht.pk]), {
+            "miqdor": "0", "izoh": "",
+        })
+        self.assertEqual(javob.status_code, 200)
+        self.gisht.refresh_from_db()
+        self.assertEqual(self.gisht.qoldiq, Decimal("5000.000"))
+        self.assertFalse(OmborHarakati.objects.filter(mahsulot=self.gisht).exists())
+        self.assertContains(javob, "noldan katta")
+
     def test_ikki_birlikli_tovarda_birlik_tanlovi_korinadi(self):
+
         javob = self.client.get(reverse("ombor:kirim", args=[self.lenta.pk]))
         self.assertContains(javob, 'name="birlik"')
         self.assertContains(javob, "1 rulon = 100 metr")
@@ -125,7 +136,7 @@ class MahsulotFormaTest(TestCase):
         malumot = {
             "nom": "Polietilen lenta", "birlik": Birlik.METR, "narx": "3500",
             "qoldiq": "", "olish_birligi": "", "olish_miqdori": "",
-            "narx_birligi": "sotuv", "faol": "on",
+            "faol": "on",
         }
         malumot.update(qoshimcha)
         return self.client.post(reverse(self.MANZIL), malumot)
@@ -170,20 +181,12 @@ class MahsulotFormaTest(TestCase):
         self.assertEqual(tovar.qoldiq, Decimal("0.000"))
         self.assertTrue(tovar.ikki_birlikmi)
 
-    def test_qadoq_narxi_bittasiga_bolinadi(self):
+    def test_narx_sotuv_birligida_saqlanadi(self):
         self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
-                   olish_miqdori="100", qadoq_soni="1",
-                   narx="350000", narx_birligi="olish")
+                   olish_miqdori="100", qadoq_soni="1", narx="3500")
         tovar = Mahsulot.objects.get(nom="Polietilen lenta")
         self.assertEqual(tovar.narx, Decimal("3500.00"))
         self.assertEqual(tovar.olish_narxi, Decimal("350000.00"))
-
-    def test_sotuv_narxi_ozgarmaydi(self):
-        self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
-                   olish_miqdori="100", qadoq_soni="1",
-                   narx="3500", narx_birligi="sotuv")
-        self.assertEqual(Mahsulot.objects.get(nom="Polietilen lenta").narx,
-                         Decimal("3500.00"))
 
     def test_boshlangich_qoldiq_tarixda_ikkala_birlikda(self):
         self.yubor(birlik_ozgaradi="on", olish_birligi=Birlik.RULON,
@@ -214,6 +217,14 @@ class MahsulotFormaTest(TestCase):
         self.assertFalse(Mahsulot.objects.filter(nom="Polietilen lenta").exists())
         self.assertContains(javob, "nechta metr borligini yozing")
 
+
+    def test_takroriy_nom_tushunarli_xato_beradi(self):
+        Mahsulot.objects.create(nom="Rozetka", birlik=Birlik.DONA, narx=Decimal("12000"))
+        javob = self.yubor(nom="Rozetka", birlik=Birlik.DONA)
+        self.assertEqual(javob.status_code, 200)
+        self.assertContains(javob, "Bunday nomli tovar allaqachon bor")
+        self.assertEqual(Mahsulot.objects.filter(nom="Rozetka").count(), 1)
+
     # ---------- Tahrirlash ----------
 
     def test_tahrirlashda_qadoq_soni_sorolmaydi(self):
@@ -235,7 +246,7 @@ class MahsulotFormaTest(TestCase):
         self.client.post(reverse("ombor:mahsulot_tahrir", args=[tovar.pk]), {
             "nom": tovar.nom, "birlik": Birlik.METR, "narx": "3500",
             "qoldiq": "450", "birlik_ozgaradi": "on", "olish_birligi": Birlik.RULON,
-            "olish_miqdori": "100", "narx_birligi": "sotuv", "faol": "on",
+            "olish_miqdori": "100", "faol": "on",
         })
         tovar.refresh_from_db()
         self.assertEqual(tovar.qoldiq, Decimal("450.000"))
@@ -259,4 +270,4 @@ class SotuvBirligiTest(TestCase):
         self.lenta.refresh_from_db()
         self.assertEqual(self.lenta.qoldiq, Decimal("150.000"))
         self.assertEqual(self.lenta.olish_qoldigi, Decimal("1.500"))
-        self.assertEqual(self.lenta.qoldiq_toliq, "150 metr (1.5 rulon)")
+        self.assertEqual(self.lenta.qoldiq_toliq, "150 metr (1,5 rulon)")

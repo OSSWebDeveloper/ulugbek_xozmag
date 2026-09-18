@@ -140,8 +140,41 @@
     joriyMaydon = null;
   }
 
+  // ---------- Brauzerning o'z ogohlantirishlari ----------
+  // Ular brauzer tilida chiqadi (masalan ruscha) — sayt o'zbekcha bo'lgani
+  // uchun matnni o'zimiz beramiz.
+  var TEKSHIRUV = [
+    ["valueMissing", "Bu maydonni to'ldiring."],
+    ["badInput", "Faqat son yozing."],
+    ["typeMismatch", "Qiymat noto'g'ri."],
+    ["rangeUnderflow", "Son juda kichik."],
+    ["rangeOverflow", "Son juda katta."],
+    ["stepMismatch", "Bunday son bo'lmaydi."],
+    ["tooLong", "Juda uzun yozuv."],
+    ["patternMismatch", "Ko'rinishi mos emas."]
+  ];
+
+  function tekshiruvniUla() {
+    document.addEventListener("invalid", function (e) {
+      var el = e.target;
+      if (!el.validity) return;
+      for (var i = 0; i < TEKSHIRUV.length; i++) {
+        if (el.validity[TEKSHIRUV[i][0]]) { el.setCustomValidity(TEKSHIRUV[i][1]); return; }
+      }
+      el.setCustomValidity("");
+    }, true);
+    // Yozila boshlanishi bilan xabar tozalanadi, aks holda maydon xato bo'lib qoladi
+    document.addEventListener("input", function (e) {
+      if (e.target && e.target.setCustomValidity) e.target.setCustomValidity("");
+    }, true);
+    document.addEventListener("change", function (e) {
+      if (e.target && e.target.setCustomValidity) e.target.setCustomValidity("");
+    }, true);
+  }
+
   // ---------- Ishga tushirish ----------
   document.addEventListener("DOMContentLoaded", function () {
+    tekshiruvniUla();
     rejimniQoy(rejimniOqi());
     mavzuniQoy(mavzuniOqi());
 

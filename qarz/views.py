@@ -13,6 +13,12 @@ from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
 
 
+
+def pul_matn(son):
+    """550000 -> '550 000'. Xabarlarda o'qishga qulay bo'lsin."""
+    return f"{son:,.0f}".replace(",", " ")
+
+
 def boshlash(request):
     """Bosh sahifa: eski qarzdormi yoki yangi qarzdormi?"""
     return render(request, "qarz/boshlash.html")
@@ -159,17 +165,38 @@ def qarz_yakunlash(request, pk):
 
 
 def tolov_qoshish(request, qarzdor_pk):
-    """Qarzdor to'lov qildi."""
+    """Qarzdor to'lov qildi.
+
+    Qarzdan ortiq to'lov qabul qilinmaydi — aks holda balans manfiyga
+    ketib, «Qolgan qarzi −5 000 so'm» kabi ma'nosiz son chiqadi.
+    """
     qarzdor = get_object_or_404(Qarzdor, pk=qarzdor_pk)
     if request.method == "POST":
         form = TolovForm(request.POST)
-        if form.is_valid():
+        if not form.is_valid():
+            messages.error(request, "To'lov summasi xato.")
+            return redirect("qarz:qarzdor_karta", pk=qarzdor.pk)
+
+        summa = form.cleaned_data["summa"]
+        qoldiq = qarzdor.balans
+        if summa <= 0:
+            messages.error(request, "To'lov summasi noldan katta bo'lishi kerak.")
+        elif qoldiq <= 0:
+            messages.error(request, f"{qarzdor.toliq_ism} ning qarzi yo'q — "
+                                    f"to'lov yozishning hojati yo'q.")
+        elif summa > qoldiq:
+            messages.error(request, f"Qolgan qarzi {pul_matn(qoldiq)} so'm. "
+                                    f"Bundan ortiq to'lov yozib bo'lmaydi.")
+        else:
             tolov = form.save(commit=False)
             tolov.qarzdor = qarzdor
             tolov.save()
-            messages.success(request, "To'lov qabul qilindi.")
-        else:
-            messages.error(request, "To'lov summasi xato.")
+            qolgan = qarzdor.balans
+            if qolgan > 0:
+                messages.success(request, f"To'lov qabul qilindi. "
+                                          f"Qolgan qarzi {pul_matn(qolgan)} so'm.")
+            else:
+                messages.success(request, "To'lov qabul qilindi. Qarz to'liq yopildi.")
     return redirect("qarz:qarzdor_karta", pk=qarzdor.pk)
 
 

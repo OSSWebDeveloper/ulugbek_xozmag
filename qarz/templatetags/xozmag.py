@@ -24,12 +24,19 @@ def pul(qiymat):
 
 @register.filter
 def tekis(qiymat):
-    """Miqdorni o'qishga qulay qiladi: 120.000 -> '120', 5000 -> '5 000', 2.500 -> '2.5'."""
+    """Miqdorni o'qishga qulay qiladi: 120.000 -> '120', 5000 -> '5 000', 2.500 -> '2,5'.
+
+    Kasr vergul bilan — saytning qolgan joyi (JS hisoblari) ham shunday
+    ko'rsatadi, ikki xil belgi chalkashtirmasin.
+    """
     son = _decimalga(qiymat)
     if son is None:
         return qiymat
     if son == son.to_integral_value():
         return f"{son.to_integral_value():,f}".replace(",", " ")
     butun, _, kasr = f"{son.normalize():f}".partition(".")
-    butun = f"{int(butun):,}".replace(",", " ")
-    return f"{butun}.{kasr}" if kasr else butun
+    manfiy = butun.startswith("-")
+    butun = f"{abs(int(butun)):,}".replace(",", " ")
+    if manfiy:
+        butun = "-" + butun
+    return f"{butun},{kasr}" if kasr else butun

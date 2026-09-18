@@ -30,7 +30,6 @@
     var olishBirligi = document.getElementById("id_olish_birligi");
     var olishMiqdori = document.getElementById("id_olish_miqdori");
     var narx = document.getElementById("id_narx");
-    var narxBirligi = document.getElementById("narx-birligi");
     var qoldiq = document.getElementById("id_qoldiq");
     var qoldiqMaydon = document.getElementById("qoldiq-maydon");
     var qadoqSoni = document.getElementById("qadoq-soni");
@@ -61,38 +60,31 @@
         return;
       }
 
+      qoida.classList.remove("ogoh");
       var nechta = son(olishMiqdori.value);
       if (!olish) {
         qoida.hidden = false;
-        qoida.className = "qoida-satri ogoh";
+        qoida.classList.add("ogoh");
         qoida.textContent = "Tovar qaysi birlikda kelishini tanlang.";
         return;
       }
       if (olish === sotuv) {
         qoida.hidden = false;
-        qoida.className = "qoida-satri ogoh";
+        qoida.classList.add("ogoh");
         qoida.textContent = "Kelgan va sotiladigan birlik bir xil — birlik " +
                             "o'zgarmasa richagni o'chiring.";
         return;
       }
       if (nechta <= 0) {
         qoida.hidden = false;
-        qoida.className = "qoida-satri ogoh";
+        qoida.classList.add("ogoh");
         qoida.textContent = "1 " + olish + "da nechta " + sotuv + " borligini yozing.";
         return;
       }
 
-      // Narx qadoq bo'yicha kiritilgan bo'lsa bittasiniki hisoblanadi.
-      var qadoqNarxi = 0, dona = 0;
-      if (son(narx.value) > 0) {
-        if (narxBirligi && narxBirligi.value === "olish") {
-          qadoqNarxi = son(narx.value);
-          dona = qadoqNarxi / nechta;
-        } else {
-          dona = son(narx.value);
-          qadoqNarxi = dona * nechta;
-        }
-      }
+      // Narx doim sotuv birligida; qadoq narxi shundan ko'rsatiladi.
+      var dona = son(narx.value);
+      var qadoqNarxi = dona * nechta;
 
       var qatorlar = ["1 " + olish + " = " + chiroyli(nechta) + " " + sotuv];
 
@@ -115,11 +107,11 @@
       }
 
       qoida.hidden = false;
-      qoida.className = "qoida-satri";
+      qoida.classList.remove("ogoh");
       qoida.textContent = qatorlar.join("  ·  ");
     }
 
-    [belgi, birlik, olishBirligi, olishMiqdori, narx, narxBirligi, qoldiq, qadoqSoni]
+    [belgi, birlik, olishBirligi, olishMiqdori, narx, qoldiq, qadoqSoni]
       .forEach(function (el) {
         if (!el) return;
         el.addEventListener("change", yangila);

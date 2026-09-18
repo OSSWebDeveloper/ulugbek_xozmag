@@ -2,7 +2,7 @@
 {% load statik_versiya xozmag %}
 
 {% block tana %}
-<div class="sahifa-keng" style="max-width:620px">
+<div class="sahifa-keng kirim-sahifa">
   <div class="sarlavha">Kirim: {{ mahsulot.nom }}</div>
 
   <div class="quti">
@@ -32,6 +32,8 @@
           id="kirim-forma">
       {% csrf_token %}
 
+      <div class="kirim-setka">
+       <div class="kirim-chap">
       {% if mahsulot.ikki_birlikmi %}
         <div class="maydon">
           <label>{{ form.birlik.label }}</label>
@@ -59,8 +61,17 @@
 
       <div class="qoida-satri" id="kirim-natija" hidden></div>
 
-      {# Sensorli rejimda ko'rinadi (CSS: body:not(.rejim-sensor) .raqamlar). #}
-      <div class="raqamlar kirim-raqamlar" id="kirim-raqamlar">
+      <div class="maydon">
+        <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
+        {{ form.izoh }}
+        {% if form.izoh.errors %}
+          <div class="xato-yozuv">{{ form.izoh.errors|striptags }}</div>
+        {% endif %}
+      </div>
+       </div>
+
+       {# Sensorli rejimda o'ng ustunda turadi (CSS: body:not(.rejim-sensor) .raqamlar). #}
+       <div class="raqamlar kirim-raqamlar" id="kirim-raqamlar">
         <button type="button" class="tugma" data-raqam="7">7</button>
         <button type="button" class="tugma" data-raqam="8">8</button>
         <button type="button" class="tugma" data-raqam="9">9</button>
@@ -74,13 +85,6 @@
         <button type="button" class="tugma amal" data-raqam=".">,</button>
         <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
       </div>
-
-      <div class="maydon">
-        <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
-        {{ form.izoh }}
-        {% if form.izoh.errors %}
-          <div class="xato-yozuv">{{ form.izoh.errors|striptags }}</div>
-        {% endif %}
       </div>
 
       <div class="qator" style="margin-top:var(--oraliq)">

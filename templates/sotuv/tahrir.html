@@ -13,7 +13,8 @@
           <div class="mijoz">Naqd sotuv</div>
           <div class="kichkina">Qarzga yozilmaydi &middot; chek #{{ sotuv.pk }}</div>
         </div>
-        <form method="post" action="{% url 'sotuv:bekor' sotuv.pk %}">
+        <form method="post" action="{% url 'sotuv:bekor' sotuv.pk %}"
+              onsubmit="return confirm('Sotuv butunlay bekor qilinsinmi? Qo'shilgan tovarlar omborga qaytadi.')">
           {% csrf_token %}
           <button type="submit" class="tugma xato kichik" title="Sotuvni butunlay bekor qilish">
             <svg class="ikon"><use href="#i-yopish"></use></svg> Bekor qilish

@@ -4,7 +4,7 @@
 {% block sarlavha %}{{ qarzdor.toliq_ism }}{% endblock %}
 
 {% block tana %}
-<div class="sahifa-keng">
+<div class="sahifa-keng karta-sahifa">
   <div class="sarlavha">
     {{ qarzdor.toliq_ism }}
     <span class="nishon">{{ qarzdor.hudud.nom }}</span>
@@ -43,9 +43,9 @@
     </div>
   </div>
 
-  <div class="qator" style="align-items:flex-start">
-    <div style="flex:2;min-width:420px">
-      <div class="quti">
+  <div class="qator karta-setka" style="align-items:stretch">
+    <div style="flex:2;min-width:420px;display:flex;min-height:0">
+      <div class="quti karta-ustun">
         <h2>Qarzlar tarixi</h2>
         {% for q in qarzlar %}
           <div class="jadval-quti">
@@ -117,7 +117,8 @@
                     <td>{{ t.sana|date:"d.m.Y" }}</td>
                     <td class="son"><b>{{ t.summa|pul }}</b></td>
                     <td>
-                      <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}">
+                      <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}"
+                          onsubmit="return confirm('Bu to'lov o'chirilsinmi? Qarz summasi ortga qaytadi.')">
                         {% csrf_token %}
                         <button class="tugma xato kichik" type="submit" title="To'lovni o'chirish">
                           <svg class="ikon"><use href="#i-chiqar"></use></svg>

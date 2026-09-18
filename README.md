@@ -65,6 +65,8 @@ eski uslubni ushlab qolmaydi.
    - qator o'chirilsa tovar omborga **qaytadi**;
    - oxirida **Yakunlash** — qarz daftarga yoziladi.
 5. **Qarzdor kartasi** — jami olgan / to'lagan / qolgan qarz, qarzlar tarixi, to'lov qabul qilish.
+   Qarzdan ortiq to'lov qabul qilinmaydi: balans manfiyga ketib «−5 000 so'm»
+   kabi ma'nosiz son chiqmasligi uchun.
 
 ## Ikkita richag
 
@@ -110,7 +112,7 @@ qoldiqni o'zi hisoblaydi — operator metrni ko'paytirib o'tirmaydi:
 | Kelgan birligi | `rulon` | do'konga shu ko'rinishda keladi |
 | Sotiladigan birligi | `metr` | mijozga shunda sotiladi, qoldiq ham shunda |
 | 1 rulonda nechta metr | `100` | o'tkazish koeffitsiyenti |
-| Narxi + qaysi birlikda | `350 000` / bitta qadoq uchun | 1 metr narxi o'zi hisoblanadi: 3 500 |
+| Narxi | `3 500` | bitta **sotuv** birligi uchun |
 
 Pastda jonli izoh turadi:
 *«1 rulon = 100 metr · 3 rulon = 300 metr omborga tushadi · 1 metr 3 500 so'm ·
@@ -138,6 +140,30 @@ ekranida hech qanday qo'shimcha savol chiqmaydi.
 
 Birliklar ro'yxati (`ombor/models.py`, `Birlik`): dona, kg, metr, litr, qop, quti,
 rulon, buxta, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'shiladi.
+
+## Joylashuv qoidasi: scrollsiz
+
+Sayt bitta ekranga sig'ishi kerak — kassir sichqoncha g'ildiragini aylantirib
+o'tirmasin. Buning uchun:
+
+- `body` ning o'zi hech qachon siljimaydi (`height: 100vh; overflow: hidden`).
+- Tovar kartochkasi ikki ustunli (`.forma-setka`) — bir ustunda bo'lganda
+  1290×630 ekranga sig'masdi.
+- Kirim ekranida sensorli rejimda maydonlar chapda, raqamlar klaviaturasi
+  o'ngda (`.kirim-setka`).
+- Ro'yxat sahifalarida (`.sahifa-toliq`) sarlavha va qidiruv joyida turadi,
+  faqat jadval ichi siljiydi; jadval sarlavhasi tepada yopishib qoladi.
+- Qarzdor kartasida ham ko'rsatkichlar joyida, ro'yxatlar o'z ustunida siljiydi.
+
+Yangi sahifa qo'shganda 1290×630 da tekshiring: `.sahifa` ning
+`scrollHeight` va `clientHeight` i teng bo'lishi kerak.
+
+## Ishlab chiqish eslatmasi
+
+Django 6 dan boshlab shablonlar `DEBUG=True` da ham keshlanadi. Shuning uchun
+`config/settings.py` da DEBUG rejimida keshsiz yuklagichlar qo'yilgan — aks
+holda shablon o'zgarsa sayt qayta ishga tushirilmaguncha eski holat ko'rinadi.
+Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 
 ## Tuzilishi
 

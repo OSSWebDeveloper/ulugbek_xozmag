@@ -45,12 +45,23 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+# Django 6 dan boshlab shablonlar DEBUG rejimida ham keshlanadi. Ishlab
+# chiqishda bu xalaqit beradi: shablon o'zgarsa sayt qayta ishga
+# tushirilmaguncha eski holat ko'rinaveradi.
+_YUKLAGICHLAR = [
+    "django.template.loaders.filesystem.Loader",
+    "django.template.loaders.app_directories.Loader",
+]
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
         "OPTIONS": {
+            "loaders": (
+                _YUKLAGICHLAR if DEBUG
+                else [("django.template.loaders.cached.Loader", _YUKLAGICHLAR)]
+            ),
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -93,6 +104,6 @@ PUL_BIRLIGI = "so'm"
 # Dastur versiyasi — yagona manba `versiya.txt` fayli. Uni qo'lda tahrirlash
 # shart emas: `python versiya.py 1.1.0 "izoh"` yangilaydi, VERSIYALAR.md ga
 # yozadi, commit qiladi va teg qo'yadi.
-_versiya_fayl = BASE_DIR / "versiya.txt"
-VERSIYA = (_versiya_fayl.read_text(encoding="utf-8").strip()
-           if _versiya_fayl.exists() else "0.0.0")
+VERSIYA_FAYL = BASE_DIR / "versiya.txt"
+VERSIYA = (VERSIYA_FAYL.read_text(encoding="utf-8").strip()
+           if VERSIYA_FAYL.exists() else "0.0.0")

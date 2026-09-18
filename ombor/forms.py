@@ -24,7 +24,7 @@ class MahsulotForm(forms.ModelForm):
     «Birlik o'zgaradi» richagi yoqilsa forma qadoq bo'yicha savol beradi:
     necha qadoq keldi, qaysi birlikda keldi, qaysi birlikda sotiladi, bitta
     qadoqda nechta. Qoldiq shundan hisoblanadi — operator metrni o'zi
-    ko'paytirib o'tirmaydi. Narx ham qadoq bo'yicha kiritilishi mumkin.
+    ko'paytirib o'tirmaydi. Narx har doim sotuv birligida kiritiladi.
     """
 
     birlik_ozgaradi = forms.BooleanField(
@@ -37,12 +37,6 @@ class MahsulotForm(forms.ModelForm):
                                       "inputmode": "decimal", "autocomplete": "off",
                                       "placeholder": "0"}),
     )
-    narx_birligi = forms.ChoiceField(
-        label="Narx qaysi birlikda", required=False,
-        choices=[("sotuv", "sotuv birligi uchun"), ("olish", "bitta qadoq uchun")],
-        widget=forms.Select(attrs={"class": "kirish", "id": "narx-birligi"}),
-    )
-
     class Meta:
         model = Mahsulot
         fields = ["nom", "birlik", "olish_birligi", "olish_miqdori", "narx", "qoldiq", "faol"]
@@ -58,7 +52,7 @@ class MahsulotForm(forms.ModelForm):
             "olish_birligi": forms.Select(attrs={"class": "kirish"}),
             "olish_miqdori": forms.TextInput(attrs={"class": "kirish raqam-maydon",
                                                     "inputmode": "decimal", "autocomplete": "off",
-                                                    "placeholder": "0"}),
+                                                    "placeholder": "masalan 100"}),
             "narx": forms.TextInput(attrs={"class": "kirish raqam-maydon",
                                            "inputmode": "decimal", "autocomplete": "off",
                                            "placeholder": "0"}),
@@ -76,12 +70,17 @@ class MahsulotForm(forms.ModelForm):
             del self.fields["qadoq_soni"]
         self.fields["qoldiq"].required = False
         self.fields["olish_miqdori"].required = False
+        self.fields["narx"].required = False
         self.fields["olish_birligi"].choices = [("", "— tanlang —")] + [
             (q, n) for q, n in self.fields["olish_birligi"].choices if q
         ]
         if not self.is_bound:
             self.fields["birlik_ozgaradi"].initial = self.instance.ikki_birlikmi
-            self.fields["narx_birligi"].initial = "sotuv"
+            if self.instance.pk is None:
+                # Yangi tovarda modeldagi standart qiymatlar (0 va 1) maydonda
+                # yozuv bo'lib turmasin — placeholder ko'rinib tursin.
+                for maydon in ("narx", "qoldiq", "olish_miqdori"):
+                    self.initial[maydon] = None
 
     def clean(self):
         t = super().clean()
@@ -89,6 +88,9 @@ class MahsulotForm(forms.ModelForm):
         birlik = t.get("birlik")
         olish_birligi = t.get("olish_birligi") or ""
         olish_miqdori = t.get("olish_miqdori")
+
+        if t.get("narx") is None:
+            t["narx"] = Decimal("0")
 
         if not ozgaradi:
             # Oddiy tovar: qanday olinsa shunday sotiladi.
@@ -110,10 +112,6 @@ class MahsulotForm(forms.ModelForm):
                            f"borligini yozing (noldan katta son).")
         if self.errors:
             return t
-
-        # Narx qadoq bo'yicha kiritilgan bo'lsa — bitta sotuv birligiga bo'linadi.
-        if t.get("narx_birligi") == "olish" and t.get("narx") is not None:
-            t["narx"] = (t["narx"] / olish_miqdori).quantize(Decimal("0.01"))
 
         # Yangi tovarda qoldiq qadoqdan hisoblanadi, qo'lda yozilmaydi.
         if self.yangi:
@@ -158,6 +156,13 @@ class KirimForm(forms.Form):
             self.fields["birlik"].required = True
         else:
             del self.fields["birlik"]
+
+    def clean_miqdor(self):
+        """Nol kirim ma'nosiz — tarixga bo'sh yozuv qoldiradi."""
+        miqdor = self.cleaned_data["miqdor"]
+        if miqdor <= 0:
+            raise forms.ValidationError("Miqdor noldan katta bo'lishi kerak.")
+        return miqdor
 
     def kiritilgan_birlik(self):
         """Foydalanuvchi tanlagan birlik (yoki tovarning sotuv birligi)."""

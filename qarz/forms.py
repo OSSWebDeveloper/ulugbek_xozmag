@@ -31,6 +31,6 @@ class TolovForm(forms.ModelForm):
         fields = ["summa", "izoh"]
         widgets = {
             "summa": forms.NumberInput(attrs={"class": "kirish raqam-maydon", "step": "0.01",
-                                              "inputmode": "decimal"}),
+                                              "inputmode": "decimal", "placeholder": "0"}),
             "izoh": forms.TextInput(attrs={"class": "kirish", "placeholder": "Izoh (ixtiyoriy)"}),
         }

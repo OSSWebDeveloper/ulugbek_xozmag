@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import KirimForm, MahsulotForm
-from .models import HarakatTuri, Mahsulot, OmborHarakati, tekis_son
+from .models import HarakatTuri, Mahsulot, OmborHarakati, tekis_matn
 
 
 def royxat(request):
@@ -96,9 +96,9 @@ def kirim(request, pk):
                 kiritilgan_miqdor=kiritilgan, kiritilgan_birlik=kiritilgan_birlik,
                 izoh=form.cleaned_data["izoh"],
             )
-            xabar = f"{mahsulot.nom}: +{tekis_son(miqdor)} {mahsulot.birlik}"
+            xabar = f"{mahsulot.nom}: +{tekis_matn(miqdor)} {mahsulot.birlik}"
             if kiritilgan_birlik != mahsulot.birlik:
-                xabar += f" ({tekis_son(kiritilgan)} {kiritilgan_birlik})"
+                xabar += f" ({tekis_matn(kiritilgan)} {kiritilgan_birlik})"
             messages.success(request, xabar)
             return redirect("ombor:royxat")
     else:

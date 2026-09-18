@@ -6,11 +6,20 @@ from django.db import models
 
 
 def tekis_son(son):
-    """Decimal dan ortiqcha nollarni olib tashlab matn qaytaradi."""
+    """Decimal dan ortiqcha nollarni olib tashlab matn qaytaradi.
+
+    Kasr nuqta bilan — bu qiymat JS o'qiydigan `data-` atributlariga tushadi.
+    Ko'rinishga mo'ljallangan matn uchun `tekis_matn()` ishlatiladi.
+    """
     son = son or Decimal("0")
     if son == son.to_integral_value():
         return f"{son.to_integral_value():f}"
     return f"{son.normalize():f}"
+
+
+def tekis_matn(son):
+    """Odamga ko'rsatiladigan son: kasr vergul bilan (2.5 -> '2,5')."""
+    return tekis_son(son).replace(".", ",")
 
 
 class Birlik(models.TextChoices):
@@ -37,7 +46,8 @@ class Mahsulot(models.Model):
     bundan keyin ham bitta birlik bilan ishlaydi.
     """
 
-    nom = models.CharField("Nomi", max_length=120, unique=True)
+    nom = models.CharField("Nomi", max_length=120, unique=True,
+                           error_messages={"unique": "Bunday nomli tovar allaqachon bor."})
     birlik = models.CharField("Sotuv birligi", max_length=10, choices=Birlik,
                               default=Birlik.DONA)
     olish_birligi = models.CharField(
@@ -87,15 +97,15 @@ class Mahsulot(models.Model):
         """'1 rulon = 100 metr'. Oddiy tovarda bo'sh matn."""
         if not self.ikki_birlikmi:
             return ""
-        return f"1 {self.olish_birligi} = {self.olish_miqdori_son} {self.birlik}"
+        return f"1 {self.olish_birligi} = {tekis_matn(self.olish_miqdori)} {self.birlik}"
 
     @property
     def qoldiq_toliq(self):
         """'250 metr (2.5 rulon)' — ikkala birlikda ko'rsatish uchun."""
-        asos = f"{self.qoldiq_son} {self.birlik}"
+        asos = f"{tekis_matn(self.qoldiq)} {self.birlik}"
         if not self.ikki_birlikmi:
             return asos
-        return f"{asos} ({self.olish_qoldigi_son} {self.olish_birligi})"
+        return f"{asos} ({tekis_matn(self.olish_qoldigi)} {self.olish_birligi})"
 
     def sotuvga_aylantir(self, miqdor, birlik=None):
         """Kiritilgan miqdorni sotuv birligiga o'tkazadi.
@@ -181,8 +191,8 @@ class OmborHarakati(models.Model):
     @property
     def korinish(self):
         """'2 rulon = 200 metr' yoki oddiygina '200 metr'."""
-        asos = f"{tekis_son(self.miqdor)} {self.mahsulot.birlik}"
+        asos = f"{tekis_matn(self.miqdor)} {self.mahsulot.birlik}"
         if (self.kiritilgan_birlik and self.kiritilgan_miqdor is not None
                 and self.kiritilgan_birlik != self.mahsulot.birlik):
-            return f"{tekis_son(self.kiritilgan_miqdor)} {self.kiritilgan_birlik} = {asos}"
+            return f"{tekis_matn(self.kiritilgan_miqdor)} {self.kiritilgan_birlik} = {asos}"
         return asos

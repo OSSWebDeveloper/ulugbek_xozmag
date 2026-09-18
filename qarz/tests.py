@@ -106,3 +106,46 @@ class OmborTest(TestCase):
     def test_qoldiq_matni_ortiqcha_nollarsiz(self):
         self.assertEqual(self.mahsulot.qoldiq_son, "1000")
         self.assertEqual(self.mahsulot.narx_son, "1200")
+
+class TolovChegarasiTest(TestCase):
+    """Qarzdan ortiq to'lov balansni manfiyga olib ketmasligi kerak."""
+
+    def setUp(self):
+        self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
+        self.qarzdor = Qarzdor.objects.create(ism="Vali", familiya="Aliyev", hudud=self.hudud)
+        self.mahsulot = Mahsulot.objects.create(
+            nom="Sement 50 kg", birlik=Birlik.QOP, narx=Decimal("55000"), qoldiq=Decimal("100"),
+        )
+        qarz = Qarz.objects.create(qarzdor=self.qarzdor, yakunlangan=True)
+        QarzQator.objects.create(qarz=qarz, mahsulot=self.mahsulot, miqdor=Decimal("2"),
+                                 narx=Decimal("55000"))
+        self.manzil = reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk])
+
+    def test_qarzdan_ortiq_tolov_qabul_qilinmaydi(self):
+        javob = self.client.post(self.manzil, {"summa": "200000", "izoh": ""}, follow=True)
+        self.assertEqual(Tolov.objects.count(), 0)
+        self.assertEqual(self.qarzdor.balans, Decimal("110000.00"))
+        self.assertContains(javob, "Bundan ortiq to&#x27;lov yozib bo&#x27;lmaydi")
+
+    def test_qarzi_yoq_mijozdan_tolov_olinmaydi(self):
+        bosh = Qarzdor.objects.create(ism="Olim", familiya="Karimov", hudud=self.hudud)
+        javob = self.client.post(reverse("qarz:tolov_qoshish", args=[bosh.pk]),
+                                 {"summa": "5000", "izoh": ""}, follow=True)
+        self.assertEqual(Tolov.objects.filter(qarzdor=bosh).count(), 0)
+        self.assertContains(javob, "qarzi yo&#x27;q")
+
+    def test_nol_tolov_qabul_qilinmaydi(self):
+        self.client.post(self.manzil, {"summa": "0", "izoh": ""})
+        self.assertEqual(Tolov.objects.count(), 0)
+
+    def test_qarzga_teng_tolov_qarzni_yopadi(self):
+        javob = self.client.post(self.manzil, {"summa": "110000", "izoh": ""}, follow=True)
+        self.assertEqual(Tolov.objects.count(), 1)
+        self.assertEqual(self.qarzdor.balans, Decimal("0.00"))
+        self.assertContains(javob, "Qarz to&#x27;liq yopildi")
+
+    def test_qisman_tolov_qoldiqni_korsatadi(self):
+        javob = self.client.post(self.manzil, {"summa": "10000", "izoh": ""}, follow=True)
+        self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
+        self.assertContains(javob, "Qolgan qarzi 100 000 so&#x27;m")
+

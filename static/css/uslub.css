@@ -217,6 +217,38 @@ body {
   border-radius: 50%;
   transition: left .18s cubic-bezier(.4, 0, .2, 1), background .18s ease;
 }
+/* ============ Scrollsiz joylashuv ============ */
+/* Forma ikki ustunda — balandlik deyarli ikki barobar qisqaradi */
+.forma-setka {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px var(--oraliq);
+  align-content: start;
+}
+.forma-setka > .keng { grid-column: 1 / -1; }
+.forma-setka .maydon { margin-bottom: 0; }
+.forma-setka .maydon-izoh { margin-top: 3px; }
+.forma-setka .richag.keng { margin-bottom: 0; padding: 10px 14px; }
+.forma-setka .qoida-satri { margin-top: 0; padding: 9px 12px; }
+.faol-belgi { display: flex; align-items: center; gap: 10px; cursor: pointer; white-space: nowrap; }
+@media (max-width: 760px) { .forma-setka { grid-template-columns: 1fr; } }
+
+/* Ro'yxat sahifalari: sarlavha va qidiruv joyida turadi, faqat jadval siljiydi */
+.sahifa:has(.sahifa-toliq) { overflow: hidden; }
+.sahifa-toliq { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.sahifa-toliq > .jadval-quti { flex: 1; min-height: 0; overflow: auto; }
+.sahifa-toliq table.jadval thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--panel-2);
+}
+
+/* Qarzdor kartasi: yuqoridagi ko'rsatkichlar joyida turadi, ro'yxatlar
+   o'z qutisi ichida siljiydi — sahifa o'zi scroll bo'lmasin. */
+.sahifa:has(.karta-sahifa) { overflow: hidden; }
+.karta-sahifa { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.karta-sahifa > .karta-setka { flex: 1; min-height: 0; }
+.karta-ustun { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
+
 /* Formadagi keng richag — «Birlik o'zgaradi» */
 .richag.keng {
   flex-direction: row;
@@ -1057,12 +1089,23 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   outline: 2px solid var(--urgu); outline-offset: 2px;
 }
 
-/* Kirim ekranidagi raqamlar klaviaturasi — kassanikidan torroq.
-   Ko'rinish-ko'rinmasligini umumiy `.raqamlar` qoidasi hal qiladi. */
+/* Kirim ekrani: sichqoncha rejimida bitta ustun, sensorli rejimda
+   maydonlar chapda, raqamlar klaviaturasi o'ngda — shunda scroll chiqmaydi. */
+.kirim-sahifa { max-width: 620px; }
+body.rejim-sensor .kirim-sahifa { max-width: 900px; }
+.kirim-setka { display: grid; grid-template-columns: 1fr; }
+body.rejim-sensor .kirim-setka {
+  grid-template-columns: 1fr 330px;
+  gap: var(--oraliq);
+  align-items: start;
+}
+.kirim-chap { min-width: 0; }
+
 .kirim-raqamlar {
   max-width: 330px; min-height: 0; flex: none;
-  margin: var(--oraliq) 0;
+  margin: var(--oraliq) 0 0;
 }
+body.rejim-sensor .kirim-raqamlar { margin: 0; }
 .kirim-raqamlar .tugma { height: var(--tugma-balandlik); }
 
 .korsatkich .qiymat-izoh {
