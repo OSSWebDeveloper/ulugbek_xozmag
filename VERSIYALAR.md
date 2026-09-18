@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.0.1 — 2026-09-18
+
+Nom to'g'irlandi: Xozmag (xo'jalik magazini)
+
 ## 1.0.0 — 2026-09-18
 
 Birinchi ishchi versiya: qarz daftari, naqd sotuv, ombor organiseri.
