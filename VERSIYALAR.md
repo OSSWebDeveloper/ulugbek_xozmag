@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.5 — 2026-09-18
+
+Hududlar ekranida tepadagi bo'shliq kattaroq
+
 ## 1.9.4 — 2026-09-18
 
 Hududlar ekraniga tepadan bo'shliq
