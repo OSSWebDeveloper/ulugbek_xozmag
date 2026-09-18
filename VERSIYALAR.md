@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.4 — 2026-09-18
+
+Hududlar ekraniga tepadan bo'shliq
+
 ## 1.9.3 — 2026-09-18
 
 Hududlar ekranidan sarlavha olib tashlandi
