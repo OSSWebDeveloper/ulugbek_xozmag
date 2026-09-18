@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.0 — 2026-09-18
+
+Kirim ichki oynada, qarzdorlar hudud bo'yicha, buxta -> o'ram
+
 ## 1.8.0 — 2026-09-18
 
 Qalqib chiquvchi numpad yo'q, klaviatura faqat harf
