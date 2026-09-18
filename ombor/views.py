@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import KirimForm, MahsulotForm
-from .models import HarakatTuri, Mahsulot, OmborHarakati
+from .models import HarakatTuri, Mahsulot, OmborHarakati, tekis_son
 
 
 def royxat(request):
@@ -62,23 +62,34 @@ def mahsulot_tahrir(request, pk):
 
 @transaction.atomic
 def kirim(request, pk):
-    """Omborga tovar kirimi."""
+    """Omborga tovar kirimi.
+
+    Ikki birlikli tovarda miqdor olish birligida kiritilishi mumkin
+    (2 rulon); omborga sotuv birligida qo'shiladi (200 metr).
+    """
     mahsulot = get_object_or_404(Mahsulot, pk=pk)
     if request.method == "POST":
-        form = KirimForm(request.POST)
+        form = KirimForm(request.POST, mahsulot=mahsulot)
         if form.is_valid():
-            miqdor = form.cleaned_data["miqdor"]
+            kiritilgan = form.cleaned_data["miqdor"]
+            kiritilgan_birlik = form.kiritilgan_birlik()
+            miqdor = form.sotuv_miqdori()
+
             mahsulot = Mahsulot.objects.select_for_update().get(pk=pk)
             mahsulot.qoldiq += miqdor
             mahsulot.save(update_fields=["qoldiq"])
             OmborHarakati.objects.create(
                 mahsulot=mahsulot, tur=HarakatTuri.KIRIM, miqdor=miqdor,
+                kiritilgan_miqdor=kiritilgan, kiritilgan_birlik=kiritilgan_birlik,
                 izoh=form.cleaned_data["izoh"],
             )
-            messages.success(request, f"{mahsulot.nom}: +{miqdor} {mahsulot.birlik}")
+            xabar = f"{mahsulot.nom}: +{tekis_son(miqdor)} {mahsulot.birlik}"
+            if kiritilgan_birlik != mahsulot.birlik:
+                xabar += f" ({tekis_son(kiritilgan)} {kiritilgan_birlik})"
+            messages.success(request, xabar)
             return redirect("ombor:royxat")
     else:
-        form = KirimForm()
+        form = KirimForm(mahsulot=mahsulot)
     return render(request, "ombor/kirim.html", {"form": form, "mahsulot": mahsulot})
 
 

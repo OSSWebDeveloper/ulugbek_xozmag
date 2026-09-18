@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load xozmak %}
+{% load static xozmak %}
 
 {% block tana %}
 <div class="sahifa-keng" style="max-width:620px">
@@ -9,17 +9,64 @@
     <div class="korsatkich" style="margin-bottom:var(--oraliq)">
       <div class="nomi">Hozirgi qoldiq</div>
       <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
+      {% if mahsulot.ikki_birlikmi %}
+        <div class="qiymat-izoh">{{ mahsulot.olish_qoldigi|tekis }} {{ mahsulot.olish_birligi }}</div>
+      {% endif %}
     </div>
 
-    <form method="post">
+    {% if mahsulot.ikki_birlikmi %}
+      <div class="xabar info" style="margin-bottom:var(--oraliq)">
+        <svg class="ikon"><use href="#i-quti"></use></svg>
+        <span>
+          <b>{{ mahsulot.birlik_qoidasi }}</b> —
+          1 {{ mahsulot.olish_birligi }} narxi ≈ {{ mahsulot.olish_narxi|pul }} so'm
+        </span>
+      </div>
+    {% endif %}
+
+    <form method="post"
+          data-birlik="{{ mahsulot.birlik }}"
+          data-olish-birligi="{{ mahsulot.olish_birligi }}"
+          data-olish-miqdori="{{ mahsulot.olish_miqdori_son }}"
+          data-qoldiq="{{ mahsulot.qoldiq_son }}"
+          id="kirim-forma">
       {% csrf_token %}
-      {% for maydon in form %}
+
+      {% if mahsulot.ikki_birlikmi %}
         <div class="maydon">
-          <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
-          {{ maydon }}
-          {% if maydon.errors %}<div class="xato-yozuv">{{ maydon.errors|striptags }}</div>{% endif %}
+          <label>{{ form.birlik.label }}</label>
+          <div class="birlik-tanlov" id="birlik-tanlov">
+            {% for tanlov in form.birlik %}
+              <label class="birlik-tugma">
+                {{ tanlov.tag }}
+                <span>{{ tanlov.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.birlik.errors %}
+            <div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>
+          {% endif %}
         </div>
-      {% endfor %}
+      {% endif %}
+
+      <div class="maydon">
+        <label for="{{ form.miqdor.id_for_label }}">{{ form.miqdor.label }}</label>
+        {{ form.miqdor }}
+        {% if form.miqdor.errors %}
+          <div class="xato-yozuv">{{ form.miqdor.errors|striptags }}</div>
+        {% endif %}
+      </div>
+
+      <div class="qoida-satri" id="kirim-natija" hidden></div>
+
+      <div class="maydon">
+        <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
+        {{ form.izoh }}
+        {% if form.izoh.errors %}
+          <div class="xato-yozuv">{{ form.izoh.errors|striptags }}</div>
+        {% endif %}
+      </div>
+
       <div class="qator" style="margin-top:var(--oraliq)">
         <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
         <button type="submit" class="tugma yashil" style="flex:2">
@@ -30,3 +77,5 @@
   </div>
 </div>
 {% endblock %}
+
+{% block skript %}<script src="{% static 'js/ombor.js' %}"></script>{% endblock %}

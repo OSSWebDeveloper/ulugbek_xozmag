@@ -69,8 +69,10 @@
     nom.textContent = karta.dataset.nom;
     nom.classList.remove("bosh-yozuv");
     nom.title = karta.dataset.nom;
+    // Ikki birlikli tovarda ikkinchi birlik ham ko'rinadi (200 metr = 2 rulon).
     document.getElementById("tovar-qoldiq").textContent =
-      "Omborda: " + karta.dataset.qoldiq + " " + karta.dataset.birlik;
+      "Omborda: " + karta.dataset.qoldiq + " " + karta.dataset.birlik +
+      (karta.dataset.ikkinchi ? " · " + karta.dataset.ikkinchi : "");
     document.getElementById("miqdor-birlik").textContent = karta.dataset.birlik;
 
     oynaYop();
@@ -133,7 +135,8 @@
           '<span class="d-nom">' + belgila(k.dataset.nom, soz) + "</span>" +
           '<span class="d-narx">' + chiroyli(son(k.dataset.narx)) + "</span>" +
           '<span class="d-qoldiq">' +
-          (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik) + "</span></button>";
+          (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik +
+            (k.dataset.ikkinchi ? " · " + k.dataset.ikkinchi : "")) + "</span></button>";
       }).join("");
     }
     dropdown.classList.add("ochiq");

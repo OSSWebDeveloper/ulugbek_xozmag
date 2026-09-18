@@ -12,6 +12,12 @@
     <div class="korsatkich" style="max-width:320px">
       <div class="nomi">Hozirgi qoldiq</div>
       <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
+      {% if mahsulot.ikki_birlikmi %}
+        <div class="qiymat-izoh">
+          {{ mahsulot.olish_qoldigi|tekis }} {{ mahsulot.olish_birligi }}
+          &middot; {{ mahsulot.birlik_qoidasi }}
+        </div>
+      {% endif %}
     </div>
   </div>
 
@@ -29,7 +35,7 @@
                 {{ h.get_tur_display }}
               </span>
             </td>
-            <td class="son"><b>{{ h.miqdor|tekis }}</b></td>
+            <td class="son"><b>{{ h.korinish }}</b></td>
             <td>{{ h.izoh }}</td>
           </tr>
         {% empty %}

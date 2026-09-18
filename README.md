@@ -59,14 +59,51 @@ Bosh sahifadagi **Sotuv** — qarzga yozilmaydigan savdo: tovarlar qo'shiladi,
 «Mijoz berdi» ga olingan pul kiritiladi, qaytim o'zi hisoblanadi, yakunlangach
 tovarlar ombordan ayriladi. Kunlik tushum **Sotuvlar** sahifasida ko'rinadi.
 
+## Bir birlikda olinib boshqasida sotiladigan tovarlar
+
+Ba'zi tovar do'konga bir birlikda keladi, mijozga boshqa birlikda sotiladi —
+masalan **polietilen lenta rulonda olinib metrda sotiladi**.
+
+Qoida oddiy: **ombor qoldig'i har doim sotuv birligida yuritiladi.** Sotuv, qarz,
+qoldiq va narx — hammasi metrda. Faqat **kirim** paytida rulondan metrga o'tkaziladi.
+
+Tovar kartochkasida (`Ombor → tovar → ✏`) «Boshqa birlikda olinadimi?» bo'limi bor:
+
+| Maydon | Ma'nosi | Misol |
+|---|---|---|
+| Sotuv birligi | mijozga qanday sotiladi | `metr` |
+| Olish birligi | do'konga qanday keladi (bo'sh bo'lsa — bir xil) | `rulon` |
+| 1 rulonda nechta metr | o'tkazish koeffitsiyenti | `100` |
+| Narxi | **bitta sotuv birligi** narxi | `3 500 so'm / metr` |
+
+Shundan keyin:
+
+- **Kirim ekranida** «Qaysi birlikda» degan ikkita tugma chiqadi — `rulon` yoki `metr`.
+  `2 rulon` yozilsa omborga **200 metr** tushadi; yarim rulon qolsa `metr` tanlab
+  `40` deb yoziladi. Pastda jonli izoh: *«2 rulon = 200 metr qo'shiladi · yangi
+  qoldiq: 500 metr (5 rulon)»*.
+- **Ombor ro'yxatida** ikkala son ham ko'rinadi: `500` metr / `5 rulon`, yonida
+  `1 rulon = 100 metr` nishoni.
+- **Kirim/chiqim tarixida** asl yozuv saqlanadi: `2 rulon = 200 metr`.
+- **Kassada** tovar tanlanganda «Omborda: 500 metr · 5 rulon» yoziladi, lekin
+  sotish faqat metrda — kassirning ishi o'zgarmaydi.
+
+Olish birligi tanlanmagan tovar (g'isht, rozetka) avvalgidek ishlaydi — kirim
+ekranida hech qanday qo'shimcha savol chiqmaydi.
+
+Birliklar ro'yxati (`ombor/models.py`, `Birlik`): dona, kg, metr, litr, qop, quti,
+rulon, buxta, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'shiladi.
+
 ## Tuzilishi
 
 - `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov
 - `sotuv/` — Sotuv, SotuvQator (naqd savdo)
 - `ombor/` — Mahsulot, OmborHarakati; `ombor/xizmat.py` — qoldiqni o'zgartiruvchi
-  yagona joy (qarz ham, sotuv ham shuni chaqiradi)
+  yagona joy (qarz ham, sotuv ham shuni chaqiradi).
+  Birlik o'tkazish: `Mahsulot.sotuvga_aylantir()` — boshqa hech qayerda ko'paytirilmaydi
 - `templates/`, `static/css/uslub.css`, `static/js/` — interfeys
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
+- `static/js/ombor.js` — ombor ekranlaridagi jonli hisob (faqat ko'rsatish uchun)
 
 ## Keyin qilinadigan ishlar
 

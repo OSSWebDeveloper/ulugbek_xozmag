@@ -951,6 +951,68 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   .jami-satr .qiymat { font-size: calc(var(--katta-matn) + 8px); }
 }
 
+/* ================= Ikki birlikli tovarlar ================= */
+/* Ba'zi tovar bir birlikda olinib boshqasida sotiladi: rulon -> metr.
+   Quyidagi uslublar tovar formasi va kirim ekranida ishlatiladi. */
+
+.maydon-izoh { color: var(--matn-3); font-size: 12px; margin-top: 5px; line-height: 1.35; }
+.maydon-izoh b { color: var(--matn-2); font-weight: 600; }
+
+.ichki-quti {
+  border: 1px dashed var(--chegara-2);
+  border-radius: var(--radius-s);
+  background: var(--panel-2);
+  padding: var(--oraliq);
+  margin-bottom: var(--oraliq);
+}
+.ichki-sarlavha {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 650; font-size: var(--matn); margin-bottom: 8px;
+}
+.ichki-sarlavha .ikon { width: 18px; height: 18px; color: var(--matn-2); }
+
+.qoida-satri {
+  margin-top: 12px; padding: 10px 12px;
+  border-radius: var(--radius-s);
+  background: var(--kok-fon);
+  border: 1px solid rgba(77, 141, 255, .3);
+  color: var(--kok);
+  font-weight: 600; font-size: 13px; line-height: 1.45;
+}
+.qoida-satri.ogoh {
+  background: var(--urgu-fon); border-color: rgba(255, 176, 32, .35); color: var(--urgu);
+}
+
+/* Kirim ekranida birlik tanlash — ikkita keng tugma (sensorli ekranga ham qulay) */
+.birlik-tanlov { display: flex; gap: 10px; }
+.birlik-tanlov .birlik-tugma {
+  flex: 1; position: relative; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  min-height: var(--tugma-balandlik); padding: 0 14px; margin-bottom: 0;
+  border: 1px solid var(--chegara);
+  border-radius: var(--radius-s);
+  background: var(--panel-2);
+  color: var(--matn-2);
+  font-size: var(--katta-matn); font-weight: 600; letter-spacing: 0;
+  text-transform: none;
+  user-select: none;
+}
+.birlik-tanlov .birlik-tugma:hover { border-color: var(--chegara-2); color: var(--matn-rang); }
+.birlik-tanlov .birlik-tugma input { position: absolute; opacity: 0; width: 0; height: 0; }
+.birlik-tanlov .birlik-tugma.tanlangan,
+.birlik-tanlov .birlik-tugma:has(input:checked) {
+  background: var(--urgu-fon); border-color: var(--urgu); color: var(--urgu);
+}
+.birlik-tanlov .birlik-tugma:has(input:focus-visible) {
+  outline: 2px solid var(--urgu); outline-offset: 2px;
+}
+
+.korsatkich .qiymat-izoh {
+  color: var(--matn-3); font-size: 12px; margin-top: 4px; font-weight: 500;
+}
+
+body.kunduzgi .xato-yozuv { color: var(--xato); }
+
 /* ================= Kichik ekran ================= */
 @media (max-width: 1080px) {
   .kassa { grid-template-columns: 1fr; }

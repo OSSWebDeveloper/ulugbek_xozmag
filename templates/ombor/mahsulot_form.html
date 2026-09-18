@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block tana %}
 <div class="sahifa-keng" style="max-width:720px">
@@ -7,21 +8,79 @@
     {% if mahsulot %}<span class="kichik">— tahrirlash</span>{% endif %}
   </div>
 
-  <form method="post" class="quti">
+  <form method="post" class="quti" id="mahsulot-forma">
     {% csrf_token %}
-    {% for maydon in form %}
-      <div class="maydon">
-        {% if maydon.name == "faol" %}
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-            {{ maydon }} <span>Ro'yxatda ko'rinsin</span>
-          </label>
-        {% else %}
-          <label for="{{ maydon.id_for_label }}">{{ maydon.label }}</label>
-          {{ maydon }}
-        {% endif %}
-        {% if maydon.errors %}<div class="xato-yozuv">{{ maydon.errors|striptags }}</div>{% endif %}
+    {% if form.non_field_errors %}
+      <div class="xabar error">{{ form.non_field_errors|striptags }}</div>
+    {% endif %}
+
+    <div class="maydon">
+      <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
+      {{ form.nom }}
+      {% if form.nom.errors %}<div class="xato-yozuv">{{ form.nom.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <div class="qator">
+      <div class="maydon" style="flex:1">
+        <label for="{{ form.birlik.id_for_label }}">{{ form.birlik.label }}</label>
+        {{ form.birlik }}
+        <div class="maydon-izoh">Mijozga shu birlikda sotiladi</div>
+        {% if form.birlik.errors %}<div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>{% endif %}
       </div>
-    {% endfor %}
+      <div class="maydon" style="flex:1">
+        <label for="{{ form.narx.id_for_label }}">{{ form.narx.label }}</label>
+        {{ form.narx }}
+        <div class="maydon-izoh">Bitta <b id="narx-birlik">birlik</b> narxi</div>
+        {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="maydon">
+      <label for="{{ form.qoldiq.id_for_label }}">
+        {{ form.qoldiq.label }} (<span id="qoldiq-birlik">birlik</span>da)
+      </label>
+      {{ form.qoldiq }}
+      <div class="maydon-izoh" id="qoldiq-izoh">Ombor qoldig'i doim sotuv birligida yuritiladi</div>
+      {% if form.qoldiq.errors %}<div class="xato-yozuv">{{ form.qoldiq.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <div class="ichki-quti">
+      <div class="ichki-sarlavha">
+        <svg class="ikon"><use href="#i-quti"></use></svg>
+        Boshqa birlikda olinadimi?
+      </div>
+      <p class="maydon-izoh" style="margin:-4px 0 12px">
+        Masalan polietilen lenta <b>rulon</b>da olinib <b>metr</b>da sotiladi.
+        Shunday tovarga olish birligini tanlang — kirim qilganda rulon soni yozilsa
+        omborga metr bo'lib tushadi.
+      </p>
+      <div class="qator">
+        <div class="maydon" style="flex:1;margin-bottom:0">
+          <label for="{{ form.olish_birligi.id_for_label }}">{{ form.olish_birligi.label }}</label>
+          {{ form.olish_birligi }}
+          {% if form.olish_birligi.errors %}
+            <div class="xato-yozuv">{{ form.olish_birligi.errors|striptags }}</div>
+          {% endif %}
+        </div>
+        <div class="maydon" style="flex:1;margin-bottom:0" id="olish-miqdori-maydon">
+          <label for="{{ form.olish_miqdori.id_for_label }}">
+            1 <span id="olish-birlik-nomi">olish birligi</span>da nechta
+            <span id="sotuv-birlik-nomi">sotuv birligi</span>
+          </label>
+          {{ form.olish_miqdori }}
+          {% if form.olish_miqdori.errors %}
+            <div class="xato-yozuv">{{ form.olish_miqdori.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="qoida-satri" id="birlik-qoida" hidden></div>
+    </div>
+
+    <div class="maydon" style="margin-top:var(--oraliq)">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        {{ form.faol }} <span>Ro'yxatda ko'rinsin</span>
+      </label>
+    </div>
 
     <div class="qator" style="margin-top:var(--oraliq)">
       <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
@@ -32,3 +91,5 @@
   </form>
 </div>
 {% endblock %}
+
+{% block skript %}<script src="{% static 'js/ombor.js' %}"></script>{% endblock %}

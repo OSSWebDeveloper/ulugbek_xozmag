@@ -13,19 +13,21 @@ from qarz.models import Hudud
 HUDUDLAR = [f"Hudud {i}" for i in range(1, 14)]
 
 TOVARLAR = [
-    # (nom, birlik, narx, qoldiq)
-    ("Sement 50 kg", Birlik.QOP, 55000, 120),
-    ("Gips 30 kg", Birlik.QOP, 42000, 60),
-    ("G'isht", Birlik.DONA, 1200, 5000),
-    ("Bo'yoq oq 5 l", Birlik.LITR, 38000, 40),
-    ("Kabel 2x2.5", Birlik.METR, 9500, 300),
-    ("Mix 100 mm", Birlik.KG, 18000, 75),
-    ("Plitka kley 25 kg", Birlik.QOP, 47000, 35),
-    ("Lampochka LED 12W", Birlik.DONA, 15000, 200),
-    ("Rozetka", Birlik.DONA, 12000, 150),
-    ("Truba PVX 50", Birlik.METR, 22000, 90),
-    ("Silikon germetik", Birlik.DONA, 25000, 48),
-    ("Qo'lqop", Birlik.DONA, 8000, 0),
+    # (nom, sotuv birligi, narx, qoldiq, olish birligi, 1 olish birligida nechta)
+    # Olish birligi bo'sh bo'lsa — tovar qanday olinsa shunday sotiladi.
+    ("Sement 50 kg", Birlik.QOP, 55000, 120, Birlik.TONNA, 20),
+    ("Gips 30 kg", Birlik.QOP, 42000, 60, "", 1),
+    ("G'isht", Birlik.DONA, 1200, 5000, "", 1),
+    ("Bo'yoq oq 5 l", Birlik.LITR, 38000, 40, "", 1),
+    ("Kabel 2x2.5", Birlik.METR, 9500, 300, Birlik.BUXTA, 100),
+    ("Polietilen lenta 10 sm", Birlik.METR, 3500, 300, Birlik.RULON, 100),
+    ("Mix 100 mm", Birlik.KG, 18000, 75, "", 1),
+    ("Plitka kley 25 kg", Birlik.QOP, 47000, 35, "", 1),
+    ("Lampochka LED 12W", Birlik.DONA, 15000, 200, Birlik.QUTI, 20),
+    ("Rozetka", Birlik.DONA, 12000, 150, "", 1),
+    ("Truba PVX 50", Birlik.METR, 22000, 90, "", 1),
+    ("Silikon germetik", Birlik.DONA, 25000, 48, Birlik.QUTI, 24),
+    ("Qo'lqop", Birlik.DONA, 8000, 0, Birlik.PACHKA, 12),
 ]
 
 
@@ -47,10 +49,17 @@ class Command(BaseCommand):
             return
 
         yangi = 0
-        for nom, birlik, narx, qoldiq in TOVARLAR:
+        toldirilgan = 0
+        for nom, birlik, narx, qoldiq, olish_birligi, olish_miqdori in TOVARLAR:
             mahsulot, yaratildi = Mahsulot.objects.get_or_create(
                 nom=nom,
-                defaults={"birlik": birlik, "narx": Decimal(narx), "qoldiq": Decimal(qoldiq)},
+                defaults={
+                    "birlik": birlik,
+                    "narx": Decimal(narx),
+                    "qoldiq": Decimal(qoldiq),
+                    "olish_birligi": olish_birligi,
+                    "olish_miqdori": Decimal(olish_miqdori),
+                },
             )
             if yaratildi:
                 yangi += 1
@@ -59,4 +68,14 @@ class Command(BaseCommand):
                         mahsulot=mahsulot, tur=HarakatTuri.KIRIM,
                         miqdor=mahsulot.qoldiq, izoh="Boshlang'ich qoldiq",
                     )
+            elif olish_birligi and not mahsulot.olish_birligi:
+                # Eski sinov bazasiga olish birligini to'ldiradi.
+                # Foydalanuvchi o'zi qo'ygan birlik hech qachon ustidan yozilmaydi.
+                mahsulot.olish_birligi = olish_birligi
+                mahsulot.olish_miqdori = Decimal(olish_miqdori)
+                mahsulot.save(update_fields=["olish_birligi", "olish_miqdori"])
+                toldirilgan += 1
         self.stdout.write(self.style.SUCCESS(f"Tovarlar: {yangi} ta qo'shildi."))
+        if toldirilgan:
+            self.stdout.write(self.style.SUCCESS(
+                f"Olish birligi to'ldirildi: {toldirilgan} ta tovar."))
