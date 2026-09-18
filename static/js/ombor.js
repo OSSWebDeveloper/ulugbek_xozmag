@@ -13,6 +13,20 @@
     return q.toLocaleString("ru-RU", { maximumFractionDigits: 3 }).replace(/ /g, " ");
   }
 
+  // Qoldiqni qadoq bilan aytadi: 5020 dona, 1 pachka = 1000 -> "5 pachka 20 dona".
+  // Serverdagi Mahsulot.qadoq_matni bilan bir xil qoida.
+  function qadoqMatni(qoldiq, nechta, olish, sotuv) {
+    if (!nechta || nechta <= 0) return chiroyli(qoldiq) + " " + sotuv;
+    var butun = Math.floor(qoldiq / nechta);
+    var ortiq = qoldiq - butun * nechta;
+    // suzuvchi nuqta xatosini yumshatamiz (0.30000000000000004 kabi)
+    ortiq = Math.round(ortiq * 1000) / 1000;
+    var bolaklar = [];
+    if (butun) bolaklar.push(chiroyli(butun) + " " + olish);
+    if (ortiq || !butun) bolaklar.push(chiroyli(ortiq) + " " + sotuv);
+    return bolaklar.join(" ");
+  }
+
   function matnQoy(sinf, matn) {
     document.querySelectorAll("." + sinf).forEach(function (el) { el.textContent = matn; });
   }
@@ -98,7 +112,7 @@
         }
       } else if (son(qoldiq.value) > 0) {
         qatorlar.push("Qoldiq: " + chiroyli(son(qoldiq.value)) + " " + sotuv + " = " +
-                      chiroyli(son(qoldiq.value) / nechta) + " " + olish);
+                      qadoqMatni(son(qoldiq.value), nechta, olish, sotuv));
       }
 
       if (dona > 0) {
@@ -166,7 +180,7 @@
         matn += chiroyli(qoshiladi) + " " + sotuv + " qo'shiladi";
       }
       matn += "  ·  yangi qoldiq: " + chiroyli(yangi) + " " + sotuv;
-      if (ikki) matn += " (" + chiroyli(yangi / nechta) + " " + olish + ")";
+      if (ikki) matn += " (" + qadoqMatni(yangi, nechta, olish, sotuv) + ")";
 
       natija.hidden = false;
       natija.textContent = matn;

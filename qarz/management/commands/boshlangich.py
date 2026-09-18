@@ -21,7 +21,7 @@ TOVARLAR = [
     ("Bo'yoq oq 5 l", Birlik.LITR, 38000, 40, "", 1),
     ("Kabel 2x2.5", Birlik.METR, 9500, 300, Birlik.BUXTA, 100),
     ("Polietilen lenta 0,1 metr", Birlik.METR, 3500, 300, Birlik.RULON, 100),
-    ("Mix 100 mm", Birlik.KG, 18000, 75, "", 1),
+    ("Mix 100 mm", Birlik.DONA, 150, 5020, Birlik.PACHKA, 1000),
     ("Plitka kley 25 kg", Birlik.QOP, 47000, 35, "", 1),
     ("Lampochka LED 12W", Birlik.DONA, 15000, 200, Birlik.QUTI, 20),
     ("Rozetka", Birlik.DONA, 12000, 150, "", 1),
@@ -68,7 +68,7 @@ class Command(BaseCommand):
                         mahsulot=mahsulot, tur=HarakatTuri.KIRIM,
                         miqdor=mahsulot.qoldiq, izoh="Boshlang'ich qoldiq",
                     )
-            elif olish_birligi and not mahsulot.olish_birligi:
+            elif olish_birligi and not mahsulot.olish_birligi and mahsulot.birlik == birlik:
                 # Eski sinov bazasiga olish birligini to'ldiradi.
                 # Foydalanuvchi o'zi qo'ygan birlik hech qachon ustidan yozilmaydi.
                 mahsulot.olish_birligi = olish_birligi

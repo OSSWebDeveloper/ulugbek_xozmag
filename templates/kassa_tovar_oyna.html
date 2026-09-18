@@ -24,11 +24,11 @@ Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
                   data-id="{{ m.pk }}" data-nom="{{ m.nom }}"
                   data-narx="{{ m.narx_son }}"
                   data-qoldiq="{{ m.qoldiq|tekis }}" data-birlik="{{ m.birlik }}"
-                  data-ikkinchi="{% if m.ikki_birlikmi %}{{ m.olish_qoldigi|tekis }} {{ m.olish_birligi }}{% endif %}">
+                  data-ikkinchi="{{ m.qadoq_matni }}">
             <span class="t-nom">{{ m.nom }}</span>
             <span class="t-narx">{{ m.narx|pul }} <span>so'm / {{ m.birlik }}</span></span>
             {% if m.qoldiq > 0 %}
-              <span class="nishon">Omborda: {{ m.qoldiq|tekis }} {{ m.birlik }}{% if m.ikki_birlikmi %} &middot; {{ m.olish_qoldigi|tekis }} {{ m.olish_birligi }}{% endif %}</span>
+              <span class="nishon">Omborda: {{ m.qoldiq|tekis }} {{ m.birlik }}{% if m.ikki_birlikmi %} &middot; {{ m.qadoq_matni }}{% endif %}</span>
             {% else %}
               <span class="nishon ogoh">Tugagan</span>
             {% endif %}

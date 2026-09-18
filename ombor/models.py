@@ -1,5 +1,5 @@
 """Ombor (sklad) modellari."""
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -93,6 +93,37 @@ class Mahsulot(models.Model):
         return (self.narx * self.olish_miqdori).quantize(Decimal("0.01"))
 
     @property
+    def qadoq_soni(self):
+        """Nechta to'liq qadoq bor: 5020 dona va 1 pachka = 1000 bo'lsa -> 5."""
+        if not self.ikki_birlikmi or not self.olish_miqdori:
+            return Decimal("0")
+        return (self.qoldiq / self.olish_miqdori).to_integral_value(rounding=ROUND_DOWN)
+
+    @property
+    def qadoqdan_ortiq(self):
+        """To'liq qadoqlardan ortib qolgani, sotuv birligida: 5020 -> 20."""
+        if not self.ikki_birlikmi or not self.olish_miqdori:
+            return self.qoldiq
+        return self.qoldiq - self.qadoq_soni * self.olish_miqdori
+
+    @property
+    def qadoq_matni(self):
+        """Qoldiqni qadoq bilan aytadi: '5 pachka 20 dona'.
+
+        Kasr qadoq («5,02 pachka») do'konda tushunarsiz — necha butun qadoq
+        va ustiga nechta dona qolgani aytiladi. Oddiy tovarda bo'sh matn.
+        """
+        if not self.ikki_birlikmi:
+            return ""
+        butun, ortiq = self.qadoq_soni, self.qadoqdan_ortiq
+        bolaklar = []
+        if butun:
+            bolaklar.append(f"{tekis_matn(butun)} {self.olish_birligi}")
+        if ortiq or not butun:
+            bolaklar.append(f"{tekis_matn(ortiq)} {self.birlik}")
+        return " ".join(bolaklar)
+
+    @property
     def birlik_qoidasi(self):
         """'1 rulon = 100 metr'. Oddiy tovarda bo'sh matn."""
         if not self.ikki_birlikmi:
@@ -101,11 +132,11 @@ class Mahsulot(models.Model):
 
     @property
     def qoldiq_toliq(self):
-        """'250 metr (2.5 rulon)' — ikkala birlikda ko'rsatish uchun."""
+        """'5020 dona = 5 pachka 20 dona' — ikkala birlikda ko'rsatish uchun."""
         asos = f"{tekis_matn(self.qoldiq)} {self.birlik}"
         if not self.ikki_birlikmi:
             return asos
-        return f"{asos} ({tekis_matn(self.olish_qoldigi)} {self.olish_birligi})"
+        return f"{asos} = {self.qadoq_matni}"
 
     def sotuvga_aylantir(self, miqdor, birlik=None):
         """Kiritilgan miqdorni sotuv birligiga o'tkazadi.

@@ -129,8 +129,17 @@ Shundan keyin:
   `40` deb yoziladi. Pastda jonli izoh: *«2 rulon = 200 metr qo'shiladi · yangi
   qoldiq: 500 metr (5 rulon)»*. Sensorli rejimda maydon ostida raqamlar
   klaviaturasi doim turadi — qalqib chiquvchi oyna izohni to'sib qo'ymaydi.
-- **Ombor ro'yxatida** ikkala son ham ko'rinadi: `500` metr / `5 rulon`, yonida
-  `1 rulon = 100 metr` nishoni.
+- **Ombor ro'yxatida** ikkala son ham ko'rinadi, yonida `1 rulon = 100 metr`
+  nishoni.
+
+**Qoldiq butun qadoq bilan aytiladi.** Mix dona bilan sotilib pachkada olinsa
+va 1 pachkada 1000 ta bo'lsa, omborda 5020 ta qolganda `5,02 pachka` emas,
+**`5 pachka 20 dona`** deb yoziladi — do'konda shunday sanaladi. Butun qadoq
+chiqsa ortig'i aytilmaydi (`3 rulon`), bitta qadoqqa yetmasa faqat ortig'i
+(`40 metr`). Kasr ham ishlaydi: `7 rulon 37,5 metr`.
+
+Bu `Mahsulot.qadoq_matni` da hisoblanadi; `static/js/ombor.js` dagi
+`qadoqMatni()` xuddi shu qoidani jonli izohlar uchun takrorlaydi.
 - **Kirim/chiqim tarixida** asl yozuv saqlanadi: `2 rulon = 200 metr`.
 - **Kassada** tovar tanlanganda «Omborda: 500 metr · 5 rulon» yoziladi, lekin
   sotish faqat metrda — kassirning ishi o'zgarmaydi.

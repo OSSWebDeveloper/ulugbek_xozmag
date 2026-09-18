@@ -26,8 +26,37 @@ class IkkiBirlikModelTest(TestCase):
 
     def test_qoldiq_olish_birligida_ham_korinadi(self):
         self.assertEqual(self.lenta.olish_qoldigi, Decimal("3.000"))
-        self.assertEqual(self.lenta.qoldiq_toliq, "300 metr (3 rulon)")
+        self.assertEqual(self.lenta.qoldiq_toliq, "300 metr = 3 rulon")
         self.assertEqual(self.gisht.qoldiq_toliq, "5000 dona")
+
+    def test_qoldiq_butun_qadoq_va_ortiq_bilan_aytiladi(self):
+        mix = Mahsulot.objects.create(
+            nom="Mix 100 mm", birlik=Birlik.DONA,
+            olish_birligi=Birlik.PACHKA, olish_miqdori=Decimal("1000"),
+            narx=Decimal("150"), qoldiq=Decimal("5020"),
+        )
+        self.assertEqual(mix.qadoq_soni, Decimal("5"))
+        self.assertEqual(mix.qadoqdan_ortiq, Decimal("20.000"))
+        self.assertEqual(mix.qadoq_matni, "5 pachka 20 dona")
+        self.assertEqual(mix.qoldiq_toliq, "5020 dona = 5 pachka 20 dona")
+
+    def test_butun_qadoq_bolsa_ortiq_aytilmaydi(self):
+        self.assertEqual(self.lenta.qadoq_matni, "3 rulon")
+
+    def test_bitta_qadoqqa_yetmasa_faqat_ortiq_aytiladi(self):
+        self.lenta.qoldiq = Decimal("40")
+        self.lenta.save()
+        self.assertEqual(self.lenta.qadoq_matni, "40 metr")
+
+    def test_qoldiq_nol_bolsa(self):
+        self.lenta.qoldiq = Decimal("0")
+        self.lenta.save()
+        self.assertEqual(self.lenta.qadoq_matni, "0 metr")
+
+    def test_kasrli_ortiq(self):
+        self.lenta.qoldiq = Decimal("737.5")
+        self.lenta.save()
+        self.assertEqual(self.lenta.qadoq_matni, "7 rulon 37,5 metr")
 
     def test_birlik_qoidasi_va_olish_narxi(self):
         self.assertEqual(self.lenta.birlik_qoidasi, "1 rulon = 100 metr")
@@ -270,4 +299,4 @@ class SotuvBirligiTest(TestCase):
         self.lenta.refresh_from_db()
         self.assertEqual(self.lenta.qoldiq, Decimal("150.000"))
         self.assertEqual(self.lenta.olish_qoldigi, Decimal("1.500"))
-        self.assertEqual(self.lenta.qoldiq_toliq, "150 metr (1,5 rulon)")
+        self.assertEqual(self.lenta.qoldiq_toliq, "150 metr = 1 rulon 50 metr")
