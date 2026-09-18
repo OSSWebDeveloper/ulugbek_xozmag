@@ -3,17 +3,18 @@
 
 {% block tana %}
 <div class="sahifa-keng{% if korinish == 'royxat' %} sahifa-toliq{% endif %}">
-  <div class="sarlavha">
-    {% if hudud %}{{ hudud.nom }}
-      <span class="kichik">shu hududning qarzdorlari</span>
-    {% elif korinish == "hududlar" %}Hududlar
-      <span class="kichik">qaysi hudud kerak?</span>
-    {% elif korinish == "royxat" %}Barcha qarzdorlar
-      <span class="kichik">eng ko'p qarzdorlar tepada</span>
-    {% else %}Eski qarzdorni topish
-      <span class="kichik">qanday izlaymiz?</span>
-    {% endif %}
-  </div>
+  {# Hududlar ekranida sarlavha yo'q — faqat tugmalar ko'rinadi #}
+  {% if korinish != "hududlar" %}
+    <div class="sarlavha">
+      {% if hudud %}{{ hudud.nom }}
+        <span class="kichik">shu hududning qarzdorlari</span>
+      {% elif korinish == "royxat" %}Barcha qarzdorlar
+        <span class="kichik">eng ko'p qarzdorlar tepada</span>
+      {% else %}Eski qarzdorni topish
+        <span class="kichik">qanday izlaymiz?</span>
+      {% endif %}
+    </div>
+  {% endif %}
 
 {% if korinish == "tanlov" %}
   {# ---------- Ikkita katta tugma ---------- #}
