@@ -1106,7 +1106,7 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   margin-top: var(--oraliq);
 }
 /* Sarlavhasiz ekranda (hududlar) tugmalar tepaga yopishib qolmasin */
-.markazda.tepadan { margin-top: calc(var(--oraliq) * 3); }
+.markazda.tepadan { margin-top: calc(var(--oraliq) * 6); }
 
 /* Hududlar: har biri katta tugma. Sensorli ekranda barmoq bilan bosiladi. */
 .hudud-setka {
