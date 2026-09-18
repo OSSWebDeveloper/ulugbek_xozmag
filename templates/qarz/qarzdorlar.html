@@ -11,6 +11,7 @@
     <span class="kichik">qanday ko'rmoqchisiz?</span>
   </div>
 
+  <div class="markazda">
   <div class="tanlov-setka ikkita">
     <a class="tanlov qarz" href="?korinish=royxat">
       <span class="belgi"><svg class="ikon"><use href="#i-odamlar"></use></svg></span>
@@ -23,6 +24,7 @@
       <span class="izoh">Avval hududni tanlang, so'ng o'sha hududning qarzdorlari</span>
     </a>
   </div>
+  </div>
 
 {% elif korinish == "hududlar" %}
   {# ---------- Hududlar: har biri alohida tugma ---------- #}
@@ -31,6 +33,7 @@
     <span class="kichik">qaysi hudud kerak?</span>
   </div>
 
+  <div class="markazda">
   <div class="hudud-setka">
     {% for k in hudud_kartalari %}
       <a class="hudud-tugma{% if k.balans > 0 %} qarzli{% endif %}"
@@ -46,10 +49,11 @@
     {% endfor %}
   </div>
 
-  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+  <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% url 'qarz:qarzdorlar' %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
     </a>
+  </div>
   </div>
 
 {% else %}

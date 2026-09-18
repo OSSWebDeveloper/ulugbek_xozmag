@@ -27,6 +27,7 @@
 
 {% if korinish == "tanlov" %}
   {# ---------- Ism ma'lum bo'lmasa: ikkita katta tugma ---------- #}
+  <div class="markazda">
   <div class="tanlov-setka ikkita">
     <a class="tanlov qarz" href="?korinish=royxat">
       <span class="belgi"><svg class="ikon"><use href="#i-odamlar"></use></svg></span>
@@ -40,14 +41,16 @@
     </a>
   </div>
 
-  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+  <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
     </a>
   </div>
+  </div>
 
 {% elif korinish == "hududlar" %}
   {# ---------- Hududlar: har biri alohida tugma ---------- #}
+  <div class="markazda">
   <div class="hudud-setka">
     {% for k in hudud_kartalari %}
       <a class="hudud-tugma{% if k.balans > 0 %} qarzli{% endif %}"
@@ -63,10 +66,11 @@
     {% endfor %}
   </div>
 
-  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+  <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% url 'qarz:qidirish' %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
     </a>
+  </div>
   </div>
 
 {% elif qarzdorlar %}
@@ -106,7 +110,7 @@
     </div>
   {% endif %}
 
-  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+  <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% if hudud %}?korinish=hududlar{% else %}{% url 'qarz:qidirish' %}{% endif %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
     </a>
@@ -124,7 +128,7 @@
     </div>
   </div>
 
-  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+  <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% url 'qarz:qidirish' %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
     </a>
