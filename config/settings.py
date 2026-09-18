@@ -1,5 +1,6 @@
 """Ulug'bek Xozmag - Django sozlamalari."""
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Barcha sahifa login talab qiladi (kirish sahifasidan tashqari)
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -81,6 +84,11 @@ DATABASES = {
     }
 }
 
+# Testlarda parol xeshlash vaqtni yeydi (har bir testda xodim yaratiladi).
+# Faqat `manage.py test` da tez xeshga o'tamiz — ishlashga ta'sir qilmaydi.
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -97,6 +105,14 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Kirish / chiqish
+LOGIN_URL = "kirish"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "kirish"
+# Brauzer yopilguncha seans saqlanadi; 12 soatdan keyin baribir tugaydi
+SESSION_COOKIE_AGE = 12 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Pul birligi belgisi (shablonlarda ishlatiladi)
 PUL_BIRLIGI = "so'm"

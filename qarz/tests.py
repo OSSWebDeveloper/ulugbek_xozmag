@@ -1,7 +1,10 @@
 """Qarz va ombor mantiqining asosiy sinovlari."""
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+
+from config.sinov import KirganTest
 from django.urls import reverse
 
 from ombor.models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
@@ -9,8 +12,9 @@ from ombor.models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
 
 
-class QarzOqimiTest(TestCase):
+class QarzOqimiTest(KirganTest):
     def setUp(self):
+        super().setUp()
         self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
         self.qarzdor = Qarzdor.objects.create(
             ism="Vali", familiya="Aliyev", telefon="+998901234567", hudud=self.hudud,
@@ -88,8 +92,9 @@ class QarzOqimiTest(TestCase):
         self.assertContains(javob, "Aliyev")
 
 
-class OmborTest(TestCase):
+class OmborTest(KirganTest):
     def setUp(self):
+        super().setUp()
         self.mahsulot = Mahsulot.objects.create(
             nom="G'isht", birlik=Birlik.DONA, narx=Decimal("1200"), qoldiq=Decimal("1000"),
         )
@@ -108,10 +113,11 @@ class OmborTest(TestCase):
         self.assertEqual(self.mahsulot.narx_son, "1200")
 
 
-class TolovChegarasiTest(TestCase):
+class TolovChegarasiTest(KirganTest):
     """Qarzdan ortiq to'lov balansni manfiyga olib ketmasligi kerak."""
 
     def setUp(self):
+        super().setUp()
         self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
         self.qarzdor = Qarzdor.objects.create(ism="Vali", familiya="Aliyev", hudud=self.hudud)
         self.mahsulot = Mahsulot.objects.create(
@@ -151,10 +157,11 @@ class TolovChegarasiTest(TestCase):
         self.assertContains(javob, "Qolgan qarzi 100 000 so&#x27;m")
 
 
-class QarzdorlarKorinishiTest(TestCase):
+class QarzdorlarKorinishiTest(KirganTest):
     """Qarzdorlar bo'limi: tanlov -> hududlar -> ro'yxat."""
 
     def setUp(self):
+        super().setUp()
         self.h1 = Hudud.objects.create(nom="Hudud 1", tartib=1)
         self.h2 = Hudud.objects.create(nom="Hudud 2", tartib=2)
         Qarzdor.objects.create(ism="Vali", familiya="Aliyev", hudud=self.h1)
@@ -203,4 +210,54 @@ class QarzdorlarKorinishiTest(TestCase):
         javob = self.client.get(reverse("qarz:qidirish"), {"korinish": "royxat"})
         self.assertContains(javob, "Aliyev Vali")
         self.assertContains(javob, "Karimov Olim")
+
+class KirishTest(TestCase):
+    """Saytga faqat login bilan kiriladi."""
+
+    def setUp(self):
+        super().setUp()
+        self.parol = "sinov-parol"
+        get_user_model().objects.create_user(username="reception", password=self.parol)
+
+    def test_kirmasdan_sahifa_ochilmaydi(self):
+        javob = self.client.get(reverse("qarz:boshlash"))
+        self.assertEqual(javob.status_code, 302)
+        self.assertIn(reverse("kirish"), javob["Location"])
+
+    def test_kirish_sahifasi_ochiq(self):
+        javob = self.client.get(reverse("kirish"))
+        self.assertEqual(javob.status_code, 200)
+        self.assertContains(javob, "Parol")
+
+    def test_notogri_parol_kiritmaydi(self):
+        javob = self.client.post(reverse("kirish"),
+                                 {"username": "reception", "password": "xato"})
+        self.assertEqual(javob.status_code, 200)
+        self.assertContains(javob, "Login yoki parol xato")
+
+    def test_togri_parol_bilan_kiradi(self):
+        javob = self.client.post(reverse("kirish"),
+                                 {"username": "reception", "password": self.parol})
+        self.assertRedirects(javob, "/")
+        self.assertEqual(self.client.get(reverse("ombor:royxat")).status_code, 200)
+
+    def test_chiqqandan_keyin_yana_sorolinadi(self):
+        self.client.login(username="reception", password=self.parol)
+        self.client.post(reverse("chiqish"))
+        javob = self.client.get(reverse("ombor:royxat"))
+        self.assertEqual(javob.status_code, 302)
+
+    def test_xodim_buyrugi_hisob_yaratadi(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command("xodim", "boshliq", "--parol", "maxfiy", stdout=StringIO())
+        self.assertTrue(self.client.login(username="boshliq", password="maxfiy"))
+
+    def test_xodim_buyrugi_parolsiz_loginni_beradi(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command("xodim", "ishchi", stdout=StringIO())
+        self.assertTrue(self.client.login(username="ishchi", password="ishchi"))
 

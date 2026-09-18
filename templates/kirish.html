@@ -1,0 +1,50 @@
+{% load statik_versiya %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Kirish — Ulug'bek Xozmag</title>
+  <link rel="stylesheet" href="{% statik 'css/uslub.css' %}">
+</head>
+<body class="kirish-sahifa">
+{% include "ikonlar.html" %}
+
+<div class="kirish-quti">
+  <span class="logo"><svg class="ikon"><use href="#i-dokon"></use></svg></span>
+  <div class="kirish-nom">Ulug'bek Xozmag</div>
+  <div class="kirish-izoh">Davom etish uchun kiring</div>
+
+  {% if form.errors %}
+    <div class="xabar error" style="width:100%">
+      <svg class="ikon"><use href="#i-ogoh"></use></svg>
+      <span>Login yoki parol xato.</span>
+    </div>
+  {% endif %}
+
+  <form method="post" style="width:100%">
+    {% csrf_token %}
+    <div class="maydon">
+      <label for="{{ form.username.id_for_label }}">Login</label>
+      <input type="text" name="username" id="{{ form.username.id_for_label }}"
+             class="kirish" autocomplete="username" autocapitalize="off"
+             autofocus required value="{{ form.username.value|default:'' }}">
+    </div>
+    <div class="maydon">
+      <label for="{{ form.password.id_for_label }}">Parol</label>
+      <input type="password" name="password" id="{{ form.password.id_for_label }}"
+             class="kirish" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="tugma yashil keng" style="width:100%">
+      <svg class="ikon"><use href="#i-belgi"></use></svg> Kirish
+    </button>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  </form>
+
+  <div class="kirish-versiya">v{{ versiya }}</div>
+</div>
+
+<script src="{% statik 'js/rejim.js' %}"></script>
+<script src="{% statik 'js/klaviatura.js' %}"></script>
+</body>
+</html>

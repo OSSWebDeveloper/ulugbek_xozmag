@@ -2,6 +2,8 @@
 from decimal import Decimal
 
 from django.test import TestCase
+
+from config.sinov import KirganTest
 from django.urls import reverse
 
 from ombor.models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
@@ -9,8 +11,9 @@ from ombor.models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
 from .models import Sotuv, SotuvQator
 
 
-class SotuvTest(TestCase):
+class SotuvTest(KirganTest):
     def setUp(self):
+        super().setUp()
         self.mahsulot = Mahsulot.objects.create(
             nom="Sement 50 kg", birlik=Birlik.QOP, narx=Decimal("55000"), qoldiq=Decimal("100"),
         )

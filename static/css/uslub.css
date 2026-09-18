@@ -1097,6 +1097,43 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   outline: 2px solid var(--urgu); outline-offset: 2px;
 }
 
+/* ============ Kirish sahifasi ============ */
+body.kirish-sahifa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--oraliq);
+}
+.kirish-quti {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 26px 22px;
+  background: var(--panel);
+  border: 1px solid var(--chegara);
+  border-radius: var(--radius);
+  box-shadow: var(--soya-2);
+}
+.kirish-quti .logo {
+  width: 54px; height: 54px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 16px;
+  color: var(--asosiy-matn);
+  background: linear-gradient(150deg, var(--urgu), var(--urgu-quyuq));
+}
+.kirish-quti .logo .ikon { width: 28px; height: 28px; }
+.kirish-nom { font-size: calc(var(--katta-matn) + 3px); font-weight: 700; letter-spacing: -.02em; }
+.kirish-izoh { font-size: 13px; color: var(--matn-2); margin-bottom: 6px; }
+.kirish-quti .maydon { width: 100%; }
+.kirish-versiya { font-size: 11px; color: var(--matn-3); margin-top: 4px; }
+
+/* Yon menyudagi chiqish tugmasi */
+.menyu-tugma.chiqish { color: var(--matn-3); }
+.menyu-tugma.chiqish:hover { color: var(--xato); background: var(--xato-fon); }
+
 /* Tanlov ekranlarida tugmalar o'rtada tursin */
 .markazda {
   display: flex;

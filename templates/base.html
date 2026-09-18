@@ -44,6 +44,13 @@
         <span class="yo-l"><span class="dasta"></span></span>
         <span class="holat">Sensor</span>
       </button>
+      <form method="post" action="{% url 'chiqish' %}">
+        {% csrf_token %}
+        <button type="submit" class="menyu-tugma chiqish" style="width:100%"
+                title="{{ user.username }} hisobidan chiqish">
+          <svg class="ikon"><use href="#i-chiqish"></use></svg> Chiqish
+        </button>
+      </form>
       <span class="versiya-yozuv" title="Dastur versiyasi">v{{ versiya }}</span>
     </div>
   </aside>

@@ -19,6 +19,25 @@ Admin panel kerak bo'lsa:
 python manage.py createsuperuser
 ```
 
+### Kirish
+
+Sayt butunlay yopiq — har qanday sahifa login talab qiladi
+(`LoginRequiredMiddleware`). Xodim hisobi shu buyruq bilan yaratiladi:
+
+```bash
+python manage.py xodim reception
+```
+
+Parol berilmasa login bilan bir xil bo'ladi. **Do'konga o'rnatilgach
+almashtiring** — ombor ochiq, ya'ni bu qoida hammaga ma'lum:
+
+```bash
+python manage.py xodim reception --parol <yangi parol>
+```
+
+Admin panelga ham kiradigan hisob kerak bo'lsa `--boshqaruvchi` qo'shing.
+Chiqish — yon menyu pastidagi tugma. Seans 12 soatdan keyin tugaydi.
+
 ### Maxfiy kalit
 
 Ombor ochiq bo'lgani uchun `SECRET_KEY` kodda turmaydi. Birinchi ishga
@@ -208,6 +227,9 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 - `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
 - `versiya.py`, `versiya.txt`, `VERSIYALAR.md` — versiyalash
+- `config/sinov.py` — testlar uchun asos (sayt login talab qilgani uchun
+  har bir test kirib oladi)
+- `qarz/management/commands/xodim.py` — xodim hisobi
 - `qarz/templatetags/statik_versiya.py` — CSS/JS kesh yangilash (`{% statik '...' %}`)
 
 ## Keyin qilinadigan ishlar

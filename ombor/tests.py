@@ -2,15 +2,18 @@
 from decimal import Decimal
 
 from django.test import TestCase
+
+from config.sinov import KirganTest
 from django.urls import reverse
 
 from .models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
 
 
-class IkkiBirlikModelTest(TestCase):
+class IkkiBirlikModelTest(KirganTest):
     """Rulonda olinib metrda sotiladigan tovarning hisoblari."""
 
     def setUp(self):
+        super().setUp()
         self.lenta = Mahsulot.objects.create(
             nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
@@ -82,10 +85,11 @@ class IkkiBirlikModelTest(TestCase):
         self.assertFalse(tovar.ikki_birlikmi)
 
 
-class KirimTest(TestCase):
+class KirimTest(KirganTest):
     """Kirim ekrani: miqdor rulonda ham, metrda ham kiritilishi mumkin."""
 
     def setUp(self):
+        super().setUp()
         self.lenta = Mahsulot.objects.create(
             nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
@@ -165,7 +169,7 @@ class KirimTest(TestCase):
         self.assertContains(javob, "1 rulon = 100 metr")
 
 
-class MahsulotFormaTest(TestCase):
+class MahsulotFormaTest(KirganTest):
     """«Birlik o'zgaradi» richagi va uning atrofidagi maydonlar."""
 
     MANZIL = "ombor:mahsulot_yangi"
@@ -291,10 +295,11 @@ class MahsulotFormaTest(TestCase):
         self.assertEqual(tovar.olish_qoldigi, Decimal("4.500"))
 
 
-class SotuvBirligiTest(TestCase):
+class SotuvBirligiTest(KirganTest):
     """Sotuv va qarz tomonida hech nima o'zgarmaydi — hammasi sotuv birligida."""
 
     def setUp(self):
+        super().setUp()
         self.lenta = Mahsulot.objects.create(
             nom="Polietilen lenta 0,1 metr", birlik=Birlik.METR,
             olish_birligi=Birlik.RULON, olish_miqdori=Decimal("100"),
