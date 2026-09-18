@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.9.3 — 2026-09-18
+
+Hududlar ekranidan sarlavha olib tashlandi
+
 ## 1.9.2 — 2026-09-18
 
 Qidiruv maydoni olib tashlandi
