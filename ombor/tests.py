@@ -127,6 +127,15 @@ class KirimTest(TestCase):
         self.assertEqual(harakat.kiritilgan_birlik, Birlik.RULON)
         self.assertEqual(harakat.korinish, "2 rulon = 200 metr")
 
+    def test_oyna_rejimida_faqat_forma_qaytadi(self):
+        """Ombor ro'yxatidagi ichki oyna butun sahifani emas, formani so'raydi."""
+        javob = self.client.get(reverse("ombor:kirim", args=[self.lenta.pk]), {"oyna": "1"})
+        self.assertEqual(javob.status_code, 200)
+        matn = javob.content.decode()
+        self.assertNotIn("<!DOCTYPE html>", matn)
+        self.assertIn('id="kirim-forma"', matn)
+        self.assertIn('id="kirim-raqamlar"', matn)
+
     def test_oddiy_tovarda_birlik_tanlovi_sorolmaydi(self):
         javob = self.client.get(reverse("ombor:kirim", args=[self.gisht.pk]))
         self.assertNotContains(javob, 'name="birlik"')

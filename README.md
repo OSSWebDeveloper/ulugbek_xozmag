@@ -54,7 +54,10 @@ eski uslubni ushlab qolmaydi.
 ## Ish tartibi (receptionist uchun)
 
 1. **Bosh sahifa** — qarzdor keldi: *Oldin qarz olgan* yoki *Yangi qarzdor*.
-2. **Oldin olgan** → ism/familiya/telefon bo'yicha qidiriladi, hudud bo'yicha filtr bor.
+2. **Oldin olgan** → uch yo'l: ism yozib qidirish, butun ro'yxatni ochish yoki
+   **hududni tanlash**. Hududlar 13 ta katta tugma bo'lib chiqadi, har birida
+   nechta qarzdor va qancha qarz borligi yozilgan; hudud bosilsa o'sha hududning
+   qarzdorlari ko'rinadi. **Qarzdor** bo'limi ham xuddi shunday ochiladi.
 3. **Yangi** → Ism, Familiya, Telefon, Hudud to'ldiriladi → **Yaratish** bosilgach darrov
    qarz yozish ekraniga o'tadi.
 4. **Qarz yozish ekrani** (kassa ko'rinishi):
@@ -152,7 +155,15 @@ Olish birligi tanlanmagan tovar (g'isht, rozetka) avvalgidek ishlaydi — kirim
 ekranida hech qanday qo'shimcha savol chiqmaydi.
 
 Birliklar ro'yxati (`ombor/models.py`, `Birlik`): dona, kg, metr, litr, qop, quti,
-rulon, buxta, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'shiladi.
+rulon, o'ram, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'shiladi.
+
+## Kirim — alohida sahifa emas
+
+Ombor ro'yxatida tovar satriga bosilsa kirim **ichki oyna** bo'lib ochiladi:
+`/ombor/<pk>/kirim/?oyna=1` faqat forma qismini qaytaradi (`kirim_forma.html`),
+JS uni oynaga joylaydi. Forma oddiy POST bilan yuboriladi — server mantig'i
+o'zgarmagan. Qalam va soat tugmalari (`data-kirimsiz`) o'z sahifalariga olib
+boradi. `/ombor/<pk>/kirim/` manzili ham ishlaydi, u to'liq sahifa qaytaradi.
 
 ## Joylashuv qoidasi: scrollsiz
 

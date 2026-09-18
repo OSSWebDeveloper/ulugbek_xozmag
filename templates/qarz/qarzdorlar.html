@@ -2,32 +2,86 @@
 {% load xozmag %}
 
 {% block tana %}
-<div class="sahifa-keng sahifa-toliq">
+<div class="sahifa-keng{% if korinish == 'royxat' %} sahifa-toliq{% endif %}">
+
+{% if korinish == "tanlov" %}
+  {# ---------- Boshlang'ich: ikkita katta tugma ---------- #}
   <div class="sarlavha">
-    Qarzdorlar ro'yxati
+    Qarzdorlar
+    <span class="kichik">qanday ko'rmoqchisiz?</span>
+  </div>
+
+  <div class="tanlov-setka ikkita">
+    <a class="tanlov qarz" href="?korinish=royxat">
+      <span class="belgi"><svg class="ikon"><use href="#i-odamlar"></use></svg></span>
+      <span class="bosh">Qarzdorlar ro'yxati</span>
+      <span class="izoh">Hammasi bitta ro'yxatda, eng ko'p qarzdorlar tepada</span>
+    </a>
+    <a class="tanlov yangi" href="?korinish=hududlar">
+      <span class="belgi"><svg class="ikon"><use href="#i-uy"></use></svg></span>
+      <span class="bosh">Hududlar</span>
+      <span class="izoh">Avval hududni tanlang, so'ng o'sha hududning qarzdorlari</span>
+    </a>
+  </div>
+
+{% elif korinish == "hududlar" %}
+  {# ---------- Hududlar: har biri alohida tugma ---------- #}
+  <div class="sarlavha">
+    Hududlar
+    <span class="kichik">qaysi hudud kerak?</span>
+  </div>
+
+  <div class="hudud-setka">
+    {% for k in hudud_kartalari %}
+      <a class="hudud-tugma{% if k.balans > 0 %} qarzli{% endif %}"
+         href="?hudud={{ k.hudud.pk }}">
+        <span class="h-nom">{{ k.hudud.nom }}</span>
+        {% if k.soni %}
+          <span class="h-soni">{{ k.soni }} ta qarzdor</span>
+          <span class="h-balans">{{ k.balans|pul }} so'm</span>
+        {% else %}
+          <span class="h-soni sust">qarzdor yo'q</span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+
+  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+    <a class="tugma tinch" href="{% url 'qarz:qarzdorlar' %}">
+      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+    </a>
+  </div>
+
+{% else %}
+  {# ---------- Ro'yxat: hammasi yoki bitta hudud ---------- #}
+  <div class="sarlavha">
+    {% if hudud %}{{ hudud.nom }}{% else %}Qarzdorlar ro'yxati{% endif %}
     <span class="kichik">eng ko'p qarzdorlar tepada</span>
   </div>
 
-  <form method="get" class="quti">
+  <div class="quti">
     <div class="qator">
-      <select name="hudud" class="kirish" style="flex:3">
-        <option value="">Barcha hududlar</option>
-        {% for h in hududlar %}
-          <option value="{{ h.pk }}" {% if hudud_id == h.pk|stringformat:"s" %}selected{% endif %}>
-            {{ h.nom }}
-          </option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="tugma" style="flex:1">Ko'rsatish</button>
+      <a class="tugma tinch" style="flex:1"
+         href="{% if hudud %}?korinish=hududlar{% else %}{% url 'qarz:qarzdorlar' %}{% endif %}">
+        <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+      </a>
+      {% if hudud %}
+        <a class="tugma" style="flex:1" href="?korinish=royxat">Barcha qarzdorlar</a>
+      {% else %}
+        <a class="tugma" style="flex:1" href="?korinish=hududlar">Hudud bo'yicha</a>
+      {% endif %}
+      <a class="tugma yashil" style="flex:1" href="{% url 'qarz:yangi_qarzdor' %}">
+        <svg class="ikon"><use href="#i-plus"></use></svg> Yangi qarzdor
+      </a>
     </div>
-  </form>
+  </div>
 
   <div class="jadval-quti">
     <table class="jadval">
       <thead>
         <tr>
           <th>Familiya Ism</th>
-          <th>Hudud</th>
+          {% if not hudud %}<th>Hudud</th>{% endif %}
           <th>Telefon</th>
           <th class="son">Olgan</th>
           <th class="son">To'lagan</th>
@@ -40,7 +94,7 @@
           <tr class="bosiladi {% if q.balans > 0 %}ogohlantirish{% endif %}"
               onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
             <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
-            <td>{{ q.hudud.nom }}</td>
+            {% if not hudud %}<td>{{ q.hudud.nom }}</td>{% endif %}
             <td>{{ q.telefon|default:"—" }}</td>
             <td class="son sust">{{ q.jami_qarz|pul }}</td>
             <td class="son sust">{{ q.jami_tolov|pul }}</td>
@@ -55,7 +109,7 @@
             <td colspan="7">
               <div class="bosh-holat">
                 <svg class="ikon"><use href="#i-odamlar"></use></svg>
-                <b>Hali qarzdor yo'q</b>
+                <b>{% if hudud %}Bu hududda qarzdor yo'q{% else %}Hali qarzdor yo'q{% endif %}</b>
                 <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}"
                    style="margin-top:12px">Yangi qarzdor qo'shish</a>
               </div>
@@ -66,7 +120,7 @@
       {% if qarzdorlar %}
         <tfoot>
           <tr>
-            <th colspan="5" style="text-align:right">Jami qarz</th>
+            <th colspan="{% if hudud %}4{% else %}5{% endif %}" style="text-align:right">Jami qarz</th>
             <th class="son" style="font-size:var(--katta-matn);font-weight:700">{{ jami_balans|pul }}</th>
             <th></th>
           </tr>
@@ -74,5 +128,7 @@
       {% endif %}
     </table>
   </div>
+{% endif %}
+
 </div>
 {% endblock %}

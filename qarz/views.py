@@ -24,25 +24,65 @@ def boshlash(request):
     return render(request, "qarz/boshlash.html")
 
 
+def hudud_kartalari():
+    """Har bir hudud uchun qarzdorlar soni va umumiy qarz.
+
+    Qarzdorlar sahifasida ham, «Oldin qarz olgan» qidiruvida ham
+    bir xil tugmalar chiqadi.
+    """
+    yigindi = {}
+    for q in Qarzdor.objects.all():
+        son, balans = yigindi.get(q.hudud_id, (0, Decimal("0")))
+        yigindi[q.hudud_id] = (son + 1, balans + q.balans)
+    return [
+        {"hudud": h, "soni": yigindi.get(h.pk, (0, Decimal("0")))[0],
+         "balans": yigindi.get(h.pk, (0, Decimal("0")))[1]}
+        for h in Hudud.objects.all()
+    ]
+
 def qidirish(request):
-    """Eski qarzdorni qidirish."""
+    """Eski qarzdorni topish.
+
+    Uch yo'l: ism yozib qidirish, butun ro'yxatni ochish yoki hududni
+    tanlab o'sha hududning qarzdorlarini ko'rish — qarzdorlar
+    sahifasidagi ketma-ketlikning aynan o'zi.
+    """
     matn = request.GET.get("q", "").strip()
     hudud_id = request.GET.get("hudud", "")
-    qarzdorlar = Qarzdor.objects.select_related("hudud")
+    korinish = request.GET.get("korinish", "")
 
-    if matn:
-        qarzdorlar = qarzdorlar.filter(
-            Q(ism__icontains=matn) | Q(familiya__icontains=matn) | Q(telefon__icontains=matn)
-        )
-    if hudud_id:
-        qarzdorlar = qarzdorlar.filter(hudud_id=hudud_id)
+    if matn or hudud_id:
+        korinish = "royxat"
+    elif korinish not in ("royxat", "hududlar"):
+        korinish = "tanlov"
+
+    hudud = None
+    qarzdorlar = []
+    jami_topildi = 0
+    kartalar = []
+
+    if korinish == "royxat":
+        tanlangan = Qarzdor.objects.select_related("hudud")
+        if matn:
+            tanlangan = tanlangan.filter(
+                Q(ism__icontains=matn) | Q(familiya__icontains=matn)
+                | Q(telefon__icontains=matn)
+            )
+        if hudud_id:
+            hudud = get_object_or_404(Hudud, pk=hudud_id)
+            tanlangan = tanlangan.filter(hudud=hudud)
+        jami_topildi = tanlangan.count()
+        qarzdorlar = tanlangan[:100]
+    elif korinish == "hududlar":
+        kartalar = hudud_kartalari()
 
     return render(request, "qarz/qidirish.html", {
-        "qarzdorlar": qarzdorlar[:100],
+        "korinish": korinish,
+        "qarzdorlar": qarzdorlar,
         "matn": matn,
-        "hudud_id": hudud_id,
-        "hududlar": Hudud.objects.all(),
-        "jami_topildi": qarzdorlar.count(),
+        "hudud": hudud,
+        "hudud_kartalari": kartalar,
+        "jami_topildi": jami_topildi,
     })
 
 
@@ -211,18 +251,41 @@ def tolov_ochirish(request, pk):
 
 
 def qarzdorlar_royxati(request):
-    """Barcha qarzdorlar va ularning balansi."""
-    hudud_id = request.GET.get("hudud", "")
-    qarzdorlar = Qarzdor.objects.select_related("hudud")
-    if hudud_id:
-        qarzdorlar = qarzdorlar.filter(hudud_id=hudud_id)
+    """Qarzdorlar bo'limi — uch ko'rinishda.
 
-    royxat = sorted(qarzdorlar, key=lambda q: q.balans, reverse=True)
-    jami_balans = sum((q.balans for q in royxat), Decimal("0"))
+    Boshida ikkita katta tugma: butun ro'yxat yoki hududlar. «Hududlar»
+    bosilsa har bir hudud alohida tugma bo'lib chiqadi, hudud bosilsa
+    o'sha hududning qarzdorlari ko'rinadi. Do'konda qarzdorlar hudud
+    bo'yicha eslanadi, shuning uchun shu yo'l qisqaroq.
+    """
+    hudud_id = request.GET.get("hudud", "")
+    korinish = request.GET.get("korinish", "")
+
+    if hudud_id:
+        korinish = "royxat"
+    elif korinish not in ("royxat", "hududlar"):
+        korinish = "tanlov"
+
+    hudud = None
+    qarzdorlar = []
+    jami_balans = Decimal("0")
+    kartalar = []
+
+    if korinish == "royxat":
+        tanlangan = Qarzdor.objects.select_related("hudud")
+        if hudud_id:
+            hudud = get_object_or_404(Hudud, pk=hudud_id)
+            tanlangan = tanlangan.filter(hudud=hudud)
+        qarzdorlar = sorted(tanlangan, key=lambda q: q.balans, reverse=True)
+        jami_balans = sum((q.balans for q in qarzdorlar), Decimal("0"))
+
+    elif korinish == "hududlar":
+        kartalar = hudud_kartalari()
 
     return render(request, "qarz/qarzdorlar.html", {
-        "qarzdorlar": royxat,
-        "hududlar": Hudud.objects.all(),
-        "hudud_id": hudud_id,
+        "korinish": korinish,
+        "qarzdorlar": qarzdorlar,
+        "hudud": hudud,
+        "hudud_kartalari": kartalar,
         "jami_balans": jami_balans,
     })

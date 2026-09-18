@@ -1,0 +1,97 @@
+{% load xozmag %}
+{% comment %}
+Kirim formasi. Ikki joyda ishlatiladi: alohida sahifa (`kirim.html`) va
+ombor ro'yxatidagi ichki oyna (`?oyna=1` bilan shu fayl yolg'iz qaytariladi).
+{% endcomment %}
+<div class="korsatkich" style="margin-bottom:var(--oraliq)">
+  <div class="nomi">Hozirgi qoldiq</div>
+  <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
+  {% if mahsulot.ikki_birlikmi %}
+    <div class="qiymat-izoh">{{ mahsulot.qadoq_matni }}</div>
+  {% endif %}
+</div>
+
+{% if mahsulot.ikki_birlikmi %}
+  <div class="xabar info" style="margin-bottom:var(--oraliq)">
+    <svg class="ikon"><use href="#i-quti"></use></svg>
+    <span>
+      <b>{{ mahsulot.birlik_qoidasi }}</b> —
+      1 {{ mahsulot.olish_birligi }} narxi ≈ {{ mahsulot.olish_narxi|pul }} so'm
+    </span>
+  </div>
+{% endif %}
+
+<form method="post" action="{% url 'ombor:kirim' mahsulot.pk %}"
+      data-birlik="{{ mahsulot.birlik }}"
+      data-olish-birligi="{{ mahsulot.olish_birligi }}"
+      data-olish-miqdori="{{ mahsulot.olish_miqdori_son }}"
+      data-qoldiq="{{ mahsulot.qoldiq_son }}"
+      id="kirim-forma">
+  {% csrf_token %}
+
+  <div class="kirim-setka">
+    <div class="kirim-chap">
+      {% if mahsulot.ikki_birlikmi %}
+        <div class="maydon">
+          <label>{{ form.birlik.label }}</label>
+          <div class="birlik-tanlov" id="birlik-tanlov">
+            {% for tanlov in form.birlik %}
+              <label class="birlik-tugma">
+                {{ tanlov.tag }}
+                <span>{{ tanlov.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.birlik.errors %}
+            <div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="maydon">
+        <label for="{{ form.miqdor.id_for_label }}">{{ form.miqdor.label }}</label>
+        {{ form.miqdor }}
+        {% if form.miqdor.errors %}
+          <div class="xato-yozuv">{{ form.miqdor.errors|striptags }}</div>
+        {% endif %}
+      </div>
+
+      <div class="qoida-satri" id="kirim-natija" hidden></div>
+
+      <div class="maydon">
+        <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
+        {{ form.izoh }}
+        {% if form.izoh.errors %}
+          <div class="xato-yozuv">{{ form.izoh.errors|striptags }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Sensorli rejimda o'ng ustunda turadi (CSS: body:not(.rejim-sensor) .raqamlar). #}
+    <div class="raqamlar kirim-raqamlar" id="kirim-raqamlar">
+      <button type="button" class="tugma" data-raqam="7">7</button>
+      <button type="button" class="tugma" data-raqam="8">8</button>
+      <button type="button" class="tugma" data-raqam="9">9</button>
+      <button type="button" class="tugma" data-raqam="4">4</button>
+      <button type="button" class="tugma" data-raqam="5">5</button>
+      <button type="button" class="tugma" data-raqam="6">6</button>
+      <button type="button" class="tugma" data-raqam="1">1</button>
+      <button type="button" class="tugma" data-raqam="2">2</button>
+      <button type="button" class="tugma" data-raqam="3">3</button>
+      <button type="button" class="tugma" data-raqam="0">0</button>
+      <button type="button" class="tugma amal" data-raqam=".">,</button>
+      <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+    </div>
+  </div>
+
+  <div class="qator" style="margin-top:var(--oraliq)">
+    {% if oynada %}
+      <button type="button" class="tugma tinch" style="flex:1" data-yop>Bekor qilish</button>
+    {% else %}
+      <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
+    {% endif %}
+    <button type="submit" class="tugma yashil" style="flex:2">
+      <svg class="ikon"><use href="#i-kirim"></use></svg> Omborga qo'shish
+    </button>
+  </div>
+</form>

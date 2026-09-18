@@ -218,8 +218,60 @@
     yangila();
   }
 
+  // ---------- Ombor ro'yxati: satr bosilsa kirim ichki oyna bo'lib ochiladi ----------
+  function omborRoyxati() {
+    var jadval = document.getElementById("ombor-jadval");
+    var oyna = document.getElementById("kirim-oyna");
+    if (!jadval || !oyna) return;
+
+    var tana = document.getElementById("kirim-oyna-tana");
+    var nomi = document.getElementById("kirim-oyna-nom");
+
+    function yop() {
+      oyna.classList.remove("ochiq");
+      tana.innerHTML = "";
+    }
+
+    function och(manzil, tovar) {
+      nomi.textContent = "Kirim: " + tovar;
+      tana.innerHTML = '<div class="bosh-holat">Yuklanmoqda…</div>';
+      oyna.classList.add("ochiq");
+      fetch(manzil, { credentials: "same-origin" })
+        .then(function (javob) {
+          if (!javob.ok) throw new Error(javob.status);
+          return javob.text();
+        })
+        .then(function (html) {
+          tana.innerHTML = html;
+          kirimFormasi();          // yangi formaga hisob va numpadni ulaymiz
+          var m = document.getElementById("kirim-miqdor");
+          if (m && !document.body.classList.contains("rejim-sensor")) m.focus();
+        })
+        .catch(function () {
+          tana.innerHTML = '<div class="xabar error"><span>Kirim formasini ' +
+                           "yuklab bo'lmadi. Sahifani yangilang.</span></div>";
+        });
+    }
+
+    jadval.addEventListener("click", function (e) {
+      if (e.target.closest("[data-kirimsiz]")) return;   // qalam va tarix tugmalari
+      var qator = e.target.closest("tr[data-kirim]");
+      if (!qator) return;
+      e.preventDefault();                                 // «Kirim» havolasi ham shu yerda
+      och(qator.dataset.kirim, qator.dataset.nom);
+    });
+
+    oyna.addEventListener("click", function (e) {
+      if (e.target === oyna || e.target.closest("[data-yop]")) yop();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && oyna.classList.contains("ochiq")) yop();
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     mahsulotFormasi();
     kirimFormasi();
+    omborRoyxati();
   });
 })();

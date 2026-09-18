@@ -149,3 +149,53 @@ class TolovChegarasiTest(TestCase):
         self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
         self.assertContains(javob, "Qolgan qarzi 100 000 so&#x27;m")
 
+class QarzdorlarKorinishiTest(TestCase):
+    """Qarzdorlar bo'limi: tanlov -> hududlar -> ro'yxat."""
+
+    def setUp(self):
+        self.h1 = Hudud.objects.create(nom="Hudud 1", tartib=1)
+        self.h2 = Hudud.objects.create(nom="Hudud 2", tartib=2)
+        Qarzdor.objects.create(ism="Vali", familiya="Aliyev", hudud=self.h1)
+        Qarzdor.objects.create(ism="Olim", familiya="Karimov", hudud=self.h1)
+
+    def test_boshida_ikkita_tugma(self):
+        javob = self.client.get(reverse("qarz:qarzdorlar"))
+        self.assertContains(javob, "Qarzdorlar ro'yxati")
+        self.assertContains(javob, "Hududlar")
+        self.assertNotContains(javob, "Familiya Ism")   # jadval hali yo'q
+
+    def test_hududlar_tugmalari_sonini_korsatadi(self):
+        javob = self.client.get(reverse("qarz:qarzdorlar"), {"korinish": "hududlar"})
+        self.assertContains(javob, "2 ta qarzdor")      # Hudud 1
+        self.assertContains(javob, "qarzdor yo'q")  # Hudud 2
+        self.assertEqual(javob.content.decode().count("hudud-tugma"), 2)
+
+    def test_hudud_tanlansa_faqat_oshaning_qarzdorlari(self):
+        javob = self.client.get(reverse("qarz:qarzdorlar"), {"hudud": self.h1.pk})
+        self.assertContains(javob, "Aliyev Vali")
+        self.assertContains(javob, "Karimov Olim")
+        javob2 = self.client.get(reverse("qarz:qarzdorlar"), {"hudud": self.h2.pk})
+        self.assertNotContains(javob2, "Aliyev Vali")
+        self.assertContains(javob2, "Bu hududda qarzdor yo'q")
+
+    def test_toliq_royxat(self):
+        javob = self.client.get(reverse("qarz:qarzdorlar"), {"korinish": "royxat"})
+        self.assertContains(javob, "Aliyev Vali")
+        self.assertContains(javob, "Karimov Olim")
+
+    def test_qidirish_ham_shu_ketma_ketlikda(self):
+        javob = self.client.get(reverse("qarz:qidirish"))
+        self.assertContains(javob, "Barcha qarzdorlar")
+        self.assertContains(javob, "Hududlar")
+
+        javob = self.client.get(reverse("qarz:qidirish"), {"korinish": "hududlar"})
+        self.assertEqual(javob.content.decode().count("hudud-tugma"), 2)
+
+        javob = self.client.get(reverse("qarz:qidirish"), {"hudud": self.h1.pk})
+        self.assertContains(javob, "Aliyev Vali")
+
+    def test_qidirish_ism_boyicha_ishlaydi(self):
+        javob = self.client.get(reverse("qarz:qidirish"), {"q": "karim"})
+        self.assertContains(javob, "Karimov Olim")
+        self.assertNotContains(javob, "Aliyev Vali")
+

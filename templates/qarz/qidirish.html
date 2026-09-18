@@ -2,88 +2,134 @@
 {% load xozmag %}
 
 {% block tana %}
-<div class="sahifa-keng sahifa-toliq">
+<div class="sahifa-keng{% if korinish == 'royxat' %} sahifa-toliq{% endif %}">
   <div class="sarlavha">
-    Eski qarzdorni topish
-    <span class="kichik">ismi, familiyasi yoki telefoni bo'yicha</span>
+    {% if hudud %}{{ hudud.nom }}
+      <span class="kichik">shu hududning qarzdorlari</span>
+    {% elif korinish == "hududlar" %}Hududlar
+      <span class="kichik">qaysi hudud kerak?</span>
+    {% else %}Eski qarzdorni topish
+      <span class="kichik">ismi, familiyasi yoki telefoni bo'yicha</span>
+    {% endif %}
   </div>
 
+  {# Qidiruv maydoni har doim tepada — ism ma'lum bo'lsa eng tez yo'l #}
   <form method="get" class="quti">
     <div class="qator">
-      <div style="flex:3">
-        <input type="text" name="q" value="{{ matn }}" class="kirish" autofocus
-               placeholder="Ism, familiya yoki telefon" autocomplete="off">
-      </div>
-      <div style="flex:2">
-        <select name="hudud" class="kirish">
-          <option value="">Barcha hududlar</option>
-          {% for h in hududlar %}
-            <option value="{{ h.pk }}" {% if hudud_id == h.pk|stringformat:"s" %}selected{% endif %}>
-              {{ h.nom }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
+      <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
+             placeholder="Ism, familiya yoki telefon" autocomplete="off"
+             {% if korinish == "tanlov" %}autofocus{% endif %}>
       <button type="submit" class="tugma" style="flex:1">
         <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
       </button>
     </div>
   </form>
 
-  {% if qarzdorlar %}
-    <div class="jadval-quti">
-      <table class="jadval">
-        <thead>
-          <tr>
-            <th>Familiya Ism</th>
-            <th>Hudud</th>
-            <th>Telefon</th>
-            <th class="son">Qarzi</th>
-            <th style="width:1%"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for q in qarzdorlar %}
-            <tr class="bosiladi" onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
-              <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
-              <td>{{ q.hudud.nom }}</td>
-              <td>{{ q.telefon|default:"—" }}</td>
-              <td class="son"><b>{{ q.balans|pul }}</b></td>
-              <td>
-                <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
-                   onclick="event.stopPropagation()">Qarz yozish</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% if jami_topildi > 100 %}
-      <p style="color:var(--matn-2);margin-bottom:var(--oraliq)">
-        {{ jami_topildi }} ta topildi, birinchi 100 tasi ko'rsatildi.
-      </p>
-    {% endif %}
-  {% else %}
-    <div class="quti">
-      <div class="bosh-holat">
-        <svg class="ikon"><use href="#i-qidir"></use></svg>
-        {% if matn %}
-          <b>&laquo;{{ matn }}&raquo; bo'yicha hech kim topilmadi</b>
-          <div style="margin-top:var(--oraliq)">
-            <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}">
-              <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor qilib qo'shish
-            </a>
-          </div>
+{% if korinish == "tanlov" %}
+  {# ---------- Ism ma'lum bo'lmasa: ikkita katta tugma ---------- #}
+  <div class="tanlov-setka ikkita">
+    <a class="tanlov qarz" href="?korinish=royxat">
+      <span class="belgi"><svg class="ikon"><use href="#i-odamlar"></use></svg></span>
+      <span class="bosh">Barcha qarzdorlar</span>
+      <span class="izoh">Hammasi bitta ro'yxatda</span>
+    </a>
+    <a class="tanlov yangi" href="?korinish=hududlar">
+      <span class="belgi"><svg class="ikon"><use href="#i-uy"></use></svg></span>
+      <span class="bosh">Hududlar</span>
+      <span class="izoh">Avval hududni tanlang, so'ng o'sha hududning qarzdorlari</span>
+    </a>
+  </div>
+
+  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+    <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">
+      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+    </a>
+  </div>
+
+{% elif korinish == "hududlar" %}
+  {# ---------- Hududlar: har biri alohida tugma ---------- #}
+  <div class="hudud-setka">
+    {% for k in hudud_kartalari %}
+      <a class="hudud-tugma{% if k.balans > 0 %} qarzli{% endif %}"
+         href="?hudud={{ k.hudud.pk }}">
+        <span class="h-nom">{{ k.hudud.nom }}</span>
+        {% if k.soni %}
+          <span class="h-soni">{{ k.soni }} ta qarzdor</span>
+          <span class="h-balans">{{ k.balans|pul }} so'm</span>
         {% else %}
-          <b>Ism yoki telefonni yozib qidiring</b>
-          Hududni tanlab ham ro'yxatni ko'rish mumkin
+          <span class="h-soni sust">qarzdor yo'q</span>
         {% endif %}
-      </div>
+      </a>
+    {% endfor %}
+  </div>
+
+  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+    <a class="tugma tinch" href="{% url 'qarz:qidirish' %}">
+      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+    </a>
+  </div>
+
+{% elif qarzdorlar %}
+  {# ---------- Topilganlar ---------- #}
+  <div class="jadval-quti">
+    <table class="jadval">
+      <thead>
+        <tr>
+          <th>Familiya Ism</th>
+          {% if not hudud %}<th>Hudud</th>{% endif %}
+          <th>Telefon</th>
+          <th class="son">Qarzi</th>
+          <th style="width:1%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for q in qarzdorlar %}
+          <tr class="bosiladi" onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
+            <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
+            {% if not hudud %}<td>{{ q.hudud.nom }}</td>{% endif %}
+            <td>{{ q.telefon|default:"—" }}</td>
+            <td class="son"><b>{{ q.balans|pul }}</b></td>
+            <td>
+              <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
+                 onclick="event.stopPropagation()">Qarz yozish</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if jami_topildi > 100 %}
+    <div class="xabar warning" style="margin-top:var(--oraliq)">
+      <svg class="ikon"><use href="#i-ogoh"></use></svg>
+      <span>{{ jami_topildi }} ta topildi, birinchi 100 tasi ko'rsatildi — aniqroq yozing.</span>
     </div>
   {% endif %}
 
-  <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">
-    <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
-  </a>
+  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+    <a class="tugma tinch" href="{% if hudud %}?korinish=hududlar{% else %}{% url 'qarz:qidirish' %}{% endif %}">
+      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+    </a>
+  </div>
+
+{% else %}
+  {# ---------- Hech kim topilmadi ---------- #}
+  <div class="quti">
+    <div class="bosh-holat">
+      <svg class="ikon"><use href="#i-qidir"></use></svg>
+      <b>{% if matn %}«{{ matn }}» bo'yicha hech kim topilmadi{% else %}Bu hududda qarzdor yo'q{% endif %}</b>
+      <a class="tugma yashil" href="{% url 'qarz:yangi_qarzdor' %}" style="margin-top:12px">
+        <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor qilib qo'shish
+      </a>
+    </div>
+  </div>
+
+  <div class="qator" style="margin-top:var(--oraliq);max-width:320px">
+    <a class="tugma tinch" href="{% url 'qarz:qidirish' %}">
+      <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga
+    </a>
+  </div>
+{% endif %}
+
 </div>
 {% endblock %}

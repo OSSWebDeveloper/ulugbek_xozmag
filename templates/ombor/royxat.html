@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load xozmag %}
+{% load statik_versiya xozmag %}
 
 {% block tana %}
 <div class="sahifa-keng sahifa-toliq">
@@ -27,7 +27,7 @@
     {% endif %}
   </div>
 
-  <div class="jadval-quti">
+  <div class="jadval-quti" id="ombor-jadval">
     <table class="jadval">
       <thead>
         <tr>
@@ -40,7 +40,9 @@
       </thead>
       <tbody>
         {% for m in mahsulotlar %}
-          <tr class="{% if m.qoldiq <= 0 %}ogohlantirish{% endif %}">
+          <tr class="bosiladi {% if m.qoldiq <= 0 %}ogohlantirish{% endif %}"
+              data-kirim="{% url 'ombor:kirim' m.pk %}?oyna=1" data-nom="{{ m.nom }}"
+              title="Kirim qilish uchun bosing">
             <td>
               <b>{{ m.nom }}</b>
               {% if not m.faol %} <span class="nishon">yashirilgan</span>{% endif %}
@@ -68,10 +70,12 @@
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
                 <svg class="ikon"><use href="#i-kirim"></use></svg> Kirim
               </a>
-              <a class="tugma tinch kichik" href="{% url 'ombor:mahsulot_tahrir' m.pk %}">
+              <a class="tugma tinch kichik" data-kirimsiz title="Tahrirlash"
+                 href="{% url 'ombor:mahsulot_tahrir' m.pk %}">
                 <svg class="ikon"><use href="#i-qalam"></use></svg>
               </a>
-              <a class="tugma tinch kichik" href="{% url 'ombor:harakatlar' m.pk %}">
+              <a class="tugma tinch kichik" data-kirimsiz title="Kirim/chiqim tarixi"
+                 href="{% url 'ombor:harakatlar' m.pk %}">
                 <svg class="ikon"><use href="#i-tarix"></use></svg>
               </a>
             </td>
@@ -92,4 +96,19 @@
     </table>
   </div>
 </div>
+
+{# Kirim alohida sahifa emas — shu yerda ichki oyna bo'lib ochiladi #}
+<div class="oyna-fon" id="kirim-oyna">
+  <div class="oyna kirim-oyna">
+    <div class="oyna-bosh">
+      <span id="kirim-oyna-nom">Kirim</span>
+      <button type="button" class="tugma tinch kichik" data-yop>
+        <svg class="ikon"><use href="#i-yopish"></use></svg> Yopish (Esc)
+      </button>
+    </div>
+    <div class="oyna-tana" id="kirim-oyna-tana"></div>
+  </div>
+</div>
 {% endblock %}
+
+{% block skript %}<script src="{% statik 'js/ombor.js' %}"></script>{% endblock %}

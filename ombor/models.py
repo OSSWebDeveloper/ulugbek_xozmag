@@ -30,7 +30,7 @@ class Birlik(models.TextChoices):
     QOP = "qop", "qop"
     QUTI = "quti", "quti"
     RULON = "rulon", "rulon"
-    BUXTA = "buxta", "buxta"
+    ORAM = "o'ram", "o'ram"
     PACHKA = "pachka", "pachka"
     LIST = "list", "list"
     TONNA = "tonna", "tonna"

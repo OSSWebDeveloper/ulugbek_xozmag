@@ -103,7 +103,12 @@ def kirim(request, pk):
             return redirect("ombor:royxat")
     else:
         form = KirimForm(mahsulot=mahsulot)
-    return render(request, "ombor/kirim.html", {"form": form, "mahsulot": mahsulot})
+
+    # `?oyna=1` — ombor ro'yxatidagi ichki oyna faqat forma qismini so'raydi.
+    shablon = "ombor/kirim_forma.html" if request.GET.get("oyna") else "ombor/kirim.html"
+    return render(request, shablon, {
+        "form": form, "mahsulot": mahsulot, "oynada": bool(request.GET.get("oyna")),
+    })
 
 
 def harakatlar(request, pk):

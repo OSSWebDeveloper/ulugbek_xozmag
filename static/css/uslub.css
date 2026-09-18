@@ -411,6 +411,7 @@ body:not(.rejim-sensor) .faqat-sensor { display: none !important; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .tanlov-setka.tortta { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 840px; }
+.tanlov-setka.ikkita { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 720px; }
 
 .tanlov {
   aspect-ratio: 1 / 1;
@@ -1094,6 +1095,55 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 }
 .birlik-tanlov .birlik-tugma:has(input:focus-visible) {
   outline: 2px solid var(--urgu); outline-offset: 2px;
+}
+
+/* Hududlar: har biri katta tugma. Sensorli ekranda barmoq bilan bosiladi. */
+.hudud-setka {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--oraliq);
+  max-width: 1100px;
+}
+.hudud-tugma {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 96px;
+  padding: 14px 16px;
+  border: 1px solid var(--chegara);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--soya);
+  text-decoration: none;
+  transition: border-color .12s ease, transform .1s ease, background .12s ease;
+}
+.hudud-tugma:hover {
+  border-color: var(--urgu);
+  background: var(--panel-2);
+  transform: translateY(-2px);
+}
+.hudud-tugma .h-nom {
+  font-size: var(--katta-matn); font-weight: 650; color: var(--matn-rang);
+}
+.hudud-tugma .h-soni { font-size: 12px; color: var(--matn-2); }
+.hudud-tugma .h-soni.sust { color: var(--matn-3); }
+.hudud-tugma .h-balans {
+  margin-top: auto; font-weight: 700; color: var(--urgu-matn);
+  font-variant-numeric: tabular-nums;
+}
+.hudud-tugma.qarzli { border-color: var(--ogoh-chek); background: var(--ogoh-fon); }
+.hudud-tugma.qarzli:hover { border-color: var(--ogoh); }
+
+/* Ombor ro'yxatidan ochiladigan kirim oynasi */
+.oyna.kirim-oyna { max-width: 900px; }
+/* Numpad faqat sensorli rejimda ko'rinadi — shunda ikkinchi ustun ochiladi */
+.oyna.kirim-oyna .kirim-setka { grid-template-columns: 1fr; }
+body.rejim-sensor .oyna.kirim-oyna .kirim-setka {
+  grid-template-columns: 1fr 330px; gap: var(--oraliq); align-items: start;
+}
+.oyna.kirim-oyna .kirim-raqamlar { margin: 0; }
+@media (max-width: 684px) {
+  body.rejim-sensor .oyna.kirim-oyna .kirim-setka { grid-template-columns: 1fr; }
 }
 
 /* Kirim ekrani: sichqoncha rejimida bitta ustun, sensorli rejimda
