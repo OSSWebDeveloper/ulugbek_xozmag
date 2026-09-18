@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.2.0 — 2026-09-18
+
+Kechki mavzu to'liq my.gov.uz palitrasida (ko'k urg'u)
+
 ## 1.1.0 — 2026-09-18
 
 Kechki mavzu my.gov.uz palitrasiga o'tkazildi (neytral kulrang fonlar)
