@@ -157,6 +157,10 @@ body {
 .menyu-tugma.faol { background: var(--urgu-fon); color: var(--urgu); }
 
 .menyu-pastki { margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.versiya-yozuv {
+  text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .04em;
+  color: var(--matn-3); padding: 2px 0 2px;
+}
 
 /* Rejim richagi — menyu ostida */
 .richag {
@@ -1006,6 +1010,14 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 .birlik-tanlov .birlik-tugma:has(input:focus-visible) {
   outline: 2px solid var(--urgu); outline-offset: 2px;
 }
+
+/* Kirim ekranidagi raqamlar klaviaturasi — kassanikidan torroq.
+   Ko'rinish-ko'rinmasligini umumiy `.raqamlar` qoidasi hal qiladi. */
+.kirim-raqamlar {
+  max-width: 330px; min-height: 0; flex: none;
+  margin: var(--oraliq) 0;
+}
+.kirim-raqamlar .tugma { height: var(--tugma-balandlik); }
 
 .korsatkich .qiymat-izoh {
   color: var(--matn-3); font-size: 12px; margin-top: 4px; font-weight: 500;

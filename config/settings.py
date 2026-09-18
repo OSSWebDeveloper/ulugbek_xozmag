@@ -41,6 +41,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.kontekst.versiya",
             ],
         },
     },
@@ -74,3 +75,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Pul birligi belgisi (shablonlarda ishlatiladi)
 PUL_BIRLIGI = "so'm"
+
+# Dastur versiyasi — yagona manba `versiya.txt` fayli. Uni qo'lda tahrirlash
+# shart emas: `python versiya.py 1.1.0 "izoh"` yangilaydi, VERSIYALAR.md ga
+# yozadi, commit qiladi va teg qo'yadi.
+_versiya_fayl = BASE_DIR / "versiya.txt"
+VERSIYA = (_versiya_fayl.read_text(encoding="utf-8").strip()
+           if _versiya_fayl.exists() else "0.0.0")

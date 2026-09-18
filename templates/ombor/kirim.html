@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static xozmak %}
+{% load statik_versiya xozmak %}
 
 {% block tana %}
 <div class="sahifa-keng" style="max-width:620px">
@@ -59,6 +59,22 @@
 
       <div class="qoida-satri" id="kirim-natija" hidden></div>
 
+      {# Sensorli rejimda ko'rinadi (CSS: body:not(.rejim-sensor) .raqamlar). #}
+      <div class="raqamlar kirim-raqamlar" id="kirim-raqamlar">
+        <button type="button" class="tugma" data-raqam="7">7</button>
+        <button type="button" class="tugma" data-raqam="8">8</button>
+        <button type="button" class="tugma" data-raqam="9">9</button>
+        <button type="button" class="tugma" data-raqam="4">4</button>
+        <button type="button" class="tugma" data-raqam="5">5</button>
+        <button type="button" class="tugma" data-raqam="6">6</button>
+        <button type="button" class="tugma" data-raqam="1">1</button>
+        <button type="button" class="tugma" data-raqam="2">2</button>
+        <button type="button" class="tugma" data-raqam="3">3</button>
+        <button type="button" class="tugma" data-raqam="0">0</button>
+        <button type="button" class="tugma amal" data-raqam=".">,</button>
+        <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+      </div>
+
       <div class="maydon">
         <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
         {{ form.izoh }}
@@ -78,4 +94,4 @@
 </div>
 {% endblock %}
 
-{% block skript %}<script src="{% static 'js/ombor.js' %}"></script>{% endblock %}
+{% block skript %}<script src="{% statik 'js/ombor.js' %}"></script>{% endblock %}

@@ -123,6 +123,26 @@
       natija.textContent = matn;
     }
 
+    // Sensorli rejimdagi raqamlar klaviaturasi — to'g'ridan-to'g'ri miqdor
+    // maydoniga yozadi, shunda jonli izoh yozayotganda ham ko'rinib turadi.
+    var raqamlar = document.getElementById("kirim-raqamlar");
+    if (raqamlar) {
+      raqamlar.addEventListener("click", function (e) {
+        var t = e.target.closest("button");
+        if (!t) return;
+        if (t.dataset.raqam) {
+          var belgi = t.dataset.raqam;
+          var q = miqdor.value === "0" ? "" : miqdor.value;
+          if (belgi === "." && q.indexOf(".") !== -1) return;
+          if (belgi === "." && q === "") q = "0";
+          miqdor.value = q + belgi;
+        } else if (t.dataset.amal === "ochir") {
+          miqdor.value = miqdor.value.slice(0, -1);
+        }
+        yangila();
+      });
+    }
+
     miqdor.addEventListener("input", yangila);
     forma.querySelectorAll('input[name="birlik"]').forEach(function (el) {
       el.addEventListener("change", function () {

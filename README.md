@@ -19,6 +19,28 @@ Admin panel kerak bo'lsa:
 python manage.py createsuperuser
 ```
 
+## Versiya
+
+Dastur versiyasi **yon menyu pastida** ko'rinib turadi (`v1.0.0`) — mijoz
+«qaysi versiya ishlayapti?» deganda aytishi oson.
+
+Yagona manba — `versiya.txt`. Uni qo'lda tahrirlamang:
+
+```bash
+python versiya.py                        # hozirgi versiyani ko'rsatadi
+python versiya.py 1.1.0 "Qisqa izoh"     # versiyani oshiradi
+python versiya.py 1.1.0 "Izoh" --push    # + GitHub'ga yuboradi
+```
+
+Skript `versiya.txt` ni yangilaydi, `VERSIYALAR.md` tepasiga sana bilan yangi
+qator qo'shadi, shu ikki faylni commit qiladi va `v1.1.0` degan teg qo'yadi.
+Boshqa o'zgargan fayllar commitga tushmaydi — avval ularni o'zingiz commit
+qiling (yoki `--hammasi` bayrog'ini bering).
+
+CSS va JS manzillariga fayl vaqti qo'shiladi (`uslub.css?v=1789704728`,
+`qarz/templatetags/statik_versiya.py`) — yangilanishdan keyin mijoz brauzeri
+eski uslubni ushlab qolmaydi.
+
 ## Ish tartibi (receptionist uchun)
 
 1. **Bosh sahifa** — qarzdor keldi: *Oldin qarz olgan* yoki *Yangi qarzdor*.
@@ -44,6 +66,7 @@ Yon menyu ostida ikkita richag bor, ikkalasining tanlovi ham brauzerda saqlanadi
 |---|---|---|
 | O'ngdagi raqamlar klaviaturasi | yo'q | bor |
 | Raqamli maydon bosilganda | klaviaturadan yoziladi | numpad qalqib chiqadi |
+| Kirim ekranida | numpad yo'q | numpad maydon ostida doim turadi |
 | Matn maydoni bosilganda | klaviaturadan yoziladi | saytning o'z ekran klaviaturasi chiqadi |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
 
@@ -81,7 +104,8 @@ Shundan keyin:
 - **Kirim ekranida** «Qaysi birlikda» degan ikkita tugma chiqadi — `rulon` yoki `metr`.
   `2 rulon` yozilsa omborga **200 metr** tushadi; yarim rulon qolsa `metr` tanlab
   `40` deb yoziladi. Pastda jonli izoh: *«2 rulon = 200 metr qo'shiladi · yangi
-  qoldiq: 500 metr (5 rulon)»*.
+  qoldiq: 500 metr (5 rulon)»*. Sensorli rejimda maydon ostida raqamlar
+  klaviaturasi doim turadi — qalqib chiquvchi oyna izohni to'sib qo'ymaydi.
 - **Ombor ro'yxatida** ikkala son ham ko'rinadi: `500` metr / `5 rulon`, yonida
   `1 rulon = 100 metr` nishoni.
 - **Kirim/chiqim tarixida** asl yozuv saqlanadi: `2 rulon = 200 metr`.
@@ -103,7 +127,9 @@ rulon, buxta, pachka, list, tonna. Yangi birlik kerak bo'lsa shu ro'yxatga qo'sh
   Birlik o'tkazish: `Mahsulot.sotuvga_aylantir()` — boshqa hech qayerda ko'paytirilmaydi
 - `templates/`, `static/css/uslub.css`, `static/js/` — interfeys
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
-- `static/js/ombor.js` — ombor ekranlaridagi jonli hisob (faqat ko'rsatish uchun)
+- `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
+- `versiya.py`, `versiya.txt`, `VERSIYALAR.md` — versiyalash
+- `qarz/templatetags/statik_versiya.py` — CSS/JS kesh yangilash (`{% statik '...' %}`)
 
 ## Keyin qilinadigan ishlar
 

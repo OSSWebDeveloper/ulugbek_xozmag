@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load xozmak %}
-{% load static %}
+{% load statik_versiya %}
 
 {% block sarlavha %}Qarz yozish — {{ qarzdor.toliq_ism }}{% endblock %}
 
@@ -94,5 +94,5 @@
 {% endblock %}
 
 {% block skript %}
-<script src="{% static 'js/kassa.js' %}"></script>
+<script src="{% statik 'js/kassa.js' %}"></script>
 {% endblock %}

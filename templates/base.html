@@ -1,11 +1,11 @@
-{% load static %}<!DOCTYPE html>
+{% load statik_versiya %}<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>{% block sarlavha %}Ulug'bek Xozmak{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/uslub.css' %}">
+  <link rel="stylesheet" href="{% statik 'css/uslub.css' %}">
 </head>
 <body>
 {% include "ikonlar.html" %}
@@ -44,6 +44,7 @@
         <span class="yo-l"><span class="dasta"></span></span>
         <span class="holat">Sensor</span>
       </button>
+      <span class="versiya-yozuv" title="Dastur versiyasi">v{{ versiya }}</span>
     </div>
   </aside>
 
@@ -63,8 +64,8 @@
   </div>
 
 {% endwith %}
-  <script src="{% static 'js/rejim.js' %}"></script>
-  <script src="{% static 'js/klaviatura.js' %}"></script>
+  <script src="{% statik 'js/rejim.js' %}"></script>
+  <script src="{% statik 'js/klaviatura.js' %}"></script>
   {% block skript %}{% endblock %}
 </body>
 </html>
