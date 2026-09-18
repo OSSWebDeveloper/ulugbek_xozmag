@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 2.0.0 — 2026-09-18
+
+Saytga kirish login va parol bilan
+
 ## 1.9.5 — 2026-09-18
 
 Hududlar ekranida tepadagi bo'shliq kattaroq
