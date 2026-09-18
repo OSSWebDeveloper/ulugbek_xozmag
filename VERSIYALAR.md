@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 1.4.0 — 2026-09-18
+
+Yangi tovar formasiga «Birlik o'zgaradi» richagi
+
 ## 1.3.0 — 2026-09-18
 
 Ikkala mavzu ham my.gov.uz palitrasida
