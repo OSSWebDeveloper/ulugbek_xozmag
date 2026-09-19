@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 2.0.1 — 2026-09-19
+
+Bosh sahifaga zarrachali ko'k fon qo'yildi
+
 ## 2.0.0 — 2026-09-18
 
 Saytga kirish login va parol bilan
