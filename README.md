@@ -70,6 +70,44 @@ CSS va JS manzillariga fayl vaqti qo'shiladi (`uslub.css?v=1789704728`,
 `qarz/templatetags/statik_versiya.py`) — yangilanishdan keyin mijoz brauzeri
 eski uslubni ushlab qolmaydi.
 
+## O'rnatuvchi (mijoz kompyuteriga)
+
+Mijozda Python ham, Django ham bo'lishi shart emas — hammasi bitta faylning
+ichida.
+
+Yig'ish (bir marta, o'zimizda):
+
+    python -m pip install pyinstaller pillow
+    python ornatuvchi/qur.py
+
+Natija: `dist/XozmagOrnatish.exe` — mijozga beriladigan yagona fayl.
+
+O'rnatgich nima qiladi:
+
+- dasturni `%LOCALAPPDATA%\Programs\UlugbekXozmag` ga qo'yadi (administrator
+  huquqi kerak emas);
+- ish stoliga va Boshlash menyusiga yorliq qo'yadi;
+- «Dasturlar va imkoniyatlar» ro'yxatiga yozadi;
+- yoniga `Ochirish.exe` va `OCHIRISH.bat` qo'yadi.
+
+Dastur ochilganda o'zi Django serverini ko'taradi, bo'sh portni topadi (8000
+dan boshlab) va brauzerni ochadi. Ekranda kichkina oyna qoladi — u yopilsa
+server ham to'xtaydi.
+
+Baza dastur papkasida emas, `%LOCALAPPDATA%\UlugbekXozmag\db.sqlite3` da
+turadi. Shuning uchun dasturni ustidan qayta o'rnatish bazaga tegmaydi.
+
+### O'chirish
+
+Uch yo'ldan biri:
+
+- Boshlash → Parametrlar → Ilovalar → «Ulug'bek Xozmag» → O'chirish;
+- dastur papkasidagi `Ochirish.exe`;
+- dastur papkasidagi `OCHIRISH.bat` — savol-javobli oddiy skript.
+
+Uchalasi ham bazani o'chirishni alohida so'raydi: «yo'q» deyilsa qarzdorlar
+va sotuvlar joyida qoladi.
+
 ## Ish tartibi (receptionist uchun)
 
 1. **Bosh sahifa** — qarzdor keldi: *Oldin qarz olgan* yoki *Yangi qarzdor*.

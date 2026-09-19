@@ -5,13 +5,24 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# O'rnatuvchi orqali yig'ilgan dastur («muqim» rejim). Dastur fayllari faqat
+# o'qish uchun ochiq papkada turishi mumkin, shuning uchun baza va maxfiy
+# kalit foydalanuvchining o'z papkasiga yoziladi.
+MUQIM = bool(getattr(sys, "frozen", False))
+if MUQIM:
+    BASE_DIR = Path(sys._MEIPASS)
+    MALUMOT_DIR = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "UlugbekXozmag"
+    MALUMOT_DIR.mkdir(parents=True, exist_ok=True)
+else:
+    MALUMOT_DIR = BASE_DIR
+
 # Maxfiy kalit kodda turmaydi (ombor ochiq). Tartib:
 #   1) `XOZMAG_SECRET_KEY` muhit o'zgaruvchisi bo'lsa — o'sha;
 #   2) bo'lmasa `.secret_key` fayli (git'ga tushmaydi) — birinchi ishga
 #      tushirishda o'zi yasaladi va shu kompyuterda qoladi.
 SECRET_KEY = os.environ.get("XOZMAG_SECRET_KEY", "").strip()
 if not SECRET_KEY:
-    _kalit_fayl = BASE_DIR / ".secret_key"
+    _kalit_fayl = MALUMOT_DIR / ".secret_key"
     if _kalit_fayl.exists():
         SECRET_KEY = _kalit_fayl.read_text(encoding="utf-8").strip()
     else:
@@ -19,8 +30,19 @@ if not SECRET_KEY:
 
         SECRET_KEY = get_random_secret_key()
         _kalit_fayl.write_text(SECRET_KEY, encoding="utf-8")
-DEBUG = True
+# O'rnatilgan dasturda xatolik sahifalari ko'rsatilmaydi (DEBUG = False),
+# ishlab chiqishda esa avvalgidek yoniq turadi.
+DEBUG = not MUQIM
 ALLOWED_HOSTS = ["*"]
+
+# ngrok orqali tashqaridan kirilganda POST so'rovlar (kirish, saqlash) CSRF
+# tekshiruvidan o'tishi uchun ngrok domenlari ishonchli deb belgilanadi.
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.ngrok-free.dev",
+    "https://*.ngrok.app",
+    "https://*.ngrok.io",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -80,7 +102,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": MALUMOT_DIR / "db.sqlite3",
     }
 }
 

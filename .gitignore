@@ -1,8 +1,6 @@
 .secret_key
 __pycache__/
 *.py[cod]
-*.sqlite3
-db.sqlite3
 .venv/
 venv/
 env/
@@ -13,3 +11,15 @@ media/
 *.log
 .DS_Store
 Thumbs.db
+
+# O'rnatuvchini yig'ishdan qoladigan fayllar (kerak bo'lsa qaytadan yig'iladi)
+dist/
+build/
+ornatuvchi/_ish/
+ornatuvchi/dastur.zip
+ornatuvchi/xozmag.ico
+*.spec
+
+# Ma'lumotlar bazasi (db.sqlite3) ataylab omborga qo'shilgan: dastur tayyor
+# ma'lumot bilan ishga tushsin. Ombor ochiq bo'lgani uchun unga maxfiy narsa
+# yozilmasin.
