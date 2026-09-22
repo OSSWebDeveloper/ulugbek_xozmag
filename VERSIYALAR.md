@@ -1,5 +1,66 @@
 # Versiyalar tarixi
 
+## 2.6.0 — 2026-09-22
+
+Tovar kodi (0000000001), oxirgi 4 raqam bilan topish, shtrix skaner va tarozi etiketkasi
+
+## 2.5.0 — 2026-09-22
+
+Dollar kursi Markaziy bankdan olinadi
+
+- Kassadagi «Kurs» maydonining standart qiymati cbu.uz dan keladi, butun
+  so'mga yaxlitlanadi; kassir ustidan yozib qo'ya oladi.
+- Kuniga bir marta so'raladi va bazaga yoziladi — internet yo'q bo'lsa
+  oldingi kun kursi yoki oxirgi qo'lda yozilgani ishlatiladi, xatolik
+  chiqmaydi.
+- Qiymat qayerdan kelgani maydon ustiga borilganda ko'rinadi.
+
+## 2.4.1 — 2026-09-22
+
+Tovar formasi tartibga solindi
+
+- Maydonlar juft bo'lib tekis turadi: valyuta bilan narx, birlik bilan qoldiq.
+- Izohlar qisqardi, uzuni endi maydon ustiga olib borilganda chiqadi.
+- Pastki qator ingichka chiziq bilan ajraldi: belgilash chapda, tugmalar o'ngda.
+- Tahrirlashda ortiqcha nollar ko'rinmaydi: «45.00» emas, «45».
+
+## 2.4.0 — 2026-09-22
+
+Tovar kartochkasiga narx qaytdi
+
+- Narx 1 sotuv birligi uchun, tovarning valyutasida — ombor ro'yxatida va
+  kassadagi tovar kartasida ko'rinadi (keyinchalik elektron tarozi uchun).
+- Hisob-kitobga aralashmaydi: chek va qarz summasi baribir qo'lda yoziladi.
+- Ikki birlikli tovarda jonli izoh qadoq narxini ham aytadi.
+
+## 2.3.0 — 2026-09-22
+
+Qaytarib berish (vozvrat) va cheklar bazada saqlanishi
+
+- Har bir tovar qatoridan **qaytarish**: qisman ham bo'ladi — 20 qopdan 5 tasi.
+  Tovar omborga qaytadi, qaytarilgan pul hujjat summasidan ayriladi, qarzda
+  qarzdorning balansi kamayadi.
+- Ombor tarixida qaytarish alohida tur bo'lib ko'rinadi.
+- Bekor qilingan chek endi o'chirilmaydi — bazada qoladi, ro'yxatda nishoni
+  bilan xira turadi va kunlik tushumga qo'shilmaydi.
+
+## 2.2.0 — 2026-09-22
+
+So'm va dollar alohida hisoblanadi, summa qo'lda yoziladi
+
+- Narx qatorlarda yozilmaydi: kassada tovar va miqdor tanlanadi, chek/qarz
+  summasi yakunlashda qo'lda kiritiladi — do'konda savdolashiladi.
+- Ikkita alohida «Jami»: so'm va dollar hech qayerda qo'shilmaydi. Tovar
+  qo'shishda qaysi pulda kelgani so'raladi, dollarlik tovar «$» bilan turadi.
+- Dollar kursi kassada yoziladi (oldingi hujjatdagisi tayyor turadi).
+- Qarzdorning ikkita balansi va valyutasi bilan yoziladigan to'lov.
+- «Qaytim» olib tashlandi.
+- Xabarlar o'ng yuqorida, 5 soniyadan keyin o'zi o'chadi — sahifani surmaydi.
+
+## 2.1.0 — 2026-09-19
+
+Tovarda narx saqlanmaydi — narx sotuv va qarz vaqtida yoziladi
+
 ## 2.0.1 — 2026-09-19
 
 Bosh sahifaga zarrachali ko'k fon qo'yildi
