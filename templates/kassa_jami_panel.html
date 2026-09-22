@@ -1,0 +1,44 @@
+{% comment %}
+Chek / qarz summasi — qarz yozishda ham, naqd sotuvda ham bir xil.
+
+So'm va dollar **alohida** yoziladi va hech qayerda qo'shilmaydi: do'konga mol
+ikki xil keladi, klientning asosiy sharti shu ikkisi aralashmasligi. Kurs
+dollarlik summa yozilgandagina so'raladi — keyin bu qarz qaysi kursda
+olingani kerak bo'ladi.
+
+Chaqirilishi:
+{% include "kassa_jami_panel.html" with hujjat=<sotuv/qarz> amal=<forma manzili> tugma="Yakunlash" %}
+{% endcomment %}
+{% load xozmag %}
+<form method="post" action="{{ amal }}" class="tolov-panel">
+  {% csrf_token %}
+  <div class="tolov-maydon jami-maydon" data-maydon="jami" title="So'mda olingan tovarlar summasi">
+    <span class="nomi">Jami</span>
+    <input type="text" class="qiymat raqam-maydon" name="jami" id="jami"
+           inputmode="decimal" autocomplete="off" placeholder="0"
+           value="{% if hujjat.jami %}{{ hujjat.jami|tekis }}{% endif %}">
+    <span class="birlik">so'm</span>
+  </div>
+
+  <div class="tolov-maydon jami-maydon dollar" data-maydon="jami_dollar"
+       title="Dollarda olingan tovarlar summasi — so'mga qo'shilmaydi">
+    <span class="nomi">Jami</span>
+    <input type="text" class="qiymat raqam-maydon" name="jami_dollar" id="jami-dollar"
+           inputmode="decimal" autocomplete="off" placeholder="0"
+           value="{% if hujjat.jami_dollar %}{{ hujjat.jami_dollar|tekis }}{% endif %}">
+    <span class="birlik">$</span>
+  </div>
+
+  <div class="tolov-maydon kurs-maydon" data-maydon="kurs"
+       title="{% if hujjat.kurs %}Shu hujjatga yozilgan kurs{% elif oxirgi_kurs %}Standart qiymat: {{ oxirgi_kurs.manba }}{% else %}Bugungi dollar kursi{% endif %} — kerak bo'lsa ustidan yozing">
+    <span class="nomi">Kurs</span>
+    <input type="text" class="qiymat raqam-maydon" name="kurs" id="kurs"
+           inputmode="decimal" autocomplete="off" placeholder="0"
+           value="{% if hujjat.kurs %}{{ hujjat.kurs|tekis }}{% elif oxirgi_kurs %}{{ oxirgi_kurs.qiymat|tekis }}{% endif %}">
+    <span class="birlik">so'm</span>
+  </div>
+
+  <button type="submit" class="tugma yashil" style="flex:1.6;min-width:180px">
+    <svg class="ikon"><use href="#i-belgi"></use></svg> {{ tugma }}
+  </button>
+</form>

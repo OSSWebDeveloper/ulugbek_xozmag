@@ -113,7 +113,6 @@ body.kunduzgi .xabar.success { color: #0b5b35; }
 body.kunduzgi .xabar.error { color: #a01b12; }
 body.kunduzgi .xabar.warning { color: #8a5a00; }
 body.kunduzgi .xabar.info { color: #0a5680; }
-body.kunduzgi .qaytim-quti .nomi { color: #0b7d45; }
 
 /* Rejim richagi o'lchamlarga tegmaydi: u faqat raqamlar klaviaturasini
    ko'rsatadi yoki yashiradi. Shuning uchun ekran "sakramaydi". */
@@ -238,6 +237,22 @@ body {
 .forma-setka .richag.keng { margin-bottom: 0; padding: 10px 14px; }
 .forma-setka .qoida-satri { margin-top: 0; padding: 9px 12px; }
 .faol-belgi { display: flex; align-items: center; gap: 10px; cursor: pointer; white-space: nowrap; }
+
+/* Forma pastki qatori: belgilash chapda, tugmalar o'ngda — maydonlardan
+   ingichka chiziq bilan ajralib turadi */
+.forma-pastki {
+  display: flex;
+  align-items: center;
+  gap: var(--oraliq);
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding-top: var(--oraliq);
+  border-top: 1px solid var(--chegara);
+}
+.forma-pastki .faol-belgi { flex: 1; min-width: 150px; }
+.forma-tugmalar { display: flex; gap: 10px; flex: 2; min-width: 260px; }
+.forma-tugmalar .tugma { flex: 1; }
+.forma-tugmalar .tugma.yashil { flex: 1.7; }
 @media (max-width: 684px) { .forma-setka { grid-template-columns: 1fr; } }
 
 /* Ro'yxat sahifalari: sarlavha va qidiruv joyida turadi, faqat jadval siljiydi */
@@ -302,19 +317,38 @@ body:not(.kunduzgi) #mavzu-richag .dasta { left: 23px; }
   overflow: hidden;
 }
 
-.xabarlar { padding: var(--oraliq) var(--oraliq) 0; flex: none; }
+/* Bildirishnomalar: o'ng yuqorida, sahifa joylashuvini surmaydi */
+.xabarlar {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(320px, calc(100vw - 28px));
+}
 .xabar {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 12px;
   border-radius: var(--radius-s);
   border: 1px solid var(--chegara);
   background: var(--panel);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  font-size: 13px;
   font-weight: 500;
+  cursor: pointer;
+  animation: xabar-kirish .18s ease-out;
+  transition: opacity .3s ease, transform .3s ease;
 }
-.xabar + .xabar { margin-top: 8px; }
-.xabar .ikon { width: 18px; height: 18px; flex: none; }
+.xabar.ketmoqda { opacity: 0; transform: translateX(14px); }
+@keyframes xabar-kirish {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+.xabar .ikon { width: 16px; height: 16px; flex: none; margin-top: 1px; }
 .xabar.success { background: var(--tasdiq-fon); border-color: var(--tasdiq-chek); color: #a9ecca; }
 .xabar.error { background: var(--xato-fon); border-color: var(--xato-chek); color: #ffc2c2; }
 .xabar.warning { background: var(--ogoh-fon); border-color: var(--ogoh-chek); color: #ffd382; }
@@ -679,34 +713,6 @@ table.jadval tfoot th { background: var(--panel-2); color: var(--matn-rang); fon
 }
 .tanlangan-tovar .bosh-yozuv { color: var(--matn-3); font-size: var(--matn); }
 
-/* Narx — tanlangan tovar blokining ichida, alohida qator egallamaydi */
-.narx-qutisi {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 7px;
-  border: 1px dashed var(--chegara-2);
-  cursor: pointer;
-  flex: none;
-}
-.narx-qutisi:hover { border-color: var(--urgu); }
-.narx-qutisi.faol { border-style: solid; border-color: var(--urgu); background: var(--urgu-fon); }
-.narx-qutisi .birlik { color: var(--matn-3); font-size: 11px; }
-.narx-kirish {
-  width: 86px;
-  text-align: right;
-  background: transparent;
-  border: none;
-  color: var(--matn-rang);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  padding: 0;
-}
-.narx-kirish:focus { outline: none; }
-
 .kiritish-maydon {
   display: flex;
   align-items: center;
@@ -747,24 +753,18 @@ table.jadval tfoot th { background: var(--panel-2); color: var(--matn-rang); fon
 .kiritish-maydon span.qiymat { display: flex; align-items: center; justify-content: flex-end; }
 .kiritish-maydon .birlik { padding: 0 13px 0 3px; color: var(--matn-2); font-size: 12px; flex: none; }
 
-.summa-satr {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 9px 14px;
-  border-radius: var(--radius-s);
-  background: var(--panel-3);
-  flex: none;
+/* ---- Kod bilan tovar topish (kassa o'ng paneli) ----
+   Maydon «Miqdor» dan pastroq: unga bor-yo'g'i 4 raqam yoziladi, o'ng paneldagi
+   joy esa raqamlar klaviaturasiga kerak — panel scrollsiz qolishi shart. */
+.kiritish-maydon.kod-maydon .qiymat {
+  min-height: var(--tugma-balandlik);
+  font-size: var(--katta-matn);
+  letter-spacing: .08em;
 }
-.summa-satr .yorliq {
-  font-size: 11px; font-weight: 600; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--matn-3);
-}
-.summa-satr .qiymat {
-  font-size: calc(var(--katta-matn) + 4px);
-  font-weight: 700;
-  letter-spacing: -.02em;
-  font-variant-numeric: tabular-nums;
+.kod-maydon .kod-tugma { margin-right: 6px; flex: none; }
+.tanlangan-tovar .tovar-kodi {
+  color: var(--kok); font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: .06em;
 }
 
 /* Raqamlar klaviaturasi — faqat sensorli rejimda */
@@ -792,7 +792,7 @@ body:not(.rejim-sensor) .raqamlar { display: none; }
 body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
 .qosh-qator { display: flex; gap: 8px; flex: none; }
 
-/* ---- Naqd sotuv: mijoz bergan pul va qaytim ---- */
+/* ---- Chek/qarz summasi: qo'lda yoziladigan «Jami» maydoni ---- */
 .tolov-panel { display: flex; gap: 10px; margin-top: 10px; flex: none; flex-wrap: wrap; }
 .tolov-maydon {
   flex: 2;
@@ -803,7 +803,48 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
   border-radius: var(--radius-s);
   background: var(--panel);
 }
-.tolov-maydon:focus-within { border-color: var(--urgu); box-shadow: 0 0 0 3px var(--urgu-fon); }
+.tolov-maydon:focus-within,
+.tolov-maydon.faol { border-color: var(--urgu); box-shadow: 0 0 0 3px var(--urgu-fon); }
+.jami-maydon .qiymat { font-size: calc(var(--katta-matn) + 6px); }
+
+/* Dollarlik summa alohida maydon — so'm bilan qo'shilmasligi ko'rinib tursin */
+.tolov-maydon.dollar { flex: 1.3; min-width: 150px; border-color: var(--tasdiq-chek); }
+.tolov-maydon.dollar .nomi,
+.tolov-maydon.dollar .birlik { color: var(--tasdiq); }
+.kurs-maydon { flex: 1; min-width: 185px; }
+.kurs-maydon .nomi { padding: 0 9px; }
+.kurs-maydon .qiymat { font-size: var(--matn); font-weight: 600; }
+.kurs-maydon .birlik { padding: 0 10px 0 3px; font-size: 11px; }
+
+/* Dollar summasi ko'rsatiladigan joylarda: ro'yxat, karta, chek boshi */
+.dollar-yozuv {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tasdiq);
+  font-variant-numeric: tabular-nums;
+}
+.dollar-yozuv.katta { font-size: calc(var(--katta-matn) - 2px); }
+/* Tovar kartasidagi narx — ma'lumot uchun, hisobga aralashmaydi */
+.t-narx {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--matn-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bekor qilingan chek ro'yxatda turadi, lekin ko'zga tashlanmaydi */
+.jadval-quti.bekor { opacity: .55; }
+.nishon.xato-nishon {
+  background: var(--xato-fon);
+  border-color: var(--xato-chek);
+  color: var(--xato);
+}
+.nishon.dollar {
+  background: var(--tasdiq-fon);
+  border-color: var(--tasdiq-chek);
+  color: var(--tasdiq);
+  font-weight: 700;
+}
 .tolov-maydon .nomi {
   padding: 0 13px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--matn-3); flex: none;
@@ -820,26 +861,6 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
 }
 .tolov-maydon .qiymat:focus { outline: none; }
 .tolov-maydon .birlik { padding: 0 13px 0 3px; color: var(--matn-2); font-size: 12px; }
-
-.qaytim-quti {
-  flex: 1.4;
-  min-width: 150px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 5px 14px;
-  border-radius: var(--radius-s);
-  border: 1px solid var(--tasdiq-chek);
-  background: var(--tasdiq-fon);
-}
-.qaytim-quti .nomi {
-  font-size: 11px; font-weight: 600; letter-spacing: .06em;
-  text-transform: uppercase; color: #8ce0b8;
-}
-.qaytim-quti .qiymati {
-  font-size: calc(var(--katta-matn) + 4px); font-weight: 700;
-  letter-spacing: -.02em; color: var(--tasdiq); font-variant-numeric: tabular-nums;
-}
 
 /* ================= Ekran klaviaturasi ================= */
 .kb-panel {
@@ -986,9 +1007,6 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 .dropdown-qator:hover, .dropdown-qator.nishonda { background: var(--panel-3); }
 .dropdown-qator .d-nom { flex: 1; font-weight: 600; }
 .dropdown-qator .d-nom mark { background: var(--urgu-fon); color: var(--urgu-matn); padding: 0 1px; border-radius: 3px; }
-.dropdown-qator .d-narx {
-  color: var(--urgu-matn); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
-}
 .dropdown-qator .d-qoldiq { color: var(--matn-2); font-size: 12px; white-space: nowrap; }
 .dropdown-qator.yoq { opacity: .45; cursor: not-allowed; }
 .dropdown-qator.yoq:hover { background: transparent; }
@@ -1018,12 +1036,18 @@ body.kb-ochiq .oyna { max-height: 52vh; }
 }
 .tovar-karta:hover { transform: translateY(-2px); border-color: var(--urgu); background: var(--panel-3); }
 .tovar-karta:active { transform: translateY(0); }
-.tovar-karta .t-nom { font-weight: 650; letter-spacing: -.01em; }
-.tovar-karta .t-narx {
-  font-size: var(--katta-matn); font-weight: 700; color: var(--urgu-matn);
-  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+.tovar-karta .t-nom {
+  font-weight: 650; letter-spacing: -.01em;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
 }
-.tovar-karta .t-narx span { font-size: 12px; font-weight: 500; color: var(--matn-3); }
+/* Kartadagi kod — kassir shu raqamni yodda tutadi va keyingi safar o'zi uradi */
+.tovar-karta .t-kod {
+  flex: none; font-size: 12px; font-weight: 700; color: var(--matn-3);
+  font-variant-numeric: tabular-nums; letter-spacing: .06em;
+}
+.tovar-karta .t-birlik {
+  font-size: 12px; font-weight: 500; color: var(--matn-3);
+}
 .tovar-karta.yoq { opacity: .4; cursor: not-allowed; }
 .tovar-karta.yoq:hover { transform: none; border-color: var(--chegara); background: var(--panel-2); }
 
@@ -1266,3 +1290,14 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 .bosh-sahifa .tanlov.qarz:hover { border-color: rgba(87, 194, 245, .7); }
 .bosh-sahifa .tanlov.yangi .belgi { background: rgba(90, 211, 158, .28); color: #d0f5e6; }
 .bosh-sahifa .tanlov.yangi:hover { border-color: rgba(90, 211, 158, .7); }
+
+/* ---- Ombor ro'yxatidagi kod ustuni va shtrix maydoni ---- */
+.qisqa-kod { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+.toliq-kod { font-size: 11px; font-variant-numeric: tabular-nums; }
+/* Kodlar bir-birining ostida turadi; forma baribir bitta ekranga sig'ishi kerak,
+   shuning uchun maydon past — kerak bo'lsa foydalanuvchi o'zi cho'zadi. */
+textarea.shtrix-maydon {
+  display: block;        /* inline-block ostidagi bo'sh chiziq forma balandligini oshiradi */
+  font-variant-numeric: tabular-nums; letter-spacing: .04em;
+  resize: vertical; line-height: 1.45;
+}

@@ -23,6 +23,19 @@ def pul(qiymat):
 
 
 @register.filter
+def narxi(mahsulot):
+    """Tovar narxini o'z valyutasida yozadi: «45 000 so'm» yoki «12,5 $».
+
+    Narx yozilmagan bo'lsa bo'sh matn — ro'yxatda chiziqcha ko'rinadi.
+    """
+    if not getattr(mahsulot, "narx", None):
+        return ""
+    if mahsulot.dollarmi:
+        return f"{tekis(mahsulot.narx)} $"
+    return f"{pul(mahsulot.narx)} so'm"
+
+
+@register.filter
 def tekis(qiymat):
     """Miqdorni o'qishga qulay qiladi: 120.000 -> '120', 5000 -> '5 000', 2.500 -> '2,5'.
 

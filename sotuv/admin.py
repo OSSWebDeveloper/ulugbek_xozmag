@@ -10,6 +10,6 @@ class SotuvQatorInline(admin.TabularInline):
 
 @admin.register(Sotuv)
 class SotuvAdmin(admin.ModelAdmin):
-    list_display = ("id", "sana", "tolandi", "yakunlangan")
+    list_display = ("id", "sana", "jami", "yakunlangan")
     list_filter = ("yakunlangan",)
     inlines = [SotuvQatorInline]

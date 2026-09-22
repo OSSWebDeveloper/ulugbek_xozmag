@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load xozmag %}
+
+{% comment %}
+Qaytarib berish (vozvrat) — naqd sotuvda ham, qarzda ham bir xil sahifa.
+Qaytarish to'liq bo'lmasligi mumkin: 20 qop sementning 5 tasi qaytishi normal,
+shuning uchun miqdor qo'lda yoziladi. Pul ham qo'lda — savdolashilgan narx
+hech qayerda saqlanmaydi.
+{% endcomment %}
+
+{% block sarlavha %}Qaytarib berish — {{ qator.mahsulot_nomi }}{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:720px">
+  <div class="sarlavha">
+    Qaytarib berish
+    <span class="kichik">— {{ hujjat }} &middot; {{ sana|date:"d.m.Y" }}</span>
+  </div>
+
+  <div class="quti">
+    <div class="qator">
+      <div class="korsatkich">
+        <div class="nomi">Tovar</div>
+        <div class="qiymati">{{ qator.mahsulot_nomi }}</div>
+        {% if qator.mahsulot.dollarmi %}<div class="dollar-yozuv">dollarda kelgan</div>{% endif %}
+      </div>
+      <div class="korsatkich">
+        <div class="nomi">Olingan</div>
+        <div class="qiymati">{{ qator.miqdor|tekis }} <span class="kichik">{{ qator.birlik }}</span></div>
+      </div>
+      <div class="korsatkich {% if qator.qaytarilgan %}diqqat{% endif %}">
+        <div class="nomi">Qaytarish mumkin</div>
+        <div class="qiymati">{{ qator.qolgan_miqdor|tekis }} <span class="kichik">{{ qator.birlik }}</span></div>
+        {% if qator.qaytarilgan %}
+          <div class="qiymat-izoh">{{ qator.qaytarilgan|tekis }} {{ qator.birlik }} avval qaytarilgan</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <form method="post" class="quti forma-setka">
+    {% csrf_token %}
+
+    <div class="maydon keng">
+      <label for="miqdor">Qancha qaytarildi ({{ qator.birlik }})</label>
+      <input type="text" class="kirish raqam-maydon" name="miqdor" id="miqdor"
+             inputmode="decimal" autocomplete="off" placeholder="0" autofocus>
+      <div class="maydon-izoh">
+        Hammasi emas, bir qismi qaytsa ham bo'ladi — masalan 20 qopdan 5 tasi
+      </div>
+    </div>
+
+    <div class="maydon">
+      <label for="summa">Qaytarilgan pul (so'm)</label>
+      <input type="text" class="kirish raqam-maydon" name="summa" id="summa"
+             inputmode="decimal" autocomplete="off" placeholder="0">
+      <div class="maydon-izoh">Hujjatda qolgani: {{ jami|pul }} so'm</div>
+    </div>
+
+    <div class="maydon">
+      <label for="summa_dollar">Qaytarilgan pul ($)</label>
+      <input type="text" class="kirish raqam-maydon" name="summa_dollar" id="summa_dollar"
+             inputmode="decimal" autocomplete="off" placeholder="0">
+      <div class="maydon-izoh">Hujjatda qolgani: {{ jami_dollar|tekis }} $</div>
+    </div>
+
+    <div class="qator keng">
+      <a class="tugma tinch" href="{{ orqaga }}" style="flex:1">
+        <svg class="ikon"><use href="#i-chap"></use></svg> Bekor qilish
+      </a>
+      <button type="submit" class="tugma yashil" style="flex:2">
+        <svg class="ikon"><use href="#i-kirim"></use></svg> Qaytarishni yozish
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

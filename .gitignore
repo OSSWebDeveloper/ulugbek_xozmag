@@ -17,9 +17,13 @@ dist/
 build/
 ornatuvchi/_ish/
 ornatuvchi/dastur.zip
+ornatuvchi/ornatuvchi.zip
 ornatuvchi/xozmag.ico
 *.spec
 
 # Ma'lumotlar bazasi (db.sqlite3) ataylab omborga qo'shilgan: dastur tayyor
 # ma'lumot bilan ishga tushsin. Ombor ochiq bo'lgani uchun unga maxfiy narsa
 # yozilmasin.
+
+# Kuzatuvchi jurnali
+kuzatuv.log

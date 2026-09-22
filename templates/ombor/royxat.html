@@ -11,7 +11,7 @@
   <div class="quti">
     <form method="get" class="qator">
       <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
-             placeholder="Tovar nomi" autocomplete="off">
+             placeholder="Tovar nomi yoki kodi — skanerlash ham mumkin" autocomplete="off">
       <button type="submit" class="tugma" style="flex:1">
         <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
       </button>
@@ -27,10 +27,13 @@
     {% endif %}
   </div>
 
-  <div class="jadval-quti" id="ombor-jadval">
+  {# Skaner yoki kod: to'g'ridan-to'g'ri o'sha tovarning kirim oynasini ochadi #}
+  <div class="jadval-quti" id="ombor-jadval" data-kod-manzil="{% url 'ombor:kod_qidir' %}"
+       data-yangi-manzil="{% url 'ombor:mahsulot_yangi' %}">
     <table class="jadval">
       <thead>
         <tr>
+          <th class="son" style="width:1%">Kod</th>
           <th>Tovar</th>
           <th>Birlik</th>
           <th class="son">Narxi</th>
@@ -43,8 +46,14 @@
           <tr class="bosiladi {% if m.qoldiq <= 0 %}ogohlantirish{% endif %}"
               data-kirim="{% url 'ombor:kirim' m.pk %}?oyna=1" data-nom="{{ m.nom }}"
               title="Kirim qilish uchun bosing">
+            <td class="son">
+              {# Kassada va tarozida shu 4 raqam uriladi #}
+              <b class="qisqa-kod">{{ m.qisqa_kod }}</b>
+              <div class="sust toliq-kod">{{ m.kod }}</div>
+            </td>
             <td>
               <b>{{ m.nom }}</b>
+              {% if m.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
               {% if not m.faol %} <span class="nishon">yashirilgan</span>{% endif %}
             </td>
             <td>
@@ -55,7 +64,7 @@
                 </div>
               {% endif %}
             </td>
-            <td class="son">{{ m.narx|pul }}</td>
+            <td class="son sust">{{ m|narxi|default:"—" }}</td>
             <td class="son">
               {% if m.qoldiq > 0 %}
                 <b>{{ m.qoldiq|tekis }}</b>
@@ -82,7 +91,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="5">
+            <td colspan="6">
               <div class="bosh-holat">
                 <svg class="ikon"><use href="#i-quti"></use></svg>
                 <b>Sklad bo'sh</b>
@@ -111,4 +120,7 @@
 </div>
 {% endblock %}
 
-{% block skript %}<script src="{% statik 'js/ombor.js' %}"></script>{% endblock %}
+{% block skript %}
+<script src="{% statik 'js/skaner.js' %}"></script>
+<script src="{% statik 'js/ombor.js' %}"></script>
+{% endblock %}

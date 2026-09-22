@@ -1,5 +1,7 @@
 {% comment %}
 Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
+Har bir kartada tovarning qisqa kodi turadi: kassir shu raqamni o'ng
+paneldagi «Kod» maydoniga urib ham tanlay oladi.
 {% endcomment %}
 {% load xozmag %}
 <div class="oyna-fon" id="tovar-oyna">
@@ -12,7 +14,7 @@ Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
     </div>
     <div class="oyna-qidiruv">
       <div class="qidiruv-quti">
-        <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomini yozing..."
+        <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomi yoki kodi..."
                autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tovar-dropdown">
         <div class="tovar-dropdown" id="tovar-dropdown" role="listbox"></div>
       </div>
@@ -22,11 +24,17 @@ Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
         {% for m in mahsulotlar %}
           <button type="button" class="tovar-karta {% if m.qoldiq <= 0 %}yoq{% endif %}"
                   data-id="{{ m.pk }}" data-nom="{{ m.nom }}"
-                  data-narx="{{ m.narx_son }}"
                   data-qoldiq="{{ m.qoldiq|tekis }}" data-birlik="{{ m.birlik }}"
-                  data-ikkinchi="{{ m.qadoq_matni }}">
-            <span class="t-nom">{{ m.nom }}</span>
-            <span class="t-narx">{{ m.narx|pul }} <span>so'm / {{ m.birlik }}</span></span>
+                  data-ikkinchi="{{ m.qadoq_matni }}" data-valyuta="{{ m.valyuta_belgisi }}"
+                  data-narx="{{ m|narxi }}" data-kod="{{ m.kod }}" data-qisqa="{{ m.qisqa_kod }}">
+            <span class="t-nom">{{ m.nom }}
+              <span class="t-kod" title="Kassada shu raqamni urish ham mumkin">{{ m.qisqa_kod }}</span>
+            </span>
+            <span class="t-birlik">
+              {{ m.birlik }}
+              {% if m.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
+              {% if m.narx %}<span class="t-narx">{{ m|narxi }}</span>{% endif %}
+            </span>
             {% if m.qoldiq > 0 %}
               <span class="nishon">Omborda: {{ m.qoldiq|tekis }} {{ m.birlik }}{% if m.ikki_birlikmi %} &middot; {{ m.qadoq_matni }}{% endif %}</span>
             {% else %}

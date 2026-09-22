@@ -7,6 +7,7 @@ app_name = "ombor"
 
 urlpatterns = [
     path("", views.royxat, name="royxat"),
+    path("kod/", views.kod_qidir, name="kod_qidir"),
     path("yangi/", views.mahsulot_yangi, name="mahsulot_yangi"),
     path("<int:pk>/tahrir/", views.mahsulot_tahrir, name="mahsulot_tahrir"),
     path("<int:pk>/kirim/", views.kirim, name="kirim"),

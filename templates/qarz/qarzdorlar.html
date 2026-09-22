@@ -32,12 +32,14 @@
   <div class="markazda tepadan">
   <div class="hudud-setka">
     {% for k in hudud_kartalari %}
-      <a class="hudud-tugma{% if k.balans > 0 %} qarzli{% endif %}"
+      <a class="hudud-tugma{% if k.balans > 0 or k.balans_dollar > 0 %} qarzli{% endif %}"
          href="?hudud={{ k.hudud.pk }}">
         <span class="h-nom">{{ k.hudud.nom }}</span>
         {% if k.soni %}
           <span class="h-soni">{{ k.soni }} ta qarzdor</span>
-          <span class="h-balans">{{ k.balans|pul }} so'm</span>
+          <span class="h-balans">
+            {{ k.balans|pul }} so'm{% if k.balans_dollar %} &middot; {{ k.balans_dollar|tekis }} ${% endif %}
+          </span>
         {% else %}
           <span class="h-soni sust">qarzdor yo'q</span>
         {% endif %}
@@ -91,14 +93,23 @@
       </thead>
       <tbody>
         {% for q in qarzdorlar %}
-          <tr class="bosiladi {% if q.balans > 0 %}ogohlantirish{% endif %}"
+          <tr class="bosiladi {% if q.qarzi_bormi %}ogohlantirish{% endif %}"
               onclick="location.href='{% url 'qarz:qarzdor_karta' q.pk %}'">
             <td><b>{{ q.familiya }} {{ q.ism }}</b></td>
             {% if not hudud %}<td>{{ q.hudud.nom }}</td>{% endif %}
             <td>{{ q.telefon|default:"—" }}</td>
-            <td class="son sust">{{ q.jami_qarz|pul }}</td>
-            <td class="son sust">{{ q.jami_tolov|pul }}</td>
-            <td class="son"><b>{{ q.balans|pul }}</b></td>
+            <td class="son sust">
+              {{ q.jami_qarz|pul }}
+              {% if q.jami_qarz_dollar %}<div class="dollar-yozuv">{{ q.jami_qarz_dollar|tekis }} $</div>{% endif %}
+            </td>
+            <td class="son sust">
+              {{ q.jami_tolov|pul }}
+              {% if q.jami_tolov_dollar %}<div class="dollar-yozuv">{{ q.jami_tolov_dollar|tekis }} $</div>{% endif %}
+            </td>
+            <td class="son">
+              <b>{{ q.balans|pul }}</b>
+              {% if q.balans_dollar %}<div class="dollar-yozuv">{{ q.balans_dollar|tekis }} $</div>{% endif %}
+            </td>
             <td>
               <a class="tugma kichik yashil" href="{% url 'qarz:qarz_boshlash' q.pk %}"
                  onclick="event.stopPropagation()">Qarz yozish</a>
@@ -121,7 +132,10 @@
         <tfoot>
           <tr>
             <th colspan="{% if hudud %}4{% else %}5{% endif %}" style="text-align:right">Jami qarz</th>
-            <th class="son" style="font-size:var(--katta-matn);font-weight:700">{{ jami_balans|pul }}</th>
+            <th class="son" style="font-size:var(--katta-matn);font-weight:700">
+              {{ jami_balans|pul }}
+              {% if jami_balans_dollar %}<div class="dollar-yozuv">{{ jami_balans_dollar|tekis }} $</div>{% endif %}
+            </th>
             <th></th>
           </tr>
         </tfoot>

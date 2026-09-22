@@ -30,7 +30,7 @@
           <tr>
             <td class="sust">{{ h.sana|date:"d.m.Y H:i" }}</td>
             <td>
-              <span class="nishon {% if h.tur == 'kirim' %}yashil{% elif h.tur == 'chiqim' %}ogoh{% endif %}">
+              <span class="nishon {% if h.tur == 'kirim' %}yashil{% elif h.tur == 'chiqim' %}ogoh{% elif h.tur == 'qaytarish' %}kok{% endif %}">
                 {{ h.get_tur_display }}
               </span>
             </td>

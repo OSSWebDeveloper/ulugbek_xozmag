@@ -1,10 +1,17 @@
-/* Kassa ekrani: tovar tanlash, miqdor/narx kiritish, summa va qaytim hisobi.
+/* Kassa ekrani: tovar tanlash va miqdor kiritish.
+   Narx hech qayerda hisoblanmaydi — do'konda savdolashiladi, shuning uchun
+   chek/qarz summasi pastdagi «Jami» maydoniga qo'lda yoziladi.
    Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS hal qiladi),
-   lekin sichqoncha rejimida maydonlarga klaviaturadan yozish har doim ishlaydi. */
+   lekin sichqoncha rejimida maydonlarga klaviaturadan yozish har doim ishlaydi.
+
+   Tovar uch yo'l bilan tanlanadi va uchalasi ham tovarTanla() ga boradi:
+   ro'yxatdan bosib, «Kod» maydoniga oxirgi 4 raqamni urib, yoki skanerlab.
+   Kodni tovarga aylantirish serverda (ombor/kod.py) — bu yerda takrorlanmaydi. */
 (function () {
   "use strict";
 
-  var oyna, qidiruv, miqdorEl, narxEl, summaEl, mahsulotId, tanlanganEl, qoshTugma, forma;
+  var oyna, qidiruv, miqdorEl, mahsulotId, tanlanganEl, qoshTugma, forma;
+  var kodEl, kodiEl, kodSora;
   var faolMaydon = "miqdor";
 
   function son(matn) {
@@ -12,17 +19,13 @@
     return isNaN(q) ? 0 : q;
   }
 
-  function chiroyli(q) {
-    return q.toLocaleString("ru-RU", { maximumFractionDigits: 2 }).replace(/ /g, " ");
-  }
-
   function sensorMi() {
     return document.body.classList.contains("rejim-sensor");
   }
 
   // ---------- Qator qo'shish ----------
-  function summaYangila() {
-    summaEl.textContent = chiroyli(son(miqdorEl.value) * son(narxEl.value));
+  function holatYangila() {
+    // Tovar tanlanib miqdor yozilmaguncha qator qo'shilmaydi.
     qoshTugma.disabled = !(mahsulotId.value && son(miqdorEl.value) > 0);
   }
 
@@ -34,7 +37,10 @@
   }
 
   function joriyInput() {
-    return faolMaydon === "narx" ? narxEl : miqdorEl;
+    // Raqamlar klaviaturasi faol maydonga yozadi: miqdor yoki pastdagi «Jami».
+    var quti = document.querySelector("[data-maydon].faol");
+    var kirish = quti && quti.querySelector("input");
+    return kirish || miqdorEl;
   }
 
   function raqamBos(belgi) {
@@ -43,26 +49,31 @@
     if (belgi === "." && q.indexOf(".") !== -1) return;
     if (belgi === "." && q === "") q = "0";
     el.value = q + belgi;
-    summaYangila();
+    holatYangila();
   }
 
   function tozalaHammasi() {
     mahsulotId.value = "";
     miqdorEl.value = "";
-    narxEl.value = "";
+    if (kodEl) kodEl.value = "";
+    if (kodiEl) kodiEl.textContent = "";
     tanlanganEl.className = "tanlangan-tovar";
     tanlanganEl.querySelector(".nom").textContent = "Tovar tanlanmagan";
     tanlanganEl.querySelector(".nom").classList.add("bosh-yozuv");
     document.getElementById("tovar-qoldiq").innerHTML = "&mdash;";
     document.getElementById("miqdor-birlik").innerHTML = "&mdash;";
     faolQoy("miqdor");
-    summaYangila();
+    holatYangila();
   }
 
-  function tovarTanla(karta) {
+  /* `miqdor` faqat kodning o'zi miqdorni aytganda beriladi: tarozi
+     etiketkasidagi og'irlik yoki quti shtrixidagi soni. Qolgan hollarda
+     bo'sh qoladi — kassir o'zi yozadi. */
+  function tovarTanla(karta, miqdor) {
     mahsulotId.value = karta.dataset.id;
-    narxEl.value = karta.dataset.narx;
-    miqdorEl.value = "";
+    miqdorEl.value = miqdor || "";
+    if (kodEl) kodEl.value = "";
+    if (kodiEl) kodiEl.textContent = karta.dataset.qisqa || "";
 
     tanlanganEl.className = "tanlangan-tovar tanlangan";
     var nom = tanlanganEl.querySelector(".nom");
@@ -72,12 +83,14 @@
     // Ikki birlikli tovarda ikkinchi birlik ham ko'rinadi (200 metr = 2 rulon).
     document.getElementById("tovar-qoldiq").textContent =
       "Omborda: " + karta.dataset.qoldiq + " " + karta.dataset.birlik +
-      (karta.dataset.ikkinchi ? " · " + karta.dataset.ikkinchi : "");
+      (karta.dataset.ikkinchi ? " · " + karta.dataset.ikkinchi : "") +
+      // Dollarda kelgan tovar — summasi pastdagi dollar maydoniga yoziladi
+      (karta.dataset.valyuta === "$" ? " · dollarda" : "");
     document.getElementById("miqdor-birlik").textContent = karta.dataset.birlik;
 
     oynaYop();
     faolQoy("miqdor");
-    summaYangila();
+    holatYangila();
     if (!sensorMi()) miqdorEl.focus();
   }
 
@@ -122,8 +135,13 @@
     var soz = qidiruv.value.toLowerCase().trim();
     if (!soz) return dropdownYop();
 
+    // Raqam yozilsa kod bo'yicha ham izlanadi: yorliqdagi 0027 ham topadi.
+    var raqammi = /^\d+$/.test(soz);
     var topilgan = [].slice.call(document.querySelectorAll(".tovar-karta"))
-      .filter(function (k) { return k.dataset.nom.toLowerCase().indexOf(soz) !== -1; });
+      .filter(function (k) {
+        if (k.dataset.nom.toLowerCase().indexOf(soz) !== -1) return true;
+        return raqammi && (k.dataset.kod || "").indexOf(soz) !== -1;
+      });
 
     if (!topilgan.length) {
       dropdown.innerHTML = '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
@@ -133,7 +151,6 @@
         return '<button type="button" class="dropdown-qator' + (yoq ? " yoq" : "") +
           '" role="option" data-id="' + k.dataset.id + '">' +
           '<span class="d-nom">' + belgila(k.dataset.nom, soz) + "</span>" +
-          '<span class="d-narx">' + chiroyli(son(k.dataset.narx)) + "</span>" +
           '<span class="d-qoldiq">' +
           (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik +
             (k.dataset.ikkinchi ? " · " + k.dataset.ikkinchi : "")) + "</span></button>";
@@ -165,33 +182,60 @@
     }
   }
 
-  // ---------- Naqd sotuv: mijoz bergan pul -> qaytim ----------
-  function qaytimniUla() {
-    var tolandi = document.getElementById("tolandi");
-    var qaytim = document.getElementById("qaytim");
-    var jamiEl = document.getElementById("jami-summa");
-    if (!tolandi || !qaytim || !jamiEl) return;
-
-    var jami = son(jamiEl.dataset.jami);
-    function hisobla() {
-      var farq = son(tolandi.value) - jami;
-      qaytim.textContent = farq > 0 ? chiroyli(farq) : "0";
+  // ---------- Kod, shtrix va tarozi etiketkasi ----------
+  /* Server tovarni topib berdi — kartasini ro'yxatdan olib tanlaymiz.
+     Karta topilmasligi mumkin: tovar yashirilgan (faol emas) bo'lsa
+     ro'yxatga umuman chiqmaydi. */
+  function kodTopildi(javob) {
+    var karta = document.querySelector('.tovar-karta[data-id="' + javob.id + '"]');
+    if (!karta) {
+      return window.xabarBer(javob.nom + " ro'yxatda yo'q — ombordan faollashtiring.",
+                             "error");
     }
-    tolandi.addEventListener("input", hisobla);
-    hisobla();
+    if (karta.classList.contains("yoq")) {
+      return window.xabarBer(javob.nom + " omborda tugagan.", "error");
+    }
+    tovarTanla(karta, javob.miqdor);
+    if (javob.miqdor) {
+      // Miqdorni kod o'zi aytdi (tarozi yoki quti) — kassir ko'rib tursin.
+      window.xabarBer(javob.nom + ": " + javob.miqdor_matni + " " + javob.birlik);
+    }
+  }
+
+  function kodniUlash() {
+    var panel = document.querySelector(".ong-panel");
+    kodEl = document.getElementById("kod-kirish");
+    kodiEl = document.getElementById("tovar-kodi");
+    if (!panel || !kodEl || !window.Skaner) return;
+
+    kodSora = window.Skaner.ulash({
+      manzil: panel.dataset.kodManzil,
+      topilganda: kodTopildi,
+    });
+
+    function izla() {
+      var kod = kodEl.value.trim();
+      if (kod) kodSora(kod);
+    }
+
+    document.getElementById("kod-topish").addEventListener("click", izla);
+    kodEl.addEventListener("focus", function () { faolQoy("kod"); });
+    kodEl.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      // Enter bu yerda qator qo'shmaydi, tovar izlaydi.
+      e.preventDefault();
+      e.stopPropagation();
+      izla();
+    });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    qaytimniUla();
-
     forma = document.getElementById("qator-forma");
     if (!forma) return;
 
     oyna = document.getElementById("tovar-oyna");
     qidiruv = document.getElementById("tovar-qidiruv");
     miqdorEl = document.getElementById("miqdor");
-    narxEl = document.getElementById("narx");
-    summaEl = document.getElementById("summa");
     mahsulotId = document.getElementById("mahsulot-id");
     tanlanganEl = document.getElementById("tanlangan");
     qoshTugma = document.getElementById("qosh-tugma");
@@ -200,6 +244,7 @@
     document.getElementById("tozala-tugma").addEventListener("click", tozalaHammasi);
 
     dropdown = document.getElementById("tovar-dropdown");
+    kodniUlash();
 
     oyna.addEventListener("click", function (e) {
       if (e.target === oyna || e.target.closest("[data-yop]")) return oynaYop();
@@ -250,15 +295,17 @@
       else if (t.dataset.amal === "ochir") {
         var el = joriyInput();
         el.value = el.value.slice(0, -1);
-        summaYangila();
+        holatYangila();
       }
     });
 
-    [miqdorEl, narxEl].forEach(function (el) {
-      el.addEventListener("input", summaYangila);
-      el.addEventListener("focus", function () {
-        faolQoy(el === narxEl ? "narx" : "miqdor");
-      });
+    miqdorEl.addEventListener("input", holatYangila);
+    miqdorEl.addEventListener("focus", function () { faolQoy("miqdor"); });
+
+    // Pastdagi summa maydonlari ham numpadga ulanadi (sensorli rejim uchun)
+    document.querySelectorAll(".tolov-panel [data-maydon] input").forEach(function (el) {
+      var quti = el.closest("[data-maydon]");
+      el.addEventListener("focus", function () { faolQoy(quti.dataset.maydon); });
     });
 
     // Klaviatura yorliqlari (sichqoncha rejimi uchun)
@@ -267,6 +314,8 @@
       if (e.key === "F2") { e.preventDefault(); return oynaOch(); }
       if (oyna.classList.contains("ochiq")) return;
       if (e.key === "Enter" && document.activeElement.tagName !== "BUTTON") {
+        // «Jami» maydonida Enter o'sha formani yuboradi — aralashmaymiz.
+        if (document.activeElement.closest("form") !== forma) return;
         if (!qoshTugma.disabled) { e.preventDefault(); forma.submit(); }
       }
     });

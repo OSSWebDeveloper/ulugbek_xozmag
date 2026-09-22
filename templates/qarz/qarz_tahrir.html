@@ -21,6 +21,9 @@
           <div style="font-weight:650;font-size:var(--katta-matn);font-variant-numeric:tabular-nums">
             {{ oldingi_qarz|pul }} <span class="kichkina">so'm</span>
           </div>
+          {% if oldingi_qarz_dollar %}
+            <div class="dollar-yozuv">{{ oldingi_qarz_dollar|tekis }} $</div>
+          {% endif %}
         </div>
       </div>
 
@@ -32,8 +35,6 @@
                 <th style="width:1%">#</th>
                 <th>Tovar</th>
                 <th class="son">Miqdor</th>
-                <th class="son">Narxi</th>
-                <th class="son">Summa</th>
                 <th style="width:1%"></th>
               </tr>
             </thead>
@@ -41,10 +42,11 @@
               {% for qator in qatorlar %}
                 <tr>
                   <td class="sust">{{ forloop.counter }}</td>
-                  <td><b>{{ qator.mahsulot_nomi }}</b></td>
+                  <td>
+                    <b>{{ qator.mahsulot_nomi }}</b>
+                    {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
+                  </td>
                   <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
-                  <td class="son sust">{{ qator.narx|pul }}</td>
-                  <td class="son"><b>{{ qator.summa|pul }}</b></td>
                   <td>
                     <form method="post" action="{% url 'qarz:qator_ochirish' qator.pk %}">
                       {% csrf_token %}
@@ -66,22 +68,15 @@
         {% endif %}
       </div>
 
-      <div class="jami-satr">
-        <span class="yorliq">Jami</span>
-        <span class="qiymat">{{ qarz.jami|pul }}<small>so'm</small></span>
-      </div>
     </div>
 
+    {# Qarz summasi hisoblanmaydi - savdolashilgan narx kalkulyatordan ko'chiriladi #}
+    {% include "kassa_jami_panel.html" with hujjat=qarz tugma="Yakunlash va daftarga yozish" amal=yakun_manzili %}
+
     <div class="chek-tugmalar">
-      <a class="tugma tinch" href="{% url 'qarz:qarzdor_karta' qarzdor.pk %}">
+      <a class="tugma tinch keng" href="{% url 'qarz:qarzdor_karta' qarzdor.pk %}">
         <svg class="ikon"><use href="#i-chap"></use></svg> Qarzdor kartasi
       </a>
-      <form method="post" action="{% url 'qarz:qarz_yakunlash' qarz.pk %}" style="flex:1;display:flex">
-        {% csrf_token %}
-        <button type="submit" class="tugma yashil keng">
-          <svg class="ikon"><use href="#i-belgi"></use></svg> Yakunlash va daftarga yozish
-        </button>
-      </form>
     </div>
   </div>
 
@@ -94,5 +89,6 @@
 {% endblock %}
 
 {% block skript %}
+<script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/kassa.js' %}"></script>
 {% endblock %}

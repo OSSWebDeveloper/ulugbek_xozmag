@@ -13,4 +13,5 @@ urlpatterns = [
     path("<int:pk>/yakun/", views.yakunlash, name="yakunlash"),
     path("<int:pk>/bekor/", views.bekor, name="bekor"),
     path("qator/<int:pk>/ochirish/", views.qator_ochirish, name="qator_ochirish"),
+    path("qator/<int:pk>/qaytarish/", views.qaytarish, name="qaytarish"),
 ]

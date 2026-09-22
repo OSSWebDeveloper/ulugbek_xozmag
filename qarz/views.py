@@ -6,7 +6,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ombor.models import Mahsulot
-from ombor.xizmat import OmborXatosi, ayir, qaytar, songa
+from ombor.models import HarakatTuri, Valyuta
+from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, qaytar, qaytarishni_oqi,
+                          songa, summalarni_oqi)
 
 from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
@@ -29,13 +31,14 @@ def hudud_kartalari():
     Qarzdorlar sahifasida ham, «Oldin qarz olgan» qidiruvida ham
     bir xil tugmalar chiqadi.
     """
+    bosh = (0, Decimal("0"), Decimal("0"))
     yigindi = {}
     for q in Qarzdor.objects.all():
-        son, balans = yigindi.get(q.hudud_id, (0, Decimal("0")))
-        yigindi[q.hudud_id] = (son + 1, balans + q.balans)
+        son, balans, dollar = yigindi.get(q.hudud_id, bosh)
+        yigindi[q.hudud_id] = (son + 1, balans + q.balans, dollar + q.balans_dollar)
     return [
-        {"hudud": h, "soni": yigindi.get(h.pk, (0, Decimal("0")))[0],
-         "balans": yigindi.get(h.pk, (0, Decimal("0")))[1]}
+        {"hudud": h, "soni": yigindi.get(h.pk, bosh)[0],
+         "balans": yigindi.get(h.pk, bosh)[1], "balans_dollar": yigindi.get(h.pk, bosh)[2]}
         for h in Hudud.objects.all()
     ]
 
@@ -62,7 +65,7 @@ def qidirish(request):
         if hudud_id:
             hudud = get_object_or_404(Hudud, pk=hudud_id)
             tanlangan = tanlangan.filter(hudud=hudud)
-        qarzdorlar = sorted(tanlangan, key=lambda q: q.balans, reverse=True)
+        qarzdorlar = sorted(tanlangan, key=lambda q: (q.balans, q.balans_dollar), reverse=True)
     elif korinish == "hududlar":
         kartalar = hudud_kartalari()
 
@@ -93,7 +96,7 @@ def qarzdor_karta(request, pk):
     qarzdor = get_object_or_404(Qarzdor.objects.select_related("hudud"), pk=pk)
     return render(request, "qarz/qarzdor_karta.html", {
         "qarzdor": qarzdor,
-        "qarzlar": qarzdor.qarzlar.prefetch_related("qatorlar"),
+        "qarzlar": qarzdor.qarzlar.prefetch_related("qatorlar__mahsulot"),
         "tolovlar": qarzdor.tolovlar.all()[:20],
         "tolov_form": TolovForm(),
     })
@@ -130,11 +133,14 @@ def qarz_tahrir(request, pk):
     return render(request, "qarz/qarz_tahrir.html", {
         "qarz": qarz,
         "qarzdor": qarz.qarzdor,
-        "qatorlar": qarz.qatorlar.all(),
+        "qatorlar": qarz.qatorlar.select_related("mahsulot"),
         "mahsulotlar": mahsulotlar,
         "qator_manzili": reverse("qarz:qator_qoshish", args=[qarz.pk]),
+        "yakun_manzili": reverse("qarz:qarz_yakunlash", args=[qarz.pk]),
+        "oxirgi_kurs": oxirgi_kurs(),
         # Shu hujjatdan oldingi qarzi (hozir yozilayotgani hisobga olinmaydi)
         "oldingi_qarz": qarz.qarzdor.balans - qarz.jami,
+        "oldingi_qarz_dollar": qarz.qarzdor.balans_dollar - qarz.jami_dollar,
     })
 
 
@@ -150,18 +156,13 @@ def qator_qoshish(request, pk):
         messages.error(request, xato)
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
-    narx, xato = songa(request.POST.get("narx") or mahsulot.narx, "Narx")
-    if xato:
-        messages.error(request, xato)
-        return redirect("qarz:qarz_tahrir", pk=qarz.pk)
-
     try:
         ayir(mahsulot.pk, miqdor, f"Qarz #{qarz.pk} - {qarz.qarzdor.toliq_ism}")
     except OmborXatosi as xato:
         messages.error(request, str(xato))
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
-    QarzQator.objects.create(qarz=qarz, mahsulot=mahsulot, miqdor=miqdor, narx=narx)
+    QarzQator.objects.create(qarz=qarz, mahsulot=mahsulot, miqdor=miqdor)
     return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
 
@@ -176,8 +177,56 @@ def qator_ochirish(request, pk):
     return redirect("qarz:qarz_tahrir", pk=qarz_pk)
 
 
+def qator_qaytarish(request, pk):
+    """Qarzga olingan tovarni qaytarib berish — qisman ham bo'ladi.
+
+    Qaytarilgan pul qarz summasidan ayriladi: mijoz olmagan mol uchun
+    qarzdor bo'lib qolmaydi.
+    """
+    qator = get_object_or_404(QarzQator.objects.select_related("qarz__qarzdor", "mahsulot"),
+                              pk=pk)
+    qarz = qator.qarz
+
+    if request.method != "POST":
+        return render(request, "qaytarish.html", {
+            "qator": qator,
+            "hujjat": f"hujjat #{qarz.pk} · {qarz.qarzdor.toliq_ism}",
+            "sana": qarz.sana,
+            "jami": qarz.sof_jami,
+            "jami_dollar": qarz.sof_jami_dollar,
+            "orqaga": reverse("qarz:qarzdor_karta", args=[qarz.qarzdor_id]),
+        })
+
+    miqdor, summa, summa_dollar, xato = qaytarishni_oqi(request.POST, qator)
+    if xato:
+        messages.error(request, xato)
+        return redirect("qarz:qator_qaytarish", pk=qator.pk)
+
+    if summa > qarz.sof_jami or summa_dollar > qarz.sof_jami_dollar:
+        messages.error(request, "Qaytarilgan pul qarz summasidan ko'p bo'lmasin.")
+        return redirect("qarz:qator_qaytarish", pk=qator.pk)
+
+    qaytar(qator.mahsulot_id, miqdor,
+           f"Qarz #{qarz.pk} dan qaytarildi — {qarz.qarzdor.toliq_ism}",
+           HarakatTuri.QAYTARISH)
+    qator.qaytarilgan += miqdor
+    qator.save(update_fields=["qaytarilgan"])
+
+    qarz.qaytarilgan_summa += summa
+    qarz.qaytarilgan_summa_dollar += summa_dollar
+    qarz.save(update_fields=["qaytarilgan_summa", "qaytarilgan_summa_dollar"])
+
+    messages.success(request, "Qaytarish yozildi, tovar omborga qaytdi.")
+    return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)
+
+
 def qarz_yakunlash(request, pk):
-    """Qarz hujjatini yopadi."""
+    """Qarz hujjatini yopadi. Qarz summasi qo'lda kiritiladi.
+
+    Narx qatorlarda yozilmaydi — savdolashib kelishilgan summa
+    kalkulyatorda hisoblanib, shu yerda yoziladi. So'mlik va dollarlik
+    qism alohida: qarzdorning ikkita mustaqil hisobi bo'ladi.
+    """
     qarz = get_object_or_404(Qarz, pk=pk)
     if request.method == "POST":
         if qarz.qatorlar_soni == 0:
@@ -185,9 +234,18 @@ def qarz_yakunlash(request, pk):
             qarz.delete()
             messages.info(request, "Bo'sh qarz bekor qilindi.")
             return redirect("qarz:qarzdor_karta", pk=qarzdor_pk)
+
+        jami, jami_dollar, kurs, xato = summalarni_oqi(request.POST, "Qarz")
+        if xato:
+            messages.error(request, xato)
+            return redirect("qarz:qarz_tahrir", pk=qarz.pk)
+
+        qarz.jami = jami
+        qarz.jami_dollar = jami_dollar
+        qarz.kurs = kurs
         qarz.izoh = request.POST.get("izoh", "")[:200]
         qarz.yakunlangan = True
-        qarz.save(update_fields=["izoh", "yakunlangan"])
+        qarz.save(update_fields=["jami", "jami_dollar", "kurs", "izoh", "yakunlangan"])
         messages.success(request, "Qarz daftarga yozildi.")
     return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)
 
@@ -195,8 +253,9 @@ def qarz_yakunlash(request, pk):
 def tolov_qoshish(request, qarzdor_pk):
     """Qarzdor to'lov qildi.
 
-    Qarzdan ortiq to'lov qabul qilinmaydi — aks holda balans manfiyga
-    ketib, «Qolgan qarzi −5 000 so'm» kabi ma'nosiz son chiqadi.
+    To'lov o'z valyutasidagi qarzni yopadi: so'm to'lov so'm qarzini, dollar
+    to'lov dollar qarzini. Qarzdan ortiq to'lov qabul qilinmaydi — aks holda
+    balans manfiyga ketib, «Qolgan qarzi −5 000 so'm» kabi ma'nosiz son chiqadi.
     """
     qarzdor = get_object_or_404(Qarzdor, pk=qarzdor_pk)
     if request.method == "POST":
@@ -206,25 +265,29 @@ def tolov_qoshish(request, qarzdor_pk):
             return redirect("qarz:qarzdor_karta", pk=qarzdor.pk)
 
         summa = form.cleaned_data["summa"]
-        qoldiq = qarzdor.balans
+        dollarmi = form.cleaned_data["valyuta"] == Valyuta.DOLLAR
+        pul = "dollar" if dollarmi else "so'm"
+        qoldiq = qarzdor.balans_dollar if dollarmi else qarzdor.balans
+
         if summa <= 0:
             messages.error(request, "To'lov summasi noldan katta bo'lishi kerak.")
         elif qoldiq <= 0:
-            messages.error(request, f"{qarzdor.toliq_ism} ning qarzi yo'q — "
+            messages.error(request, f"{qarzdor.toliq_ism} ning {pul} qarzi yo'q — "
                                     f"to'lov yozishning hojati yo'q.")
         elif summa > qoldiq:
-            messages.error(request, f"Qolgan qarzi {pul_matn(qoldiq)} so'm. "
+            messages.error(request, f"Qolgan {pul} qarzi {pul_matn(qoldiq)}. "
                                     f"Bundan ortiq to'lov yozib bo'lmaydi.")
         else:
             tolov = form.save(commit=False)
             tolov.qarzdor = qarzdor
             tolov.save()
-            qolgan = qarzdor.balans
+            qolgan = qarzdor.balans_dollar if dollarmi else qarzdor.balans
             if qolgan > 0:
                 messages.success(request, f"To'lov qabul qilindi. "
-                                          f"Qolgan qarzi {pul_matn(qolgan)} so'm.")
+                                          f"Qolgan {pul} qarzi {pul_matn(qolgan)}.")
             else:
-                messages.success(request, "To'lov qabul qilindi. Qarz to'liq yopildi.")
+                messages.success(request, f"To'lov qabul qilindi. {pul.capitalize()} "
+                                          f"qarzi to'liq yopildi.")
     return redirect("qarz:qarzdor_karta", pk=qarzdor.pk)
 
 
@@ -257,6 +320,7 @@ def qarzdorlar_royxati(request):
     hudud = None
     qarzdorlar = []
     jami_balans = Decimal("0")
+    jami_balans_dollar = Decimal("0")
     kartalar = []
 
     if korinish == "royxat":
@@ -264,8 +328,9 @@ def qarzdorlar_royxati(request):
         if hudud_id:
             hudud = get_object_or_404(Hudud, pk=hudud_id)
             tanlangan = tanlangan.filter(hudud=hudud)
-        qarzdorlar = sorted(tanlangan, key=lambda q: q.balans, reverse=True)
+        qarzdorlar = sorted(tanlangan, key=lambda q: (q.balans, q.balans_dollar), reverse=True)
         jami_balans = sum((q.balans for q in qarzdorlar), Decimal("0"))
+        jami_balans_dollar = sum((q.balans_dollar for q in qarzdorlar), Decimal("0"))
 
     elif korinish == "hududlar":
         kartalar = hudud_kartalari()
@@ -276,4 +341,5 @@ def qarzdorlar_royxati(request):
         "hudud": hudud,
         "hudud_kartalari": kartalar,
         "jami_balans": jami_balans,
+        "jami_balans_dollar": jami_balans_dollar,
     })

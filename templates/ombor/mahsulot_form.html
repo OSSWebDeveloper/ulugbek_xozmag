@@ -5,7 +5,16 @@
 <div class="sahifa-keng" style="max-width:880px">
   <div class="sarlavha">
     {% if mahsulot %}{{ mahsulot.nom }}{% else %}Omborga yangi tovar{% endif %}
-    {% if mahsulot %}<span class="kichik">— tahrirlash</span>{% endif %}
+    {% if mahsulot %}
+      {# Kassada va tarozida shu raqam uriladi — yorliqda ham shu turadi #}
+      <span class="nishon kok" title="Kassada va tarozida uriladigan kod">
+        Kod: {{ mahsulot.qisqa_kod }}
+      </span>
+      <span class="kichik">to'liq {{ mahsulot.kod }} &middot; etiketka shtrixi
+        {{ mahsulot.etiketka_kodi }}</span>
+    {% else %}
+      <span class="kichik">kod saqlagandan keyin o'zi beriladi</span>
+    {% endif %}
   </div>
 
   <form method="post" class="quti forma-setka" id="mahsulot-forma"
@@ -18,10 +27,42 @@
       </div>
     {% endif %}
 
-    <div class="maydon keng">
+    <div class="maydon">
       <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
       {{ form.nom }}
       {% if form.nom.errors %}<div class="xato-yozuv">{{ form.nom.errors|striptags }}</div>{% endif %}
+    </div>
+
+    {% comment %}Kursor shu maydonda turganda skanerlansa kod o'zi tushadi —
+    skaner klaviatura bo'lib ishlaydi, har bir skan alohida qatorga tushadi.
+    {% endcomment %}
+    <div class="maydon">
+      <label for="{{ form.shtrix.id_for_label }}" title="{{ form.shtrix.help_text }}">
+        {{ form.shtrix.label }}
+      </label>
+      {{ form.shtrix }}
+      {% if form.shtrix.errors %}
+        <div class="xato-yozuv">{{ form.shtrix.errors|striptags }}</div>
+      {% endif %}
+    </div>
+
+    {# ---- Qaysi pulda keladi va narxi — ikkovi bir qatorda turadi ---- #}
+    <div class="maydon">
+      <label for="{{ form.valyuta.id_for_label }}">{{ form.valyuta.label }}</label>
+      {{ form.valyuta }}
+      <div class="maydon-izoh">So'm va dollar hisobi aralashmaydi</div>
+      {% if form.valyuta.errors %}<div class="xato-yozuv">{{ form.valyuta.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <div class="maydon">
+      <label for="{{ form.narx.id_for_label }}">
+        {{ form.narx.label }} (1 <span class="sotuv-birlik-nomi">birlik</span> uchun)
+      </label>
+      {{ form.narx }}
+      <div class="maydon-izoh">
+        <span class="valyuta-nomi">so'm</span>da &middot; kassada summa qo'lda yoziladi
+      </div>
+      {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
     </div>
 
     {# ---- Richag: tovar bir birlikda olinib boshqasida sotiladimi ---- #}
@@ -63,7 +104,7 @@
     <div class="maydon">
       <label for="{{ form.birlik.id_for_label }}" id="birlik-yorliq">{{ form.birlik.label }}</label>
       {{ form.birlik }}
-      <div class="maydon-izoh">Mijozga shu birlikda sotiladi, qoldiq ham shunda</div>
+      <div class="maydon-izoh">Mijozga shu birlikda sotiladi</div>
       {% if form.birlik.errors %}<div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>{% endif %}
     </div>
 
@@ -79,15 +120,6 @@
       {% endif %}
     </div>
 
-    {# ---- Narx ---- #}
-    <div class="maydon">
-      <label for="{{ form.narx.id_for_label }}">
-        {{ form.narx.label }} — bitta <span class="sotuv-birlik-nomi">birlik</span> uchun
-      </label>
-      {{ form.narx }}
-      {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
-    </div>
-
     {# ---- Qoldiq: yangi tovarda richag yoqiq bo'lsa qadoqdan hisoblanadi ---- #}
     <div class="maydon" id="qoldiq-maydon">
       <label for="{{ form.qoldiq.id_for_label }}">
@@ -99,14 +131,16 @@
 
     <div class="qoida-satri keng" id="birlik-qoida" hidden></div>
 
-    <div class="qator keng" style="align-items:center">
-      <label class="faol-belgi" style="flex:1">
+    <div class="forma-pastki keng">
+      <label class="faol-belgi">
         {{ form.faol }} <span>Ro'yxatda ko'rinsin</span>
       </label>
-      <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
-      <button type="submit" class="tugma yashil" style="flex:2">
-        <svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash
-      </button>
+      <div class="forma-tugmalar">
+        <a class="tugma tinch" href="{% url 'ombor:royxat' %}">Bekor qilish</a>
+        <button type="submit" class="tugma yashil">
+          <svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash
+        </button>
+      </div>
     </div>
   </form>
 </div>

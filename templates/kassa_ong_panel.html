@@ -1,9 +1,14 @@
 {% comment %}
 Kassa ekranining o'ng paneli — qarz yozishda ham, naqd sotuvda ham bir xil.
+Narx yozilmaydi: tovar va miqdor tanlanadi, summa yakunlashda qo'lda kiritiladi.
 Chaqirilishi: {% include "kassa_ong_panel.html" with amal=<forma manzili> %}
 Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS orqali).
+
+Tovar uch yo'l bilan tanlanadi: ro'yxatdan, «Kod» maydoniga oxirgi 4 raqamni
+urib, yoki skanerlab. Uchalasi ham bitta joyga — kassa.js dagi tovarTanla() ga
+boradi.
 {% endcomment %}
-<div class="ong-panel">
+<div class="ong-panel" data-kod-manzil="{% url 'ombor:kod_qidir' %}">
   <button type="button" class="tugma asosiy keng" id="yangi-tovar">
     <svg class="ikon"><use href="#i-plus"></use></svg> Yangi tovar
     <span class="yorliq-tugma faqat-sichqoncha">F2</span>
@@ -13,15 +18,24 @@ Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS orqali).
     {% csrf_token %}
     <input type="hidden" name="mahsulot" id="mahsulot-id">
 
+    {% comment %}Og'ir tovar kassagacha kelmaydi: yorliqdagi oxirgi 4 raqam
+    uriladi. Skaner va tarozi etiketkasi ham shu yo'ldan o'tadi (js/skaner.js).
+    {% endcomment %}
+    <div class="kiritish-maydon kod-maydon" data-maydon="kod">
+      <span class="nomi">Kod</span>
+      <input type="text" class="qiymat raqam-maydon" id="kod-kirish"
+             inputmode="numeric" autocomplete="off" placeholder="oxirgi 4 raqam">
+      <button type="button" class="tugma tinch kichik kod-tugma" id="kod-topish"
+              title="Kod bo'yicha topish">
+        <svg class="ikon"><use href="#i-qidir"></use></svg>
+      </button>
+    </div>
+
     <div class="tanlangan-tovar" id="tanlangan">
       <div class="nom bosh-yozuv">Tovar tanlanmagan</div>
       <div class="pastki">
         <span id="tovar-qoldiq">&mdash;</span>
-        <span class="narx-qutisi" data-maydon="narx" title="Narxni o'zgartirish uchun bosing">
-          <input type="text" class="narx-kirish raqam-maydon" name="narx" id="narx"
-                 inputmode="decimal" autocomplete="off" placeholder="0">
-          <span class="birlik">so'm</span>
-        </span>
+        <span class="tovar-kodi" id="tovar-kodi"></span>
       </div>
     </div>
 
@@ -30,11 +44,6 @@ Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS orqali).
       <input type="text" class="qiymat raqam-maydon" name="miqdor" id="miqdor"
              inputmode="decimal" autocomplete="off" placeholder="0">
       <span class="birlik" id="miqdor-birlik">&mdash;</span>
-    </div>
-
-    <div class="summa-satr">
-      <span class="yorliq">Summa</span>
-      <span class="qiymat" id="summa">0</span>
     </div>
 
     <div class="raqamlar" id="raqamlar">

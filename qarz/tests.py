@@ -20,7 +20,7 @@ class QarzOqimiTest(KirganTest):
             ism="Vali", familiya="Aliyev", telefon="+998901234567", hudud=self.hudud,
         )
         self.mahsulot = Mahsulot.objects.create(
-            nom="Sement 50 kg", birlik=Birlik.QOP, narx=Decimal("55000"), qoldiq=Decimal("100"),
+            nom="Sement 50 kg", birlik=Birlik.QOP, qoldiq=Decimal("100"),
         )
         self.qarz = Qarz.objects.create(qarzdor=self.qarzdor)
 
@@ -37,18 +37,18 @@ class QarzOqimiTest(KirganTest):
 
     def test_qator_qoshilsa_ombordan_ayriladi(self):
         self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
-            "mahsulot": self.mahsulot.pk, "miqdor": "10", "narx": "55000",
+            "mahsulot": self.mahsulot.pk, "miqdor": "10",
         })
         self.mahsulot.refresh_from_db()
         self.assertEqual(self.mahsulot.qoldiq, Decimal("90.000"))
-        self.assertEqual(self.qarz.jami, Decimal("550000.00"))
+        self.assertEqual(self.qarz.qatorlar.count(), 1)
         self.assertTrue(
             OmborHarakati.objects.filter(mahsulot=self.mahsulot, tur=HarakatTuri.CHIQIM).exists()
         )
 
     def test_omborda_yetmasa_qator_qoshilmaydi(self):
         javob = self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
-            "mahsulot": self.mahsulot.pk, "miqdor": "500", "narx": "55000",
+            "mahsulot": self.mahsulot.pk, "miqdor": "500",
         }, follow=True)
         self.mahsulot.refresh_from_db()
         self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
@@ -57,13 +57,13 @@ class QarzOqimiTest(KirganTest):
 
     def test_manfiy_miqdor_qabul_qilinmaydi(self):
         self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
-            "mahsulot": self.mahsulot.pk, "miqdor": "-5", "narx": "55000",
+            "mahsulot": self.mahsulot.pk, "miqdor": "-5",
         })
         self.assertEqual(self.qarz.qatorlar.count(), 0)
 
     def test_qator_ochirilsa_tovar_omborga_qaytadi(self):
         self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
-            "mahsulot": self.mahsulot.pk, "miqdor": "10", "narx": "55000",
+            "mahsulot": self.mahsulot.pk, "miqdor": "10",
         })
         qator = QarzQator.objects.get(qarz=self.qarz)
         self.client.post(reverse("qarz:qator_ochirish", args=[qator.pk]))
@@ -76,11 +76,122 @@ class QarzOqimiTest(KirganTest):
         self.assertFalse(Qarz.objects.filter(pk=self.qarz.pk).exists())
 
     def test_balans_tolovni_hisobga_oladi(self):
-        QarzQator.objects.create(
-            qarz=self.qarz, mahsulot=self.mahsulot, miqdor=Decimal("10"), narx=Decimal("55000"),
-        )
+        self.qarz.jami = Decimal("550000")
+        self.qarz.save(update_fields=["jami"])
         Tolov.objects.create(qarzdor=self.qarzdor, summa=Decimal("200000"))
         self.assertEqual(self.qarzdor.balans, Decimal("350000.00"))
+
+    def test_qarz_summasi_qolda_yoziladi(self):
+        """Savdolashilgan summa hisoblanmaydi — sotuvchi o'zi yozadi."""
+        self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
+            "mahsulot": self.mahsulot.pk, "miqdor": "10",
+        })
+        self.client.post(reverse("qarz:qarz_yakunlash", args=[self.qarz.pk]), {"jami": "540000"})
+        self.qarz.refresh_from_db()
+        self.assertTrue(self.qarz.yakunlangan)
+        self.assertEqual(self.qarz.jami, Decimal("540000.00"))
+        self.assertEqual(self.qarzdor.balans, Decimal("540000.00"))
+
+    def test_dollar_qarzi_alohida_yuradi(self):
+        """So'm qarzi va dollar qarzi qo'shilmaydi, har biri o'z hisobida."""
+        self.qarz.jami = Decimal("500000")
+        self.qarz.jami_dollar = Decimal("50")
+        self.qarz.kurs = Decimal("12800")
+        self.qarz.save()
+        self.assertEqual(self.qarzdor.balans, Decimal("500000"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("50"))
+
+        # So'm to'lovi faqat so'm qarzini kamaytiradi
+        self.client.post(reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk]),
+                         {"summa": "200000", "valyuta": "som", "izoh": ""})
+        self.assertEqual(self.qarzdor.balans, Decimal("300000"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("50"))
+
+        # Dollar to'lovi faqat dollar qarzini kamaytiradi
+        self.client.post(reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk]),
+                         {"summa": "20", "valyuta": "dollar", "izoh": ""})
+        self.assertEqual(self.qarzdor.balans, Decimal("300000"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("30"))
+
+    def test_dollar_qarzidan_ortiq_dollar_tolov_qabul_qilinmaydi(self):
+        self.qarz.jami_dollar = Decimal("50")
+        self.qarz.kurs = Decimal("12800")
+        self.qarz.save()
+        javob = self.client.post(reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk]),
+                                 {"summa": "80", "valyuta": "dollar", "izoh": ""}, follow=True)
+        self.assertEqual(Tolov.objects.count(), 0)
+        self.assertContains(javob, "Qolgan dollar qarzi")
+
+    def test_som_qarzi_yoq_bolsa_som_tolov_olinmaydi(self):
+        """Dollar qarzi bor, so'm qarzi yo'q — so'm to'lov yozilmaydi."""
+        self.qarz.jami_dollar = Decimal("50")
+        self.qarz.kurs = Decimal("12800")
+        self.qarz.save()
+        javob = self.client.post(reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk]),
+                                 {"summa": "10000", "valyuta": "som", "izoh": ""}, follow=True)
+        self.assertEqual(Tolov.objects.count(), 0)
+        self.assertContains(javob, "so&#x27;m qarzi yo&#x27;q")
+
+    def test_qarzda_dollar_summasi_qolda_yoziladi(self):
+        self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
+            "mahsulot": self.mahsulot.pk, "miqdor": "10",
+        })
+        self.client.post(reverse("qarz:qarz_yakunlash", args=[self.qarz.pk]),
+                         {"jami": "300000", "jami_dollar": "25", "kurs": "12800"})
+        self.qarz.refresh_from_db()
+        self.assertTrue(self.qarz.yakunlangan)
+        self.assertEqual(self.qarz.jami, Decimal("300000.00"))
+        self.assertEqual(self.qarz.jami_dollar, Decimal("25.00"))
+        self.assertEqual(self.qarzdor.balans, Decimal("300000.00"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("25.00"))
+
+    def test_qaytarish_qarzni_kamaytiradi(self):
+        """Olingan tovar qaytsa, mijoz o'sha pul uchun qarzdor bo'lib qolmaydi."""
+        qator = QarzQator.objects.create(
+            qarz=self.qarz, mahsulot=self.mahsulot, miqdor=Decimal("20"),
+        )
+        self.mahsulot.qoldiq = Decimal("80")
+        self.mahsulot.save(update_fields=["qoldiq"])
+        self.qarz.jami = Decimal("1000000")
+        self.qarz.yakunlangan = True
+        self.qarz.save()
+
+        self.client.post(reverse("qarz:qator_qaytarish", args=[qator.pk]),
+                         {"miqdor": "5", "summa": "250000", "summa_dollar": ""})
+
+        qator.refresh_from_db()
+        self.mahsulot.refresh_from_db()
+        self.qarz.refresh_from_db()
+        self.assertEqual(qator.qaytarilgan, Decimal("5.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("85.000"))
+        self.assertEqual(self.qarz.sof_jami, Decimal("750000.00"))
+        self.assertEqual(self.qarzdor.balans, Decimal("750000.00"))
+
+    def test_dollarlik_qarz_qaytarilishi_faqat_dollarga_tegadi(self):
+        qator = QarzQator.objects.create(
+            qarz=self.qarz, mahsulot=self.mahsulot, miqdor=Decimal("10"),
+        )
+        self.qarz.jami = Decimal("500000")
+        self.qarz.jami_dollar = Decimal("50")
+        self.qarz.kurs = Decimal("12800")
+        self.qarz.yakunlangan = True
+        self.qarz.save()
+
+        self.client.post(reverse("qarz:qator_qaytarish", args=[qator.pk]),
+                         {"miqdor": "4", "summa": "", "summa_dollar": "20"})
+
+        self.assertEqual(self.qarzdor.balans, Decimal("500000.00"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("30.00"))
+
+    def test_summasiz_qarz_yakunlanmaydi(self):
+        self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
+            "mahsulot": self.mahsulot.pk, "miqdor": "10",
+        })
+        javob = self.client.post(reverse("qarz:qarz_yakunlash", args=[self.qarz.pk]),
+                                 {"jami": ""}, follow=True)
+        self.qarz.refresh_from_db()
+        self.assertFalse(self.qarz.yakunlangan)
+        self.assertContains(javob, "Qarz summasini yozing")
 
     def test_tugallanmagan_qarz_qayta_ochiladi(self):
         javob = self.client.get(reverse("qarz:qarz_boshlash", args=[self.qarzdor.pk]))
@@ -96,7 +207,7 @@ class OmborTest(KirganTest):
     def setUp(self):
         super().setUp()
         self.mahsulot = Mahsulot.objects.create(
-            nom="G'isht", birlik=Birlik.DONA, narx=Decimal("1200"), qoldiq=Decimal("1000"),
+            nom="G'isht", birlik=Birlik.DONA, qoldiq=Decimal("1000"),
         )
 
     def test_kirim_qoldiqni_oshiradi(self):
@@ -108,9 +219,19 @@ class OmborTest(KirganTest):
             OmborHarakati.objects.filter(mahsulot=self.mahsulot, tur=HarakatTuri.KIRIM).count(), 1
         )
 
+    def test_tovar_valyutasi_somdan_boshlanadi(self):
+        """Tovar qo'shilganda standarti so'm, dollarga qo'lda o'tkaziladi."""
+        self.assertFalse(self.mahsulot.dollarmi)
+        self.assertEqual(self.mahsulot.valyuta_belgisi, "so'm")
+
+        dollarli = Mahsulot.objects.create(
+            nom="Plastik truba", birlik=Birlik.METR, qoldiq=Decimal("50"), valyuta="dollar",
+        )
+        self.assertTrue(dollarli.dollarmi)
+        self.assertEqual(dollarli.valyuta_belgisi, "$")
+
     def test_qoldiq_matni_ortiqcha_nollarsiz(self):
         self.assertEqual(self.mahsulot.qoldiq_son, "1000")
-        self.assertEqual(self.mahsulot.narx_son, "1200")
 
 
 class TolovChegarasiTest(KirganTest):
@@ -121,11 +242,11 @@ class TolovChegarasiTest(KirganTest):
         self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
         self.qarzdor = Qarzdor.objects.create(ism="Vali", familiya="Aliyev", hudud=self.hudud)
         self.mahsulot = Mahsulot.objects.create(
-            nom="Sement 50 kg", birlik=Birlik.QOP, narx=Decimal("55000"), qoldiq=Decimal("100"),
+            nom="Sement 50 kg", birlik=Birlik.QOP, qoldiq=Decimal("100"),
         )
-        qarz = Qarz.objects.create(qarzdor=self.qarzdor, yakunlangan=True)
-        QarzQator.objects.create(qarz=qarz, mahsulot=self.mahsulot, miqdor=Decimal("2"),
-                                 narx=Decimal("55000"))
+        qarz = Qarz.objects.create(qarzdor=self.qarzdor, yakunlangan=True,
+                                  jami=Decimal("110000"))
+        QarzQator.objects.create(qarz=qarz, mahsulot=self.mahsulot, miqdor=Decimal("2"))
         self.manzil = reverse("qarz:tolov_qoshish", args=[self.qarzdor.pk])
 
     def test_qarzdan_ortiq_tolov_qabul_qilinmaydi(self):
@@ -149,12 +270,12 @@ class TolovChegarasiTest(KirganTest):
         javob = self.client.post(self.manzil, {"summa": "110000", "izoh": ""}, follow=True)
         self.assertEqual(Tolov.objects.count(), 1)
         self.assertEqual(self.qarzdor.balans, Decimal("0.00"))
-        self.assertContains(javob, "Qarz to&#x27;liq yopildi")
+        self.assertContains(javob, "So&#x27;m qarzi to&#x27;liq yopildi")
 
     def test_qisman_tolov_qoldiqni_korsatadi(self):
         javob = self.client.post(self.manzil, {"summa": "10000", "izoh": ""}, follow=True)
         self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
-        self.assertContains(javob, "Qolgan qarzi 100 000 so&#x27;m")
+        self.assertContains(javob, "Qolgan so&#x27;m qarzi 100 000")
 
 
 class QarzdorlarKorinishiTest(KirganTest):

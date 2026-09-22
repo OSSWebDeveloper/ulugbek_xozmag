@@ -100,6 +100,30 @@ def arxivla(papka: Path) -> None:
     print("arxiv:", ARXIV, f"{ARXIV.stat().st_size / 1048576:.1f} MB")
 
 
+def bat_ornatuvchi(papka: Path) -> Path:
+    """.bat bilan o'rnatiladigan variant: papka + ORNATISH.bat + OCHIRISH.bat.
+
+    Exe ishlamagan (antivirus to'sgan) joyda shu ishlaydi — ichida hech qanday
+    yig'ilgan o'rnatgich yo'q, oddiy nusxa ko'chirish.
+    """
+    joy = ILDIZ / "dist" / "XozmagOrnatuvchi"
+    shutil.rmtree(joy, ignore_errors=True)
+    joy.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(papka, joy / "Xozmag")
+    shutil.copy2(QURISH / "ORNATISH.bat", joy / "ORNATISH.bat")
+    shutil.copy2(QURISH / "OCHIRISH.bat", joy / "OCHIRISH.bat")
+
+    arxiv = ILDIZ / "dist" / "XozmagOrnatuvchi.zip"
+    if arxiv.exists():
+        arxiv.unlink()
+    with zipfile.ZipFile(arxiv, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for fayl in joy.rglob("*"):
+            if fayl.is_file():
+                z.write(fayl, Path("XozmagOrnatuvchi") / fayl.relative_to(joy))
+    print("bat o'rnatuvchi:", arxiv, f"{arxiv.stat().st_size / 1048576:.1f} MB")
+    return arxiv
+
+
 def ornatgichni_yig() -> Path:
     keral = [
         sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
@@ -124,12 +148,16 @@ def main() -> int:
     print("=" * 58)
     ikonka_yasa()
     papka = dasturni_yig()
+    zip_fayl = bat_ornatuvchi(papka)
     arxivla(papka)
     exe = ornatgichni_yig()
     shutil.rmtree(ISH, ignore_errors=True)
     print()
-    print("TAYYOR:", exe, f"{exe.stat().st_size / 1048576:.1f} MB")
-    print("Mijozga shu bitta faylni bering.")
+    print("TAYYOR — ikkita variant:")
+    print(f"  1) {exe}  ({exe.stat().st_size / 1048576:.1f} MB)")
+    print("     bitta fayl, ikki marta bosiladi;")
+    print(f"  2) {zip_fayl}  ({zip_fayl.stat().st_size / 1048576:.1f} MB)")
+    print("     arxivni ochib ORNATISH.bat ni bosish kerak.")
     return 0
 
 

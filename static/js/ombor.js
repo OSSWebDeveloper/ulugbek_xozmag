@@ -43,15 +43,20 @@
     var birlik = document.getElementById("id_birlik");
     var olishBirligi = document.getElementById("id_olish_birligi");
     var olishMiqdori = document.getElementById("id_olish_miqdori");
-    var narx = document.getElementById("id_narx");
     var qoldiq = document.getElementById("id_qoldiq");
     var qoldiqMaydon = document.getElementById("qoldiq-maydon");
     var qadoqSoni = document.getElementById("qadoq-soni");
+    var narx = document.getElementById("id_narx");
+    var valyuta = document.getElementById("id_valyuta");
     var birlikYorliq = document.getElementById("birlik-yorliq");
     var qoida = document.getElementById("birlik-qoida");
     if (!belgi || !birlik || !olishBirligi || !olishMiqdori) return;
 
     var yangiMi = forma.dataset.yangi === "1";
+
+    function valyutaBelgisi() {
+      return valyuta && valyuta.value === "dollar" ? "dollar" : "so'm";
+    }
 
     function yangila() {
       var yoniq = belgi.checked;
@@ -63,6 +68,7 @@
 
       matnQoy("sotuv-birlik-nomi", sotuv);
       matnQoy("olish-birlik-nomi", olish || "qadoq");
+      matnQoy("valyuta-nomi", valyutaBelgisi());
       birlikYorliq.textContent = yoniq ? "Sotiladigan birligi" : "Sotuv birligi";
 
       // Yangi tovarda qoldiq qadoq sonidan chiqadi — qo'lda yozilmaydi.
@@ -96,11 +102,14 @@
         return;
       }
 
-      // Narx doim sotuv birligida; qadoq narxi shundan ko'rsatiladi.
-      var dona = son(narx.value);
-      var qadoqNarxi = dona * nechta;
-
       var qatorlar = ["1 " + olish + " = " + chiroyli(nechta) + " " + sotuv];
+
+      // Narx sotuv birligi uchun yoziladi — qadoq narxi ham ko'rinib tursin
+      var narxi = son(narx && narx.value);
+      if (narxi > 0) {
+        qatorlar.push("1 " + sotuv + " " + chiroyli(narxi) + " " + valyutaBelgisi() +
+                      " · 1 " + olish + " " + chiroyli(narxi * nechta) + " " + valyutaBelgisi());
+      }
 
       if (qoldiqYashirin) {
         var qadoq = son(qadoqSoni && qadoqSoni.value);
@@ -115,17 +124,12 @@
                       qadoqMatni(son(qoldiq.value), nechta, olish, sotuv));
       }
 
-      if (dona > 0) {
-        qatorlar.push("1 " + sotuv + " " + chiroyli(Math.round(dona)) + " so'm");
-        qatorlar.push("1 " + olish + " " + chiroyli(Math.round(qadoqNarxi)) + " so'm");
-      }
-
       qoida.hidden = false;
       qoida.classList.remove("ogoh");
       qoida.textContent = qatorlar.join("  ·  ");
     }
 
-    [belgi, birlik, olishBirligi, olishMiqdori, narx, qoldiq, qadoqSoni]
+    [belgi, birlik, olishBirligi, olishMiqdori, qoldiq, qadoqSoni, narx, valyuta]
       .forEach(function (el) {
         if (!el) return;
         el.addEventListener("change", yangila);
@@ -251,6 +255,26 @@
           tana.innerHTML = '<div class="xabar error"><span>Kirim formasini ' +
                            "yuklab bo'lmadi. Sahifani yangilang.</span></div>";
         });
+    }
+
+    // Skaner yoki kod: tovar topilsa o'sha zahoti kirim oynasi ochiladi.
+    // Mol tushirayotganda qo'l band — ro'yxatdan izlab o'tirishga vaqt yo'q.
+    if (window.Skaner && jadval.dataset.kodManzil) {
+      window.Skaner.ulash({
+        manzil: jadval.dataset.kodManzil,
+        topilganda: function (javob) { och(javob.kirim, javob.nom); },
+        topilmaganda: function (javob) {
+          // Notanish zavod shtrixi — demak yangi mol. Kartochka kod bilan
+          // ochiladi, ya'ni tovar va kodi bir yo'la kiritiladi.
+          var yangi = jadval.dataset.yangiManzil;
+          if (javob.qanday === "shtrix" && yangi &&
+              confirm(javob.xato + " Shu kod bilan yangi tovar qo'shilsinmi?")) {
+            window.location = yangi + "?shtrix=" + encodeURIComponent(javob.kod);
+            return;
+          }
+          window.xabarBer(javob.xato, "error");
+        },
+      });
     }
 
     jadval.addEventListener("click", function (e) {

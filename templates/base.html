@@ -57,7 +57,8 @@
 
   <div class="ish">
     {% if messages %}
-      <div class="xabarlar">
+      {# O'ng yuqorida turadi, 5 soniyadan keyin o'zi o'chadi (bildirishnoma.js) #}
+      <div class="xabarlar" id="xabarlar" role="status" aria-live="polite">
         {% for xabar in messages %}
           <div class="xabar {{ xabar.tags }}">
             <svg class="ikon"><use href="#{% if 'error' in xabar.tags %}i-ogoh{% else %}i-belgi{% endif %}"></use></svg>
@@ -72,6 +73,7 @@
 
 {% endwith %}
   <script src="{% statik 'js/rejim.js' %}"></script>
+  <script src="{% statik 'js/bildirishnoma.js' %}"></script>
   <script src="{% statik 'js/klaviatura.js' %}"></script>
   {% block skript %}{% endblock %}
 </body>

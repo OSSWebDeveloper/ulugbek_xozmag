@@ -23,7 +23,7 @@ if not exist "%LOYIHA%manage.py" (
 cd /d "%LOYIHA%"
 
 rem --- Python bormi
-python --version >nul 2>&1
+py --version >nul 2>&1
 if errorlevel 1 (
     echo XATO: python topilmadi. Python o'rnatilganini tekshiring.
     pause
@@ -51,7 +51,7 @@ if not errorlevel 1 (
 )
 
 echo Django ishga tushmoqda...
-start "Xozmag - Django" cmd /k python manage.py runserver 0.0.0.0:%PORT%
+start "Xozmag - Django" cmd /k py manage.py runserver 0.0.0.0:%PORT%
 timeout /t 4 /nobreak >nul
 
 echo ngrok ishga tushmoqda...

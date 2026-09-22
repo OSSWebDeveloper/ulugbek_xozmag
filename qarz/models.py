@@ -2,9 +2,9 @@
 from decimal import Decimal
 
 from django.db import models
-from django.db.models import Sum
+from django.db.models import F, Sum
 
-from ombor.models import Mahsulot
+from ombor.models import Mahsulot, Valyuta
 
 
 class Hudud(models.Model):
@@ -45,28 +45,68 @@ class Qarzdor(models.Model):
     def toliq_ism(self):
         return f"{self.familiya} {self.ism}"
 
+    # So'm va dollar hech qayerda qo'shilmaydi — har biri o'z hisobida yuradi.
+
     @property
     def jami_qarz(self):
-        """Barcha qarz hujjatlari summasi."""
-        jami = QarzQator.objects.filter(qarz__qarzdor=self).aggregate(s=Sum("summa"))["s"]
+        """Barcha qarz hujjatlarining so'mlik summasi.
+
+        Qaytarib berilgan tovar puli ayriladi — mijoz olmagan mol uchun
+        qarzdor bo'lib qolmasin.
+        """
+        jami = self.qarzlar.aggregate(s=Sum(F("jami") - F("qaytarilgan_summa")))["s"]
+        return jami or Decimal("0")
+
+    @property
+    def jami_qarz_dollar(self):
+        jami = self.qarzlar.aggregate(
+            s=Sum(F("jami_dollar") - F("qaytarilgan_summa_dollar")))["s"]
         return jami or Decimal("0")
 
     @property
     def jami_tolov(self):
-        jami = self.tolovlar.aggregate(s=Sum("summa"))["s"]
+        jami = self.tolovlar.filter(valyuta=Valyuta.SOM).aggregate(s=Sum("summa"))["s"]
+        return jami or Decimal("0")
+
+    @property
+    def jami_tolov_dollar(self):
+        jami = self.tolovlar.filter(valyuta=Valyuta.DOLLAR).aggregate(s=Sum("summa"))["s"]
         return jami or Decimal("0")
 
     @property
     def balans(self):
-        """Qolgan qarz. Musbat bo'lsa - qarzi bor."""
+        """Qolgan so'm qarzi. Musbat bo'lsa - qarzi bor."""
         return self.jami_qarz - self.jami_tolov
+
+    @property
+    def balans_dollar(self):
+        """Qolgan dollar qarzi."""
+        return self.jami_qarz_dollar - self.jami_tolov_dollar
+
+    @property
+    def qarzi_bormi(self):
+        return self.balans > 0 or self.balans_dollar > 0
 
 
 class Qarz(models.Model):
-    """Bitta qarz hujjati (bir marta olingan tovarlar ro'yxati)."""
+    """Bitta qarz hujjati (bir marta olingan tovarlar ro'yxati).
+
+    Narx qatorlarda yozilmaydi — pul kalkulyatorda hisoblanadi, qarz summasi
+    yakunlashda qo'lda kiritiladi.
+
+    So'm va dollar qarzi **alohida** yuritiladi, qo'shilmaydi. `kurs` o'sha
+    kundagi dollar kursi — keyin to'lov paytida kerak bo'ladi.
+    """
 
     qarzdor = models.ForeignKey(Qarzdor, on_delete=models.CASCADE, related_name="qarzlar")
     sana = models.DateTimeField("Sana", auto_now_add=True)
+    jami = models.DecimalField("Jami so'm", max_digits=14, decimal_places=2, default=0)
+    jami_dollar = models.DecimalField("Jami dollar", max_digits=12, decimal_places=2, default=0)
+    kurs = models.DecimalField("Dollar kursi", max_digits=12, decimal_places=2, default=0)
+    qaytarilgan_summa = models.DecimalField("Qaytarilgan so'm", max_digits=14,
+                                            decimal_places=2, default=0)
+    qaytarilgan_summa_dollar = models.DecimalField("Qaytarilgan dollar", max_digits=12,
+                                                   decimal_places=2, default=0)
     izoh = models.CharField("Izoh", max_length=200, blank=True)
     yakunlangan = models.BooleanField("Yakunlangan", default=False)
 
@@ -79,13 +119,24 @@ class Qarz(models.Model):
         return f"#{self.pk} - {self.qarzdor}"
 
     @property
-    def jami(self):
-        s = self.qatorlar.aggregate(s=Sum("summa"))["s"]
-        return s or Decimal("0")
-
-    @property
     def qatorlar_soni(self):
         return self.qatorlar.count()
+
+    # ---------- Qaytarib berish ----------
+
+    @property
+    def sof_jami(self):
+        """Qaytarilgani ayrilgan qarz summasi — balansga shu tushadi."""
+        return self.jami - self.qaytarilgan_summa
+
+    @property
+    def sof_jami_dollar(self):
+        return self.jami_dollar - self.qaytarilgan_summa_dollar
+
+    @property
+    def qaytarilganmi(self):
+        return (self.qaytarilgan_summa > 0 or self.qaytarilgan_summa_dollar > 0
+                or any(q.qaytarilgan for q in self.qatorlar.all()))
 
 
 class QarzQator(models.Model):
@@ -96,8 +147,8 @@ class QarzQator(models.Model):
     mahsulot_nomi = models.CharField("Tovar nomi", max_length=120)
     birlik = models.CharField("Birlik", max_length=10, blank=True)
     miqdor = models.DecimalField("Miqdor", max_digits=12, decimal_places=3)
-    narx = models.DecimalField("Narxi", max_digits=12, decimal_places=2)
-    summa = models.DecimalField("Summa", max_digits=14, decimal_places=2)
+    qaytarilgan = models.DecimalField("Qaytarilgan miqdor", max_digits=12, decimal_places=3,
+                                      default=0)
 
     class Meta:
         verbose_name = "Qarz qatori"
@@ -107,20 +158,29 @@ class QarzQator(models.Model):
     def __str__(self):
         return f"{self.mahsulot_nomi} x {self.miqdor}"
 
+    @property
+    def qolgan_miqdor(self):
+        """Mijozda qolgan miqdor: 20 qop olib 5 tasini qaytarsa — 15."""
+        return self.miqdor - self.qaytarilgan
+
     def save(self, *args, **kwargs):
         if not self.mahsulot_nomi:
             self.mahsulot_nomi = self.mahsulot.nom
         if not self.birlik:
             self.birlik = self.mahsulot.birlik
-        self.summa = (self.miqdor * self.narx).quantize(Decimal("0.01"))
         super().save(*args, **kwargs)
 
 
 class Tolov(models.Model):
-    """Qarzdorning to'lovi."""
+    """Qarzdorning to'lovi.
+
+    To'lov ham valyutasi bilan yoziladi: so'm qarzi so'm bilan, dollar qarzi
+    dollar bilan yopiladi. Aks holda ikki hisob aralashib ketadi.
+    """
 
     qarzdor = models.ForeignKey(Qarzdor, on_delete=models.CASCADE, related_name="tolovlar")
     summa = models.DecimalField("Summa", max_digits=14, decimal_places=2)
+    valyuta = models.CharField("Valyuta", max_length=10, choices=Valyuta, default=Valyuta.SOM)
     sana = models.DateTimeField("Sana", auto_now_add=True)
     izoh = models.CharField("Izoh", max_length=200, blank=True)
 
@@ -130,4 +190,8 @@ class Tolov(models.Model):
         ordering = ["-sana"]
 
     def __str__(self):
-        return f"{self.qarzdor} - {self.summa}"
+        return f"{self.qarzdor} - {self.summa} {self.get_valyuta_display()}"
+
+    @property
+    def dollarmi(self):
+        return self.valyuta == Valyuta.DOLLAR
