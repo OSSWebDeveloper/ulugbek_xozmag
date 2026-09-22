@@ -1,4 +1,5 @@
 """Qarz va ombor mantiqining asosiy sinovlari."""
+import json
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -382,3 +383,109 @@ class KirishTest(TestCase):
         call_command("xodim", "ishchi", stdout=StringIO())
         self.assertTrue(self.client.login(username="ishchi", password="ishchi"))
 
+
+
+class OldindanTolovTest(KirganTest):
+    """Qarz yozilayotganda mijoz bir qismini darrov to'laydi."""
+
+    def setUp(self):
+        super().setUp()
+        self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
+        self.qarzdor = Qarzdor.objects.create(ism="Vali", familiya="Aliyev",
+                                              hudud=self.hudud)
+        self.mahsulot = Mahsulot.objects.create(nom="Sement 50 kg", birlik=Birlik.QOP,
+                                                qoldiq=Decimal("100"))
+        self.qarz = Qarz.objects.create(qarzdor=self.qarzdor)
+        QarzQator.objects.create(qarz=self.qarz, mahsulot=self.mahsulot,
+                                 miqdor=Decimal("10"))
+
+    def yakunla(self, **qoshimcha):
+        malumot = {"jami": "500000", "jami_dollar": "", "kurs": "12000",
+                   "oldindan": "", "oldindan_dollar": ""}
+        malumot.update(qoshimcha)
+        return self.client.post(reverse("qarz:qarz_yakunlash", args=[self.qarz.pk]),
+                                malumot, follow=True)
+
+    def test_oldindan_tolov_balansdan_ayriladi(self):
+        self.yakunla(oldindan="200000")
+        self.assertEqual(self.qarzdor.balans, Decimal("300000"))
+
+    def test_oldindan_tolov_hujjatga_boglanadi(self):
+        self.yakunla(oldindan="200000")
+        tolov = Tolov.objects.get(qarzdor=self.qarzdor)
+        self.assertEqual(tolov.qarz, self.qarz)
+        self.assertEqual(self.qarz.oldindan, Decimal("200000"))
+        self.assertTrue(self.qarz.oldindan_tolanganmi)
+
+    def test_standart_holatda_tolov_yozilmaydi(self):
+        """Maydon 0 turadi — hech kim to'lamagan bo'lsa yozuv ham chiqmasin."""
+        self.yakunla()
+        self.assertEqual(Tolov.objects.count(), 0)
+        self.assertFalse(self.qarz.oldindan_tolanganmi)
+        self.assertEqual(self.qarzdor.balans, Decimal("500000"))
+
+    def test_qarzdan_ortiq_tolov_qabul_qilinmaydi(self):
+        """Aks holda balans manfiyga ketib «qarzi −100 000» chiqardi."""
+        javob = self.yakunla(oldindan="600000")
+        self.assertContains(javob, "qarz summasidan ko&#x27;p")
+        self.assertEqual(Tolov.objects.count(), 0)
+        self.qarz.refresh_from_db()
+        self.assertFalse(self.qarz.yakunlangan)
+
+    def test_toliq_tolansa_qarz_yopiladi(self):
+        self.yakunla(oldindan="500000")
+        self.assertEqual(self.qarzdor.balans, Decimal("0"))
+        self.assertFalse(self.qarzdor.qarzi_bormi)
+
+    def test_dollar_oldindan_somga_aralashmaydi(self):
+        self.yakunla(jami="500000", jami_dollar="100", oldindan_dollar="40")
+        self.assertEqual(self.qarzdor.balans, Decimal("500000"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("60"))
+
+    def test_dollar_oldindan_ham_chegaralanadi(self):
+        javob = self.yakunla(jami="500000", jami_dollar="100", oldindan_dollar="150")
+        self.assertContains(javob, "dollarlik summadan ko&#x27;p")
+        self.assertEqual(Tolov.objects.count(), 0)
+
+    def test_kartochkada_oldindan_tolov_korinadi(self):
+        self.yakunla(oldindan="200000")
+        javob = self.client.get(reverse("qarz:qarzdor_karta", args=[self.qarzdor.pk]))
+        self.assertContains(javob, "Oldindan to'langan")
+        self.assertContains(javob, "200 000")
+
+    def test_manfiy_tolov_qabul_qilinmaydi(self):
+        javob = self.yakunla(oldindan="-100")
+        self.assertContains(javob, "manfiy")
+        self.assertEqual(Tolov.objects.count(), 0)
+
+
+class QarzdorOynachaTest(KirganTest):
+    """Naqd sotuv oynachasidan yangi qarzdor qo'shish (sahifa almashmaydi)."""
+
+    def setUp(self):
+        super().setUp()
+        self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
+
+    def test_yangi_qarzdor_yaratiladi(self):
+        javob = self.client.post(reverse("qarz:qarzdor_json"), {
+            "ism": "Olim", "familiya": "Karimov", "telefon": "+998901112233",
+            "hudud": self.hudud.pk,
+        })
+        malumot = json.loads(javob.content)
+        self.assertTrue(malumot["ok"])
+        self.assertEqual(malumot["nom"], "Karimov Olim")
+        self.assertEqual(malumot["hudud"], "Hudud 1")
+        self.assertTrue(Qarzdor.objects.filter(pk=malumot["id"]).exists())
+
+    def test_notogri_malumot_maydon_bilan_qaytadi(self):
+        javob = self.client.post(reverse("qarz:qarzdor_json"), {
+            "ism": "", "familiya": "Karimov", "hudud": self.hudud.pk,
+        })
+        malumot = json.loads(javob.content)
+        self.assertFalse(malumot["ok"])
+        self.assertIn("ism", malumot["xatolar"])
+        self.assertEqual(Qarzdor.objects.count(), 0)
+
+    def test_get_bilan_ochilmaydi(self):
+        javob = self.client.get(reverse("qarz:qarzdor_json"))
+        self.assertEqual(javob.status_code, 405)

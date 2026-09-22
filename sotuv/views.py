@@ -9,10 +9,23 @@ from django.urls import reverse
 from django.utils import timezone
 
 from ombor.models import HarakatTuri, Mahsulot
-from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, qaytar, qaytarishni_oqi,
-                          songa, summalarni_oqi)
+from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, pulga, qaytar,
+                          qaytarishni_oqi, songa, summalarni_oqi)
+
+from qarz.forms import QarzdorForm
+from qarz.models import Qarz, Qarzdor
 
 from .models import Sotuv, SotuvQator
+
+
+def qarz_matn(summa, summa_dollar):
+    """«200 000 so'm» yoki «200 000 so'm va 15 $» — xabarda ko'rinadi."""
+    bolaklar = []
+    if summa > 0:
+        bolaklar.append(f"{summa:,.0f}".replace(",", " ") + " so'm")
+    if summa_dollar > 0:
+        bolaklar.append(f"{summa_dollar:,.0f}".replace(",", " ") + " $")
+    return " va ".join(bolaklar)
 
 
 def sotuv_boshlash(request):
@@ -33,6 +46,9 @@ def tahrir(request, pk):
         "qator_manzili": reverse("sotuv:qator_qoshish", args=[sotuv.pk]),
         "yakun_manzili": reverse("sotuv:yakunlash", args=[sotuv.pk]),
         "oxirgi_kurs": oxirgi_kurs(),
+        # Pul yetmay qolganda ochiladigan oynacha uchun — sahifa almashmasin
+        "qarzdorlar": Qarzdor.objects.select_related("hudud"),
+        "qarzdor_form": QarzdorForm(),
     })
 
 
@@ -69,12 +85,49 @@ def qator_ochirish(request, pk):
     return redirect("sotuv:tahrir", pk=sotuv_pk)
 
 
+def qarzni_oqi(post):
+    """Chekning qarzga qoladigan qismini o'qiydi.
+
+    Mijozda pul yetmay qolsa bir qismi qarzga yoziladi. Kassir sahifani
+    tashlab ketmaydi — qarzdor oynachada tanlanadi va uning `pk` si shu
+    yerda keladi.
+
+    (qarzdor, qarz_jami, qarz_jami_dollar, xato) qaytaradi. Qarzdor
+    tanlanmagan bo'lsa hammasi bo'sh — oddiy naqd sotuv.
+    """
+    qarzdor_pk = (post.get("qarzdor") or "").strip()
+    if not qarzdor_pk:
+        return None, Decimal("0"), Decimal("0"), None
+
+    qarzdor = Qarzdor.objects.filter(pk=qarzdor_pk).first()
+    if qarzdor is None:
+        return None, None, None, "Qarzdor topilmadi — qaytadan tanlang."
+
+    qarz_jami, xato = pulga(post.get("qarz_jami"), "Qarzga (so'm)")
+    if xato:
+        return None, None, None, xato
+
+    qarz_jami_dollar, xato = pulga(post.get("qarz_jami_dollar"), "Qarzga (dollar)")
+    if xato:
+        return None, None, None, xato
+
+    if qarz_jami <= 0 and qarz_jami_dollar <= 0:
+        return None, None, None, ("Qarzga qancha qolishini yozing — so'mda yoki "
+                                  "dollarda. Hech narsa qolmasa qarzdorni tanlamang.")
+    return qarzdor, qarz_jami, qarz_jami_dollar, None
+
+
 def yakunlash(request, pk):
     """Sotuvni yopadi. Chek summasi qo'lda kiritiladi.
 
     Summa hisoblanmaydi: savdolashib narx o'zgaradi (183 000 -> 180 000),
     shuning uchun kassir kalkulyatordagi sonni o'zi yozadi. So'mlik va
     dollarlik qism alohida yoziladi, qo'shilmaydi.
+
+    Mijozda pul yetmasa bir qismi qarzga qoladi: chekka **naqd olingan pul**
+    yoziladi (kunlik tushum shundan chiqadi), qolgani esa qarz hujjatiga
+    o'tadi. Tovarlar chekda qolgani uchun qarz hujjatining qatorlari
+    bo'lmaydi — ombor ikki marta kamaymaydi.
     """
     sotuv = get_object_or_404(Sotuv, pk=pk)
     if request.method != "POST":
@@ -85,9 +138,20 @@ def yakunlash(request, pk):
         messages.info(request, "Bo'sh sotuv bekor qilindi.")
         return redirect("qarz:boshlash")
 
-    jami, jami_dollar, kurs, xato = summalarni_oqi(request.POST)
+    qarzdor, qarz_jami, qarz_jami_dollar, xato = qarzni_oqi(request.POST)
     if xato:
         messages.error(request, xato)
+        return redirect("sotuv:tahrir", pk=sotuv.pk)
+
+    # Hammasi qarzga ketsa kassaga hech narsa tushmaydi — «Jami» bo'sh qoladi.
+    jami, jami_dollar, kurs, xato = summalarni_oqi(request.POST,
+                                                   majburiy=qarzdor is None)
+    if xato:
+        messages.error(request, xato)
+        return redirect("sotuv:tahrir", pk=sotuv.pk)
+
+    if qarz_jami_dollar > 0 and kurs <= 0:
+        messages.error(request, "Dollar qarzga yozilyapti — o'sha kungi kursni ham yozing.")
         return redirect("sotuv:tahrir", pk=sotuv.pk)
 
     sotuv.jami = jami
@@ -96,7 +160,16 @@ def yakunlash(request, pk):
     sotuv.yakunlangan = True
     sotuv.save(update_fields=["jami", "jami_dollar", "kurs", "yakunlangan"])
 
-    messages.success(request, "Sotuv yakunlandi.")
+    if qarzdor is None:
+        messages.success(request, "Sotuv yakunlandi.")
+        return redirect("sotuv:royxat")
+
+    Qarz.objects.create(
+        qarzdor=qarzdor, sotuv=sotuv, jami=qarz_jami, jami_dollar=qarz_jami_dollar,
+        kurs=kurs, izoh=f"Chek #{sotuv.pk} dan qolgan qarz", yakunlangan=True,
+    )
+    messages.success(request, f"Sotuv yakunlandi. {qarz_matn(qarz_jami, qarz_jami_dollar)} "
+                              f"{qarzdor.toliq_ism} ning daftariga yozildi.")
     return redirect("sotuv:royxat")
 
 

@@ -66,7 +66,7 @@
     </div>
 
     {# Summa hisoblanmaydi - savdolashilgan narx kalkulyatordan ko'chiriladi #}
-    {% include "kassa_jami_panel.html" with hujjat=sotuv tugma="Sotuvni yakunlash" amal=yakun_manzili %}
+    {% include "kassa_jami_panel.html" with hujjat=sotuv tugma="Sotuvni yakunlash" amal=yakun_manzili qarzga=1 %}
   </div>
 
   <div>
@@ -75,9 +75,11 @@
 </div>
 
 {% include "kassa_tovar_oyna.html" %}
+{% include "sotuv/qarz_oyna.html" %}
 {% endblock %}
 
 {% block skript %}
 <script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/kassa.js' %}"></script>
+<script src="{% statik 'js/sotuv_qarz.js' %}"></script>
 {% endblock %}

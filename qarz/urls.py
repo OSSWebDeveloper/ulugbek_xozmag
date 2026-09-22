@@ -9,6 +9,7 @@ urlpatterns = [
     path("", views.boshlash, name="boshlash"),
     path("qidirish/", views.qidirish, name="qidirish"),
     path("yangi/", views.yangi_qarzdor, name="yangi_qarzdor"),
+    path("yangi/oyna/", views.qarzdor_json, name="qarzdor_json"),
     path("qarzdorlar/", views.qarzdorlar_royxati, name="qarzdorlar"),
     path("qarzdor/<int:pk>/", views.qarzdor_karta, name="qarzdor_karta"),
     path("qarzdor/<int:pk>/tahrir/", views.qarzdor_tahrir, name="qarzdor_tahrir"),

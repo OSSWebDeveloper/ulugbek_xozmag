@@ -1,0 +1,136 @@
+{% comment %}
+Naqd sotuvda pul yetmay qolganda ochiladigan oynacha.
+
+Kassir sahifani tashlab ketolmaydi — mijoz qarshisida turibdi, chek ochiq.
+Shuning uchun hammasi shu yerda: qarzga qoladigan summa yoziladi, qarzdor
+tanlanadi, kerak bo'lsa yangi qarzdor ham shu yerda yaratiladi (sahifa
+almashmaydi, `/yangi/oyna/` ga so'rov ketadi).
+
+Tasdiqlangach oynacha yopiladi va tanlov pastdagi «Jami» formasining yashirin
+maydonlariga tushadi — yakunlash baribir bitta POST bo'lib qoladi.
+{% endcomment %}
+{% load xozmag %}
+<div class="oyna-fon" id="qarz-oyna">
+  <div class="oyna qarz-oyna">
+    <div class="oyna-bosh">
+      <span>Pul yetmadi &mdash; qolgani qarzga</span>
+      <button type="button" class="tugma tinch kichik" data-yop>
+        <svg class="ikon"><use href="#i-yopish"></use></svg> Yopish (Esc)
+      </button>
+    </div>
+
+    <div class="oyna-tana qarz-oyna-tana">
+      {# ---- Chap ustun: qancha qarzga qoladi ---- #}
+      <div class="qarz-summa-ustun">
+        <div class="tolov-maydon jami-maydon faol" data-qmaydon="qarz_jami"
+             title="Mijoz to'lamay qoldirgan so'mlik qism">
+          <span class="nomi">Qarzga</span>
+          <input type="text" class="qiymat raqam-maydon" id="qarz-jami"
+                 inputmode="decimal" autocomplete="off" placeholder="0">
+          <span class="birlik">so'm</span>
+        </div>
+
+        <div class="tolov-maydon jami-maydon dollar" data-qmaydon="qarz_jami_dollar"
+             title="Dollarlik qismidan qolgani — so'mga qo'shilmaydi">
+          <span class="nomi">Qarzga</span>
+          <input type="text" class="qiymat raqam-maydon" id="qarz-jami-dollar"
+                 inputmode="decimal" autocomplete="off" placeholder="0">
+          <span class="birlik">$</span>
+        </div>
+
+        {# Sensorli rejimda ko'rinadi (CSS hal qiladi) — oynachada ham raqam yozish kerak #}
+        <div class="raqamlar qarz-raqamlar" id="qarz-raqamlar">
+          <button type="button" class="tugma" data-raqam="7">7</button>
+          <button type="button" class="tugma" data-raqam="8">8</button>
+          <button type="button" class="tugma" data-raqam="9">9</button>
+          <button type="button" class="tugma" data-raqam="4">4</button>
+          <button type="button" class="tugma" data-raqam="5">5</button>
+          <button type="button" class="tugma" data-raqam="6">6</button>
+          <button type="button" class="tugma" data-raqam="1">1</button>
+          <button type="button" class="tugma" data-raqam="2">2</button>
+          <button type="button" class="tugma" data-raqam="3">3</button>
+          <button type="button" class="tugma" data-raqam="0">0</button>
+          <button type="button" class="tugma amal" data-raqam=".">,</button>
+          <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+        </div>
+      </div>
+
+      {# ---- O'ng ustun: kimning daftariga yoziladi ---- #}
+      <div class="qarzdor-ustun">
+        <div class="qidiruv-quti">
+          <input type="text" id="qarzdor-qidiruv" class="kirish"
+                 placeholder="Familiya, ism yoki hudud..." autocomplete="off">
+        </div>
+
+        <div class="qarzdor-setka" id="qarzdor-setka">
+          {% for q in qarzdorlar %}
+            <button type="button" class="qarzdor-karta" data-id="{{ q.pk }}"
+                    data-nom="{{ q.toliq_ism }}" data-hudud="{{ q.hudud.nom }}">
+              <span class="q-nom">{{ q.toliq_ism }}</span>
+              <span class="q-hudud">{{ q.hudud.nom }}</span>
+              {% if q.qarzi_bormi %}
+                <span class="nishon ogoh">
+                  Qarzi: {% if q.balans %}{{ q.balans|pul }} so'm{% endif %}
+                  {% if q.balans_dollar %}{{ q.balans_dollar|tekis }} ${% endif %}
+                </span>
+              {% else %}
+                <span class="nishon yashil">Qarzi yo'q</span>
+              {% endif %}
+            </button>
+          {% endfor %}
+        </div>
+
+        <div class="qarzdor-bosh-holat" id="qarzdor-bosh-holat" hidden>
+          Bunday qarzdor topilmadi &mdash; pastdan yangisini qo'shing.
+        </div>
+
+        {# ---- Yangi qarzdor: shu yerda yaratiladi, sahifa almashmaydi ---- #}
+        <button type="button" class="tugma keng" id="yangi-qarzdor-tugma">
+          <svg class="ikon"><use href="#i-odam-plus"></use></svg> Yangi qarzdor
+        </button>
+
+        <div class="yangi-qarzdor-forma" id="yangi-qarzdor-forma" hidden
+             data-manzil="{% url 'qarz:qarzdor_json' %}">
+          {% csrf_token %}
+          <div class="forma-setka">
+            <div class="maydon">
+              <label for="{{ qarzdor_form.ism.id_for_label }}">Ism</label>
+              {{ qarzdor_form.ism }}
+              <div class="xato-yozuv" data-xato="ism" hidden></div>
+            </div>
+            <div class="maydon">
+              <label for="{{ qarzdor_form.familiya.id_for_label }}">Familiya</label>
+              {{ qarzdor_form.familiya }}
+              <div class="xato-yozuv" data-xato="familiya" hidden></div>
+            </div>
+            <div class="maydon">
+              <label for="{{ qarzdor_form.telefon.id_for_label }}">Telefon</label>
+              {{ qarzdor_form.telefon }}
+              <div class="xato-yozuv" data-xato="telefon" hidden></div>
+            </div>
+            <div class="maydon">
+              <label for="{{ qarzdor_form.hudud.id_for_label }}">Hudud</label>
+              {{ qarzdor_form.hudud }}
+              <div class="xato-yozuv" data-xato="hudud" hidden></div>
+            </div>
+          </div>
+          <button type="button" class="tugma yashil keng" id="qarzdor-saqla">
+            <svg class="ikon"><use href="#i-belgi"></use></svg> Qo'shish va tanlash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="oyna-pastki">
+      <div class="qarz-xulosa" id="qarz-xulosa">Qarzdor tanlanmagan</div>
+      <button type="button" class="tugma xato" id="qarz-olib-tashla" hidden
+              title="Chek to'liq naqd bo'lsin — qarz yozilmasin">
+        <svg class="ikon"><use href="#i-yopish"></use></svg> Olib tashlash
+      </button>
+      <button type="button" class="tugma tinch" data-yop>Bekor qilish</button>
+      <button type="button" class="tugma yashil" id="qarz-tasdiq" disabled>
+        <svg class="ikon"><use href="#i-belgi"></use></svg> Tasdiqlash
+      </button>
+    </div>
+  </div>
+</div>

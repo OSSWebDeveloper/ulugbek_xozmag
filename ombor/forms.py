@@ -40,7 +40,7 @@ class MahsulotForm(forms.ModelForm):
                   "Qatorni o'chirsangiz kod ham o'chadi.",
         widget=forms.Textarea(attrs={"class": "kirish shtrix-maydon", "rows": 2,
                                      "autocomplete": "off", "spellcheck": "false",
-                                     "placeholder": "Skanerlang — bo'sh qolsa ham bo'ladi"}),
+                                     "placeholder": "Skanerlang"}),
     )
     qadoq_soni = VergulliDecimal(
         label="Necha qadoq keldi", max_digits=12, decimal_places=3, min_value=0, required=False,

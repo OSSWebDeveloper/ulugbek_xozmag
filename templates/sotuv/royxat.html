@@ -49,11 +49,25 @@
               {{ s.sana|date:"H:i" }} &middot; chek #{{ s.pk }}
               {% if s.bekor_qilingan %}<span class="nishon xato-nishon">Bekor qilingan</span>{% endif %}
               {% if s.qaytarilganmi %}<span class="nishon ogoh">Qaytarish bo'lgan</span>{% endif %}
+              {% if s.qarz %}
+                {# Pul yetmay qolgan qism — kimga yozilganini kun oxirida ko'rish kerak #}
+                <a class="nishon ogoh" href="{% url 'qarz:qarzdor_karta' s.qarz.qarzdor_id %}"
+                   title="Chekning qarzga qolgan qismi">
+                  Qarzga: {{ s.qarz.qarzdor.toliq_ism }}
+                </a>
+              {% endif %}
             </th>
             <th class="son">
               {% if s.sof_jami %}{{ s.sof_jami|pul }} so'm{% endif %}
               {% if s.sof_jami_dollar %}
                 <span class="dollar-yozuv">{{ s.sof_jami_dollar|tekis }} $</span>
+              {% endif %}
+              {% if s.qarz %}
+                <div class="kichkina">
+                  qarzga:
+                  {% if s.qarz.jami %}{{ s.qarz.jami|pul }} so'm{% endif %}
+                  {% if s.qarz.jami_dollar %}{{ s.qarz.jami_dollar|tekis }} ${% endif %}
+                </div>
               {% endif %}
               {% if s.qaytarilgan_summa or s.qaytarilgan_summa_dollar %}
                 <div class="kichkina">

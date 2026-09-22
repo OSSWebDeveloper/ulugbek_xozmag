@@ -71,7 +71,7 @@
     </div>
 
     {# Qarz summasi hisoblanmaydi - savdolashilgan narx kalkulyatordan ko'chiriladi #}
-    {% include "kassa_jami_panel.html" with hujjat=qarz tugma="Yakunlash va daftarga yozish" amal=yakun_manzili %}
+    {% include "kassa_jami_panel.html" with hujjat=qarz tugma="Yakunlash va daftarga yozish" amal=yakun_manzili oldindan=1 %}
 
     <div class="chek-tugmalar">
       <a class="tugma tinch keng" href="{% url 'qarz:qarzdor_karta' qarzdor.pk %}">

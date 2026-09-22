@@ -129,12 +129,16 @@ def qaytarishni_oqi(post, qator):
     return miqdor, summa, summa_dollar, None
 
 
-def summalarni_oqi(post, nomi="Jami"):
+def summalarni_oqi(post, nomi="Jami", majburiy=True):
     """Kassadagi so'm / dollar / kurs maydonlarini o'qiydi.
 
     So'm va dollar **qo'shilmaydi** — ikkalasi alohida yoziladi. Bittasi
     to'ldirilsa yetadi; dollar yozilgan bo'lsa o'sha kungi kurs ham so'raladi,
     chunki keyin bu summa qaysi kursda olingani kerak bo'ladi.
+
+    `majburiy=False` — ikkala maydon ham bo'sh qolishi mumkin. Naqd sotuvda
+    pulning hammasi qarzga yozilsa shunday bo'ladi: kassaga hech narsa
+    tushmaydi, summa qarz hujjatiga o'tadi.
 
     (jami, jami_dollar, kurs, xato) qaytaradi.
     """
@@ -150,7 +154,7 @@ def summalarni_oqi(post, nomi="Jami"):
     if xato:
         return None, None, None, xato
 
-    if jami <= 0 and jami_dollar <= 0:
+    if majburiy and jami <= 0 and jami_dollar <= 0:
         return None, None, None, f"{nomi} summasini yozing — so'mda yoki dollarda."
     if jami_dollar > 0 and kurs <= 0:
         return None, None, None, "Dollar summasi yozildi — o'sha kungi kursni ham yozing."

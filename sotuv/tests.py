@@ -7,6 +7,7 @@ from config.sinov import KirganTest
 from django.urls import reverse
 
 from ombor.models import Birlik, HarakatTuri, Mahsulot, OmborHarakati
+from qarz.models import Hudud, Qarz, Qarzdor
 
 from .models import Sotuv, SotuvQator
 
@@ -216,3 +217,108 @@ class SotuvTest(KirganTest):
             "mahsulot": self.mahsulot.pk, "miqdor": "2",
         })
         self.assertEqual(QarzQator.objects.count(), 0)
+
+
+class QismanQarzTest(KirganTest):
+    """Naqd sotuvda pul yetmay qolsa bir qismi qarzga yoziladi.
+
+    Tovarlar chekda qoladi, qarz hujjatida faqat pul bo'ladi — ombor ikki
+    marta kamaymasligi kerak.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.hudud = Hudud.objects.create(nom="Hudud 1", tartib=1)
+        self.qarzdor = Qarzdor.objects.create(ism="Vali", familiya="Aliyev",
+                                              hudud=self.hudud)
+        self.mahsulot = Mahsulot.objects.create(nom="Sement 50 kg", birlik=Birlik.QOP,
+                                                qoldiq=Decimal("100"))
+        self.sotuv = Sotuv.objects.create()
+        SotuvQator.objects.create(sotuv=self.sotuv, mahsulot=self.mahsulot,
+                                  miqdor=Decimal("10"))
+
+    def yakunla(self, **qoshimcha):
+        malumot = {"jami": "100000", "jami_dollar": "", "kurs": "12000"}
+        malumot.update(qoshimcha)
+        return self.client.post(reverse("sotuv:yakunlash", args=[self.sotuv.pk]),
+                                malumot, follow=True)
+
+    def test_qarz_hujjati_yaratiladi(self):
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000")
+        qarz = Qarz.objects.get(sotuv=self.sotuv)
+        self.assertEqual(qarz.qarzdor, self.qarzdor)
+        self.assertEqual(qarz.jami, Decimal("50000"))
+        self.assertTrue(qarz.yakunlangan)
+        self.assertTrue(qarz.chekdanmi)
+        self.assertIn(f"Chek #{self.sotuv.pk}", qarz.izoh)
+
+    def test_tovarlar_qarz_hujjatiga_kochmaydi(self):
+        """Tovar chekda turadi — aks holda ombordan ikki marta ayrilardi."""
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000")
+        qarz = Qarz.objects.get(sotuv=self.sotuv)
+        self.assertEqual(qarz.qatorlar_soni, 0)
+        self.mahsulot.refresh_from_db()
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
+
+    def test_chekka_faqat_naqd_pul_yoziladi(self):
+        """Kunlik tushum kassadagi pulni ko'rsatishi kerak."""
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000")
+        self.sotuv.refresh_from_db()
+        self.assertEqual(self.sotuv.jami, Decimal("100000"))
+        javob = self.client.get(reverse("sotuv:royxat"))
+        self.assertEqual(javob.context["jami"], Decimal("100000"))
+
+    def test_qarzdor_balansi_oshadi(self):
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000")
+        self.assertEqual(self.qarzdor.balans, Decimal("50000"))
+
+    def test_hammasi_qarzga_ketsa_jami_bosh_qolishi_mumkin(self):
+        javob = self.yakunla(jami="", qarzdor=self.qarzdor.pk, qarz_jami="150000")
+        self.sotuv.refresh_from_db()
+        self.assertTrue(self.sotuv.yakunlangan)
+        self.assertEqual(self.sotuv.jami, Decimal("0"))
+        self.assertEqual(self.qarzdor.balans, Decimal("150000"))
+        self.assertContains(javob, "daftariga yozildi")
+
+    def test_qarzdorsiz_jami_baribir_majburiy(self):
+        javob = self.yakunla(jami="", jami_dollar="")
+        self.assertContains(javob, "summasini yozing")
+        self.sotuv.refresh_from_db()
+        self.assertFalse(self.sotuv.yakunlangan)
+
+    def test_qarzdor_tanlanib_summa_yozilmasa_xato(self):
+        javob = self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="", qarz_jami_dollar="")
+        self.assertContains(javob, "Qarzga qancha qolishini yozing")
+        self.assertEqual(Qarz.objects.count(), 0)
+
+    def test_notanish_qarzdor_rad_etiladi(self):
+        javob = self.yakunla(qarzdor="999999", qarz_jami="50000")
+        self.assertContains(javob, "Qarzdor topilmadi")
+        self.assertEqual(Qarz.objects.count(), 0)
+
+    def test_dollar_qarzga_kurs_soraladi(self):
+        javob = self.yakunla(kurs="", qarzdor=self.qarzdor.pk, qarz_jami_dollar="40")
+        self.assertContains(javob, "kursni ham yozing")
+        self.assertEqual(Qarz.objects.count(), 0)
+
+    def test_dollar_qarz_som_hisobiga_aralashmaydi(self):
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000", qarz_jami_dollar="40")
+        self.assertEqual(self.qarzdor.balans, Decimal("50000"))
+        self.assertEqual(self.qarzdor.balans_dollar, Decimal("40"))
+
+    def test_qarzdorsiz_oddiy_sotuv_ozgarmagan(self):
+        javob = self.yakunla()
+        self.sotuv.refresh_from_db()
+        self.assertTrue(self.sotuv.yakunlangan)
+        self.assertEqual(Qarz.objects.count(), 0)
+        self.assertContains(javob, "Sotuv yakunlandi")
+
+    def test_manfiy_qarz_summasi_rad_etiladi(self):
+        javob = self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="-5000")
+        self.assertContains(javob, "manfiy")
+        self.assertEqual(Qarz.objects.count(), 0)
+
+    def test_chek_royxatida_qarz_korinadi(self):
+        self.yakunla(qarzdor=self.qarzdor.pk, qarz_jami="50000")
+        javob = self.client.get(reverse("sotuv:royxat"))
+        self.assertContains(javob, "Qarzga: Aliyev Vali")

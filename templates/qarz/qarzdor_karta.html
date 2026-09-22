@@ -69,6 +69,19 @@
                     {% if q.qaytarilganmi %}
                       <span class="nishon ogoh">Qaytarish bo'lgan</span>
                     {% endif %}
+                    {% if q.chekdanmi %}
+                      {# Tovarlar chekda turadi, shuning uchun bu hujjatda qator yo'q #}
+                      <span class="nishon kok" title="Naqd sotuvda pul yetmay qolgan qism">
+                        Chek #{{ q.sotuv_id }} dan
+                      </span>
+                    {% endif %}
+                    {% if q.oldindan_tolanganmi %}
+                      <span class="nishon yashil" title="Qarz yozilayotganda darrov to'langani">
+                        Oldindan to'langan:
+                        {% if q.oldindan %}{{ q.oldindan|pul }} so'm{% endif %}
+                        {% if q.oldindan_dollar %}{{ q.oldindan_dollar|tekis }} ${% endif %}
+                      </span>
+                    {% endif %}
                   </th>
                   <th class="son">
                     {% if q.sof_jami %}{{ q.sof_jami|pul }} so'm{% endif %}

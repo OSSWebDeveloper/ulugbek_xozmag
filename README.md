@@ -316,6 +316,59 @@ Maydon ustiga sichqoncha borsa qiymat qayerdan kelgani yozilib turadi.
 Kassir baribir ustidan o'zi yozishi mumkin — do'kon kursi bank kursidan
 farq qilishi normal.
 
+## Oldindan to'lov
+
+Mijoz qarz yozdirayotganda bir qismini darrov to'lashi mumkin: 500 000 lik mol
+oladi, 200 000 ini shu yerda beradi, daftarda 300 000 qoladi.
+
+Qarz ekranining pastida **«Oldindan»** maydonlari turadi (so'mlik va dollarlik
+alohida, boshqa joydagidek). Standart qiymati **0** — hech kim to'lamagan bo'lsa
+hech narsa yozilmaydi. Hujjat summasidan ortiq to'lash mumkin emas: aks holda
+balans manfiyga ketib «qarzi −100 000 so'm» degan ma'nosiz son chiqardi.
+
+Oldindan to'lov alohida maydonda **saqlanmaydi** — oddiy `Tolov` bo'lib yoziladi
+va `Tolov.qarz` orqali o'sha hujjatga bog'lanadi. Sabab: balans hisobi bitta
+joyda (to'lovlar yig'indisida) qolishi kerak, aks holda ikkita manba paydo
+bo'lib bir-biriga zid bo'lib qolardi. Qarzdor kartochkasida hujjat yonida
+«Oldindan to'langan: 200 000 so'm» degan nishon turadi.
+
+## Naqd sotuvda pul yetmasa
+
+Mijoz 150 000 lik mol oldi, qo'lida 100 000 bor. Qolgan 50 000 qarzga yoziladi
+— **sahifa almashmasdan**: kassir chekni tashlab ketolmaydi, mijoz qarshisida
+turibdi.
+
+«Jami» panelidagi **«Qarzga qoldirish»** tugmasi oynacha ochadi. Oynachada:
+
+- chapda — qarzga qoladigan summa (so'm va dollar alohida) va sensorli rejimda
+  o'z raqamlar klaviaturasi;
+- o'ngda — qarzdorlar ro'yxati, familiya/ism/hudud bo'yicha qidiruv bilan;
+- pastda — **«Yangi qarzdor»**: mijoz birinchi marta qarz olayotgan bo'lsa shu
+  yerda yaratiladi (`/yangi/oyna/` ga so'rov ketadi, sahifa yangilanmaydi) va
+  darrov tanlanadi.
+
+Tasdiqlangach oynacha yopiladi, tugmada «Qarzga: 50 000 so'm» deb turadi —
+kassir yakunlashdan oldin nima bo'layotganini ko'rib turadi. Tanlov «Jami»
+formasining yashirin maydonlariga tushadi, ya'ni yakunlash baribir **bitta
+oddiy POST** bo'lib qoladi. Fikridan qaytsa oynachadagi «Olib tashlash».
+
+Hisob qanday yuritiladi:
+
+| Nima | Qayerga tushadi |
+|---|---|
+| Naqd olingan pul | `Sotuv.jami` — **kunlik tushum** shundan chiqadi |
+| Qarzga qolgani | alohida `Qarz` hujjati, `Qarz.sotuv` orqali chekka bog'lanadi |
+| Tovarlar | chekda qoladi, qarz hujjatida **qator bo'lmaydi** |
+
+Tovarlar ko'chirilmasligi muhim: aks holda ombordan ikki marta ayrilardi. Qarz
+hujjati shu sababli faqat puldan iborat, izohida «Chek #12 dan qolgan qarz»
+deb turadi va qarzdor kartochkasida «Chek #12 dan» nishoni ko'rinadi.
+Sotuvlar ro'yxatida ham chek yonida kimga yozilgani va qancha ekani turadi.
+
+Pulning **hammasi** qarzga ketsa «Jami» bo'sh qolishi mumkin — kassaga hech
+narsa tushmagan bo'ladi. Qarzdor tanlanmagan bo'lsa esa «Jami» avvalgidek
+majburiy.
+
 ## Qaytarib berish (vozvrat)
 
 Mijoz olgan tovarni qaytarib kelishi mumkin va **qaytarish to'liq bo'lmasligi
@@ -458,7 +511,8 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 
 ## Tuzilishi
 
-- `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov
+- `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov; `Tolov.qarz` — oldindan
+  to'lov qaysi hujjatga tegishli, `Qarz.sotuv` — chekdan qolgan qarz
 - `sotuv/` — Sotuv, SotuvQator (naqd savdo)
 - `ombor/` — Mahsulot, ShtrixKod, OmborHarakati; `ombor/xizmat.py` — qoldiqni
   o'zgartiruvchi yagona joy (qarz ham, sotuv ham shuni chaqiradi);
@@ -468,6 +522,8 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 - `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
 - `static/js/skaner.js` — skanerni klaviaturadan ajratadi va `/ombor/kod/` ga so'raydi
+- `static/js/sotuv_qarz.js`, `templates/sotuv/qarz_oyna.html` — chekning qarzga
+  qoladigan qismi va yangi qarzdor oynachasi
 - `versiya.py`, `versiya.txt`, `VERSIYALAR.md` — versiyalash
 - `config/sinov.py` — testlar uchun asos (sayt login talab qilgani uchun
   har bir test kirib oladi)

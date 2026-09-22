@@ -6,6 +6,14 @@ ikki xil keladi, klientning asosiy sharti shu ikkisi aralashmasligi. Kurs
 dollarlik summa yozilgandagina so'raladi — keyin bu qarz qaysi kursda
 olingani kerak bo'ladi.
 
+`qarzga` berilsa naqd sotuvdagi **«Qarzga qoldirish»** tugmasi chiqadi: mijozda
+pul yetmasa oynacha ochiladi va chekning bir qismi qarzga yoziladi. Tanlov shu
+formaning yashirin maydonlariga tushadi — yakunlash bitta POST bo'lib qoladi.
+
+`oldindan` berilsa qarz ekranidagi **oldindan to'lov** maydonlari chiqadi:
+mijoz qarz yozdirayotganda bir qismini darrov to'lashi mumkin. Standart holatda
+0 — ya'ni hech narsa to'lanmagan.
+
 Chaqirilishi:
 {% include "kassa_jami_panel.html" with hujjat=<sotuv/qarz> amal=<forma manzili> tugma="Yakunlash" %}
 {% endcomment %}
@@ -37,6 +45,38 @@ Chaqirilishi:
            value="{% if hujjat.kurs %}{{ hujjat.kurs|tekis }}{% elif oxirgi_kurs %}{{ oxirgi_kurs.qiymat|tekis }}{% endif %}">
     <span class="birlik">so'm</span>
   </div>
+
+  {% if oldindan %}
+    {# Oldindan to'lov o'z qatoriga tushadi: bitta qatorda besh maydon siqilib qolardi #}
+    <div class="qator-uzish"></div>
+
+    <div class="tolov-maydon oldindan-maydon" data-maydon="oldindan"
+         title="Mijoz shu hujjat uchun darrov to'lagan pul — qarzidan shu zahoti ayriladi">
+      <span class="nomi">Oldindan</span>
+      <input type="text" class="qiymat raqam-maydon" name="oldindan" id="oldindan"
+             inputmode="decimal" autocomplete="off" placeholder="0">
+      <span class="birlik">so'm</span>
+    </div>
+
+    <div class="tolov-maydon oldindan-maydon dollar" data-maydon="oldindan_dollar"
+         title="Dollarlik qarzdan darrov to'langani — so'mga qo'shilmaydi">
+      <span class="nomi">Oldindan</span>
+      <input type="text" class="qiymat raqam-maydon" name="oldindan_dollar" id="oldindan-dollar"
+             inputmode="decimal" autocomplete="off" placeholder="0">
+      <span class="birlik">$</span>
+    </div>
+  {% endif %}
+
+  {% if qarzga %}
+    <input type="hidden" name="qarzdor" id="qarz-qarzdor">
+    <input type="hidden" name="qarz_jami" id="qarz-jami-yashirin">
+    <input type="hidden" name="qarz_jami_dollar" id="qarz-jami-dollar-yashirin">
+    <button type="button" class="tugma qarzga-tugma" id="qarzga-tugma"
+            title="Mijozda pul yetmasa chekning bir qismini qarzga yozish">
+      <svg class="ikon"><use href="#i-hamyon"></use></svg>
+      <span id="qarzga-yozuv">Qarzga</span>
+    </button>
+  {% endif %}
 
   <button type="submit" class="tugma yashil" style="flex:1.6;min-width:180px">
     <svg class="ikon"><use href="#i-belgi"></use></svg> {{ tugma }}

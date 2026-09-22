@@ -96,9 +96,18 @@ class Qarz(models.Model):
 
     So'm va dollar qarzi **alohida** yuritiladi, qo'shilmaydi. `kurs` o'sha
     kundagi dollar kursi — keyin to'lov paytida kerak bo'ladi.
+
+    Hujjat ikki yo'l bilan tug'iladi: qarz ekranida tovar yozib (qatorlari
+    bo'ladi) yoki naqd sotuvda pul yetmay qolganda (`sotuv` to'ldiriladi,
+    qatorlari bo'lmaydi — tovarlar chekda turadi).
     """
 
     qarzdor = models.ForeignKey(Qarzdor, on_delete=models.CASCADE, related_name="qarzlar")
+    sotuv = models.OneToOneField(
+        "sotuv.Sotuv", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="qarz", verbose_name="Qaysi chekdan",
+        help_text="Naqd sotuvda pul yetmay qolgan qismi shu yerga yoziladi.",
+    )
     sana = models.DateTimeField("Sana", auto_now_add=True)
     jami = models.DecimalField("Jami so'm", max_digits=14, decimal_places=2, default=0)
     jami_dollar = models.DecimalField("Jami dollar", max_digits=12, decimal_places=2, default=0)
@@ -121,6 +130,30 @@ class Qarz(models.Model):
     @property
     def qatorlar_soni(self):
         return self.qatorlar.count()
+
+    @property
+    def chekdanmi(self):
+        """Naqd sotuvda pul yetmay qolgan qismimi."""
+        return self.sotuv_id is not None
+
+    # ---------- Oldindan to'lov ----------
+    # Qarz yozilayotganda mijoz bir qismini darrov to'lashi mumkin. U alohida
+    # maydonda saqlanmaydi — oddiy `Tolov` bo'lib yoziladi va shu hujjatga
+    # bog'lanadi, shunda balans hisobi bitta joyda qoladi.
+
+    @property
+    def oldindan(self):
+        jami = self.tolovlar.filter(valyuta=Valyuta.SOM).aggregate(s=Sum("summa"))["s"]
+        return jami or Decimal("0")
+
+    @property
+    def oldindan_dollar(self):
+        jami = self.tolovlar.filter(valyuta=Valyuta.DOLLAR).aggregate(s=Sum("summa"))["s"]
+        return jami or Decimal("0")
+
+    @property
+    def oldindan_tolanganmi(self):
+        return self.oldindan > 0 or self.oldindan_dollar > 0
 
     # ---------- Qaytarib berish ----------
 
@@ -176,9 +209,18 @@ class Tolov(models.Model):
 
     To'lov ham valyutasi bilan yoziladi: so'm qarzi so'm bilan, dollar qarzi
     dollar bilan yopiladi. Aks holda ikki hisob aralashib ketadi.
+
+    `qarz` to'ldirilgan bo'lsa bu **oldindan to'lov** — qarz yozilayotgan
+    payt mijoz bir qismini darrov bergani. Balans uchun farqi yo'q, faqat
+    kartochkada qaysi hujjatga tushgani ko'rinadi.
     """
 
     qarzdor = models.ForeignKey(Qarzdor, on_delete=models.CASCADE, related_name="tolovlar")
+    qarz = models.ForeignKey(
+        Qarz, on_delete=models.SET_NULL, null=True, blank=True, related_name="tolovlar",
+        verbose_name="Qaysi hujjatga",
+        help_text="Qarz yozilayotganda darrov to'langan bo'lsa shu hujjat.",
+    )
     summa = models.DecimalField("Summa", max_digits=14, decimal_places=2)
     valyuta = models.CharField("Valyuta", max_length=10, choices=Valyuta, default=Valyuta.SOM)
     sana = models.DateTimeField("Sana", auto_now_add=True)

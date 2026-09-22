@@ -11,7 +11,7 @@
   <div class="quti">
     <form method="get" class="qator">
       <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
-             placeholder="Tovar nomi yoki kodi — skanerlash ham mumkin" autocomplete="off">
+             placeholder="Tovar nomi yoki kodi" autocomplete="off">
       <button type="submit" class="tugma" style="flex:1">
         <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
       </button>
@@ -49,7 +49,6 @@
             <td class="son">
               {# Kassada va tarozida shu 4 raqam uriladi #}
               <b class="qisqa-kod">{{ m.qisqa_kod }}</b>
-              <div class="sust toliq-kod">{{ m.kod }}</div>
             </td>
             <td>
               <b>{{ m.nom }}</b>

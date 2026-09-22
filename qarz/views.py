@@ -2,13 +2,14 @@
 from decimal import Decimal
 
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ombor.models import Mahsulot
 from ombor.models import HarakatTuri, Valyuta
-from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, qaytar, qaytarishni_oqi,
-                          songa, summalarni_oqi)
+from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, pulga, qaytar,
+                          qaytarishni_oqi, songa, summalarni_oqi)
 
 from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
@@ -89,6 +90,32 @@ def yangi_qarzdor(request):
     else:
         form = QarzdorForm()
     return render(request, "qarz/yangi_qarzdor.html", {"form": form})
+
+
+def qarzdor_json(request):
+    """Yangi qarzdorni oynachadan qo'shadi — sahifa almashmaydi.
+
+    Naqd sotuvda pul yetmay qolganda kassir chekni tashlab boshqa sahifaga
+    o'tolmaydi: mijoz qarshisida turibdi. Shuning uchun qarzdor o'sha
+    oynachaning o'zida yaratiladi va darrov tanlanadi.
+    """
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "xato": "Faqat POST."}, status=405)
+
+    form = QarzdorForm(request.POST)
+    if not form.is_valid():
+        # Maydon nomi bilan birinchi xatosi — oynachada o'sha maydon tagida chiqadi
+        xatolar = {maydon: xato[0] for maydon, xato in form.errors.items()}
+        return JsonResponse({"ok": False, "xatolar": xatolar})
+
+    qarzdor = form.save()
+    return JsonResponse({
+        "ok": True,
+        "id": qarzdor.pk,
+        "nom": qarzdor.toliq_ism,
+        "hudud": qarzdor.hudud.nom,
+        "telefon": qarzdor.telefon,
+    })
 
 
 def qarzdor_karta(request, pk):
@@ -220,6 +247,50 @@ def qator_qaytarish(request, pk):
     return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)
 
 
+def oldindanni_oqi(post, jami, jami_dollar):
+    """Qarz yakunlanayotganda darrov to'langan pulni o'qiydi.
+
+    Hujjat summasidan ortiq to'lash mumkin emas — aks holda qarzdorning
+    balansi manfiyga ketib, «qarzi −5 000 so'm» degan ma'nosiz son chiqadi.
+
+    (oldindan, oldindan_dollar, xato) qaytaradi.
+    """
+    oldindan, xato = pulga(post.get("oldindan"), "Oldindan to'lov (so'm)")
+    if xato:
+        return None, None, xato
+
+    oldindan_dollar, xato = pulga(post.get("oldindan_dollar"), "Oldindan to'lov (dollar)")
+    if xato:
+        return None, None, xato
+
+    if oldindan > jami:
+        return None, None, (f"Oldindan to'lov qarz summasidan ko'p: {pul_matn(oldindan)} > "
+                            f"{pul_matn(jami)} so'm.")
+    if oldindan_dollar > jami_dollar:
+        return None, None, (f"Oldindan to'lov dollarlik summadan ko'p: "
+                            f"{pul_matn(oldindan_dollar)} > {pul_matn(jami_dollar)} $.")
+    return oldindan, oldindan_dollar, None
+
+
+def oldindan_yoz(qarz, oldindan, oldindan_dollar):
+    """Oldindan to'langan pulni oddiy `Tolov` bo'lib yozadi.
+
+    Alohida maydon emas, chunki balans hisobi bitta joyda — to'lovlar
+    yig'indisida — qolishi kerak. `qarz` to'ldirilgani uchun kartochkada
+    qaysi hujjatga tushgani ko'rinadi.
+
+    Ekranda ko'rsatish uchun qisqa matn qaytaradi.
+    """
+    yozilgan = []
+    for summa, valyuta, belgi in ((oldindan, Valyuta.SOM, "so'm"),
+                                  (oldindan_dollar, Valyuta.DOLLAR, "$")):
+        if summa > 0:
+            Tolov.objects.create(qarzdor=qarz.qarzdor, qarz=qarz, summa=summa,
+                                 valyuta=valyuta, izoh=f"Hujjat #{qarz.pk} — oldindan")
+            yozilgan.append(f"{pul_matn(summa)} {belgi}")
+    return " va ".join(yozilgan)
+
+
 def qarz_yakunlash(request, pk):
     """Qarz hujjatini yopadi. Qarz summasi qo'lda kiritiladi.
 
@@ -240,13 +311,21 @@ def qarz_yakunlash(request, pk):
             messages.error(request, xato)
             return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
+        oldindan, oldindan_dollar, xato = oldindanni_oqi(request.POST, jami, jami_dollar)
+        if xato:
+            messages.error(request, xato)
+            return redirect("qarz:qarz_tahrir", pk=qarz.pk)
+
         qarz.jami = jami
         qarz.jami_dollar = jami_dollar
         qarz.kurs = kurs
         qarz.izoh = request.POST.get("izoh", "")[:200]
         qarz.yakunlangan = True
         qarz.save(update_fields=["jami", "jami_dollar", "kurs", "izoh", "yakunlangan"])
-        messages.success(request, "Qarz daftarga yozildi.")
+
+        tolandi = oldindan_yoz(qarz, oldindan, oldindan_dollar)
+        messages.success(request, "Qarz daftarga yozildi." +
+                         (f" Oldindan to'langani: {tolandi}." if tolandi else ""))
     return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)
 
 

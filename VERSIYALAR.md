@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 2.7.0 — 2026-09-22
+
+Oldindan to'lov, naqd sotuvda qisman qarz oynachasi, ko'rinish tozalandi
+
 ## 2.6.0 — 2026-09-22
 
 Tovar kodi (0000000001), oxirgi 4 raqam bilan topish, shtrix skaner va tarozi etiketkasi

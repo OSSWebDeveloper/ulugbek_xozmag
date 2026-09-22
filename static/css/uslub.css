@@ -759,7 +759,7 @@ table.jadval tfoot th { background: var(--panel-2); color: var(--matn-rang); fon
 .kiritish-maydon.kod-maydon .qiymat {
   min-height: var(--tugma-balandlik);
   font-size: var(--katta-matn);
-  letter-spacing: .08em;
+  letter-spacing: .04em;
 }
 .kod-maydon .kod-tugma { margin-right: 6px; flex: none; }
 .tanlangan-tovar .tovar-kodi {
@@ -812,6 +812,14 @@ body:not(.rejim-sensor) .ong-panel .qosh-qator { margin-top: auto; }
 .tolov-maydon.dollar .nomi,
 .tolov-maydon.dollar .birlik { color: var(--tasdiq); }
 .kurs-maydon { flex: 1; min-width: 185px; }
+
+/* Oldindan to'lov — qarz ekranida. Maydon tor: unga odatda 0 yoki bir-ikki
+   raqam yoziladi, asosiy joy «Jami» da qolishi kerak. */
+/* Flexbox da qatorni majburan uzish — keyingi maydonlar yangi qatordan boshlanadi */
+.tolov-panel .qator-uzish { flex-basis: 100%; height: 0; margin: 0; }
+.oldindan-maydon { flex: 1; min-width: 175px; }
+.oldindan-maydon .qiymat { font-size: var(--katta-matn); }
+.oldindan-maydon .nomi { color: var(--matn-3); }
 .kurs-maydon .nomi { padding: 0 9px; }
 .kurs-maydon .qiymat { font-size: var(--matn); font-weight: 600; }
 .kurs-maydon .birlik { padding: 0 10px 0 3px; font-size: 11px; }
@@ -1293,11 +1301,110 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 
 /* ---- Ombor ro'yxatidagi kod ustuni va shtrix maydoni ---- */
 .qisqa-kod { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
-.toliq-kod { font-size: 11px; font-variant-numeric: tabular-nums; }
 /* Kodlar bir-birining ostida turadi; forma baribir bitta ekranga sig'ishi kerak,
    shuning uchun maydon past — kerak bo'lsa foydalanuvchi o'zi cho'zadi. */
 textarea.shtrix-maydon {
   display: block;        /* inline-block ostidagi bo'sh chiziq forma balandligini oshiradi */
   font-variant-numeric: tabular-nums; letter-spacing: .04em;
   resize: vertical; line-height: 1.45;
+}
+
+/* ---- Naqd sotuvda «qolgani qarzga» oynachasi ----
+   Chapda qancha qarzga qolishi, o'ngda kimning daftariga yozilishi. Ikkovi
+   yonma-yon turadi: kassir mijoz qarshisida turibdi, ikki qadam o'rniga
+   bitta ekranda tugashi kerak. */
+.qarz-oyna { max-width: 900px; }
+.qarz-oyna-tana {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: var(--oraliq);
+  align-items: start;
+}
+.qarz-summa-ustun { display: flex; flex-direction: column; gap: 8px; }
+.qarz-summa-ustun .tolov-maydon { min-width: 0; flex: none; }
+/* Oynachadagi numpad kassadagidan pastroq — asosiy joy qarzdorlar ro'yxatiga */
+.qarz-raqamlar { min-height: 0; height: 232px; flex: none; }
+
+.qarzdor-ustun { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.qarzdor-setka {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  max-height: 230px;
+  overflow: auto;
+}
+.qarzdor-karta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 11px;
+  text-align: left;
+  border: 1px solid var(--chegara);
+  border-radius: var(--radius-s);
+  background: var(--panel-2);
+  color: var(--matn-rang);
+  font-family: inherit;
+  font-size: var(--matn);
+  cursor: pointer;
+  transition: border-color .12s ease, background .12s ease;
+}
+.qarzdor-karta:hover { border-color: var(--urgu); background: var(--panel-3); }
+.qarzdor-karta.tanlangan { border-color: var(--kok); background: var(--kok-fon); }
+.qarzdor-karta .q-nom {
+  font-weight: 650; letter-spacing: -.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.qarzdor-karta .q-hudud { font-size: 12px; color: var(--matn-3); }
+.qarzdor-karta .nishon { align-self: flex-start; }
+
+.qarzdor-bosh-holat {
+  padding: 14px; text-align: center; color: var(--matn-3);
+  border: 1px dashed var(--chegara-2); border-radius: var(--radius-s);
+}
+
+/* Yangi qarzdor shu yerda yaratiladi — sahifa almashmaydi */
+.yangi-qarzdor-forma {
+  border: 1px solid var(--chegara-2);
+  border-radius: var(--radius-s);
+  background: var(--panel-2);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.yangi-qarzdor-forma .forma-setka { gap: 10px; margin: 0; }
+.yangi-qarzdor-forma[hidden] { display: none; }
+
+.oyna-pastki {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px var(--oraliq);
+  border-top: 1px solid var(--chegara);
+  background: var(--panel-2);
+  flex: none;
+}
+.oyna-pastki .tugma { flex: none; }
+/* .tugma o'zida display: inline-flex bor — [hidden] uni yenga olmaydi */
+.oyna-pastki .tugma[hidden] { display: none; }
+.qarz-xulosa {
+  flex: 1;
+  min-width: 0;
+  color: var(--matn-2);
+  font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* «Jami» panelidagi tugma — tanlov bo'lsa rangi o'zgaradi, kassir
+   yakunlashdan oldin nima bo'layotganini ko'rib turadi */
+.qarzga-tugma { flex: 1; min-width: 130px; }
+.qarzga-tugma.tanlangan {
+  border-color: var(--ogoh-chek);
+  background: var(--ogoh-fon);
+  color: var(--ogoh);
+}
+
+@media (max-width: 860px) {
+  .qarz-oyna-tana { grid-template-columns: 1fr; }
+  .qarz-raqamlar { display: none; }
 }
