@@ -1,5 +1,16 @@
 # Versiyalar tarixi
 
+## 2.8.0 — 2026-09-23
+
+Sotuv qayta ishlandi: autosplit va qidiruvda tovar kodi
+
+- Pul maydonlarida raqamlar o'zi guruhlanadi (200000 -> 200 000).
+- «Jami» — chekning to'liq summasi; «Qarzga» oynachasi uni to'langan va
+  qarz qismga o'zi bo'ladi, biri yozilsa ikkinchisi hisoblanadi.
+- Tovar tanlash oynasining qidiruv ro'yxatida tovar kodi.
+- «Bekor qilish» endi tasdiq so'raydi; yopilgan chekka tegilmaydi va u ikki
+  marta yakunlanmaydi; qaytarilgan pul avval qarzdan ayriladi.
+
 ## 2.7.0 — 2026-09-22
 
 Oldindan to'lov, naqd sotuvda qisman qarz oynachasi, ko'rinish tozalandi
