@@ -1,6 +1,7 @@
 """Qarz daftari formalari."""
 from django import forms
 
+from ombor.forms import VergulliDecimal
 from ombor.models import Valyuta
 
 from .models import Qarzdor, Tolov
@@ -45,9 +46,12 @@ class TolovForm(forms.ModelForm):
     class Meta:
         model = Tolov
         fields = ["summa", "valyuta", "izoh"]
+        # Summa guruhlangan keladi («250 000») — bo'shliqlarni maydon o'zi oladi
+        field_classes = {"summa": VergulliDecimal}
         widgets = {
-            "summa": forms.NumberInput(attrs={"class": "kirish raqam-maydon", "step": "0.01",
-                                              "inputmode": "decimal", "placeholder": "0"}),
+            "summa": forms.TextInput(attrs={"class": "kirish raqam-maydon pul-maydon",
+                                            "inputmode": "decimal", "autocomplete": "off",
+                                            "placeholder": "0"}),
             "valyuta": forms.Select(attrs={"class": "kirish"}),
             "izoh": forms.TextInput(attrs={"class": "kirish", "placeholder": "Izoh (ixtiyoriy)"}),
         }

@@ -197,6 +197,11 @@ Tovar endi to'rt yo'l bilan tanlanadi, hammasi bitta joyga (`tovarTanla()`) bora
 Miqdor faqat kodning o'zi aytganda to'ladi (tarozi yoki quti). Qolgan hollarda
 bo'sh qoladi — do'konda miqdor kamdan-kam 1 ta bo'ladi.
 
+Kod hamma joyda ko'rinadi: tovar kartalarida, **tovar tanlash oynasining
+qidiruv ro'yxatida** (har qator oldida ustun bo'lib; raqam bilan izlanganda mos
+kelgan raqamlar belgilanadi — nega topilgani ko'rinsin), chek qatorlarida va
+sotuvlar ro'yxatida.
+
 ### Skaner nega sozlamasiz ishlaydi
 
 USB skaner kompyuterga **klaviatura** bo'lib ulanadi: kodni juda tez yozadi va
@@ -332,25 +337,43 @@ joyda (to'lovlar yig'indisida) qolishi kerak, aks holda ikkita manba paydo
 bo'lib bir-biriga zid bo'lib qolardi. Qarzdor kartochkasida hujjat yonida
 «Oldindan to'langan: 200 000 so'm» degan nishon turadi.
 
-## Naqd sotuvda pul yetmasa
+## Naqd sotuvda pul yetmasa (autosplit)
 
 Mijoz 150 000 lik mol oldi, qo'lida 100 000 bor. Qolgan 50 000 qarzga yoziladi
 — **sahifa almashmasdan**: kassir chekni tashlab ketolmaydi, mijoz qarshisida
 turibdi.
 
-«Jami» panelidagi **«Qarzga qoldirish»** tugmasi oynacha ochadi. Oynachada:
+**«Jami» — har doim chekning to'liq summasi** (kelishilgan narx). Kassir uni
+yozadi, keyin «Jami» panelidagi **«Qarzga»** tugmasini bosadi. Oynachada
+«Jami» o'zi ikkiga bo'linadi:
 
-- chapda — qarzga qoladigan summa (so'm va dollar alohida) va sensorli rejimda
-  o'z raqamlar klaviaturasi;
+```
+Jami        150 000 so'm      <- pastdagi «Jami» dan, o'zgarmaydi
+To'ladi   [ 100 000 ] so'm    <- mijoz bergan pul
+Qarzga    [  50 000 ] so'm    <- o'zi hisoblanadi: Jami − To'ladi
+```
+
+Bittasi yozilsa ikkinchisi o'zi to'ladi: «To'ladi» ga 100 000 yozilsa qarz
+50 000, «Qarzga» ga 30 000 yozilsa to'langani 120 000. Oynacha ochilganda
+hammasi qarzga turadi (To'ladi = 0). So'm va dollar **alohida** bo'linadi;
+dollar qismi chekda dollar bo'lsagina ko'rinadi. To'langan pul jamidan ko'p
+bo'lsa qizil ogohlantirish chiqadi va tasdiqlab bo'lmaydi. «Jami» yozilmagan
+bo'lsa oynacha ochilmaydi — avval summa kerak.
+
+Oynachaning qolgan qismi:
+
 - o'ngda — qarzdorlar ro'yxati, familiya/ism/hudud bo'yicha qidiruv bilan;
-- pastda — **«Yangi qarzdor»**: mijoz birinchi marta qarz olayotgan bo'lsa shu
-  yerda yaratiladi (`/yangi/oyna/` ga so'rov ketadi, sahifa yangilanmaydi) va
-  darrov tanlanadi.
+- **«Yangi qarzdor»**: mijoz birinchi marta qarz olayotgan bo'lsa shu yerda
+  yaratiladi (`/yangi/oyna/` ga so'rov ketadi, sahifa yangilanmaydi) va darrov
+  tanlanadi;
+- sensorli rejimda o'z raqamlar klaviaturasi.
 
-Tasdiqlangach oynacha yopiladi, tugmada «Qarzga: 50 000 so'm» deb turadi —
-kassir yakunlashdan oldin nima bo'layotganini ko'rib turadi. Tanlov «Jami»
-formasining yashirin maydonlariga tushadi, ya'ni yakunlash baribir **bitta
-oddiy POST** bo'lib qoladi. Fikridan qaytsa oynachadagi «Olib tashlash».
+Tasdiqlangach tugmada ikki qator turadi: «Qarzga · Aliyev Vali» va
+«50 000 so'm». Formaning yashirin maydoniga **to'langan pul** tushadi, qarz
+esa har doim Jami − To'ladi — kassir «Jami» ni keyin o'zgartirsa tugmadagi
+qarz ham darrov o'zgaradi. Yakunlash baribir **bitta oddiy POST**, hisobni
+server qayta tekshiradi (`sotuv/views.py`, `qarzni_oqi`). Fikridan qaytsa
+oynachadagi «Olib tashlash».
 
 Hisob qanday yuritiladi:
 
@@ -358,16 +381,22 @@ Hisob qanday yuritiladi:
 |---|---|
 | Naqd olingan pul | `Sotuv.jami` — **kunlik tushum** shundan chiqadi |
 | Qarzga qolgani | alohida `Qarz` hujjati, `Qarz.sotuv` orqali chekka bog'lanadi |
+| Chekning to'liq summasi | saqlanmaydi, `Sotuv.umumiy_jami` = naqd + qarz |
 | Tovarlar | chekda qoladi, qarz hujjatida **qator bo'lmaydi** |
 
 Tovarlar ko'chirilmasligi muhim: aks holda ombordan ikki marta ayrilardi. Qarz
 hujjati shu sababli faqat puldan iborat, izohida «Chek #12 dan qolgan qarz»
-deb turadi va qarzdor kartochkasida «Chek #12 dan» nishoni ko'rinadi.
-Sotuvlar ro'yxatida ham chek yonida kimga yozilgani va qancha ekani turadi.
+deb turadi. Qarzdor kartochkasida «Chek #12 dan» nishoni ostida chekning
+tovarlari ko'rinadi va ularni shu yerdan qaytarish mumkin.
 
-Pulning **hammasi** qarzga ketsa «Jami» bo'sh qolishi mumkin — kassaga hech
-narsa tushmagan bo'ladi. Qarzdor tanlanmagan bo'lsa esa «Jami» avvalgidek
-majburiy.
+Sotuvlar ro'yxatida chek yonida to'liq summa, uning ostida «naqd: … · qarzga:
+…» va kimga yozilgani turadi. Kun ko'rsatkichlari ham ikki xil: **Kunlik
+tushum** (kassaga tushgan pul) va **Qarzga yozildi** (shu kunning cheklaridan
+daftarga o'tgani).
+
+Pulning **hammasi** qarzga ketsa (To'ladi = 0) kassaga hech narsa tushmaydi.
+Hammasi to'langan bo'lsa qarz yozilmaydi — server «qarzga hech narsa
+qolmadi» deb qaytaradi.
 
 ## Qaytarib berish (vozvrat)
 
@@ -388,6 +417,16 @@ ko'rinadi), qatorda «5 qop qaytarilgan» bo'lib qoladi, hujjat summasidan
 qaytarilgan pul ayriladi. Qarzda bu qarzdorning balansini kamaytiradi — mijoz
 olmagan mol uchun qarzdor bo'lib qolmaydi.
 
+**Chekning bir qismi qarzga yozilgan bo'lsa** pul avval o'sha qarzdan ayriladi,
+qolgani mijozning qo'liga qaytariladi (`qaytarishni_taqsimla`). 200 000 lik
+chek: 50 000 naqd, 150 000 qarz; 60 000 lik mol qaytsa — qarz 90 000 ga
+tushadi, kassadan pul chiqmaydi. Qarzdan ko'pi bilan qarzdorning **hozirgi**
+qarzicha ayriladi: u qarzini to'lab bo'lgan bo'lsa pul qo'lga qaytadi, balans
+manfiyga ketmaydi. Qaytarish sahifasida bu qoida oldindan yozib turadi.
+
+Qaytarish faqat yakunlangan chekdan bo'ladi — ochiq chekdagi tovar qatorni
+o'chirib qaytariladi.
+
 Maydonlar: `SotuvQator.qaytarilgan` / `QarzQator.qaytarilgan` (miqdor),
 `Sotuv.qaytarilgan_summa(_dollar)` / `Qarz.qaytarilgan_summa(_dollar)` (pul).
 Hisoblar `sof_jami` orqali yuradi.
@@ -400,6 +439,17 @@ Bekor qilingan chek ro'yxatda xira ko'rinadi, nishoni bor va kunlik tushumga
 qo'shilmaydi; tovarlari o'sha zahoti omborga qaytadi. Faqat **bo'sh chek**
 (bironta tovar qo'shilmagani) o'chiriladi — unda yozib qo'yadigan narsa yo'q.
 
+**Yopilgan chekka tegilmaydi.** Brauzerning «Orqaga» tugmasi yakunlangan
+chekning kassa ekranini qaytarib berardi — unga tovar qo'shish, qatorni
+o'chirish yoki chekni bekor qilish mumkin edi. Endi bunday so'rov o'sha kunning
+ro'yxatiga qaytariladi («Chek #11 yakunlangan — uni endi o'zgartirib
+bo'lmaydi»). Yakunlash bitta shartli `UPDATE` bilan bo'ladi: «Yakunlash» ikki
+marta bosilsa ham qarz ikki marta yozilmaydi. Qarz ekranida ham xuddi shunday
+(`yopiq_hujjat`) — oldindan to'lov ikki marta tushmaydi.
+
+`Sotuv.sana` — chek **yopilgan** payt. Kecha ochilib bugun yakunlangan chek
+puli bugungi tushumga tushadi.
+
 ## Bildirishnomalar
 
 Xabarlar sahifani surib yubormaydi: **o'ng yuqorida kichkina** qalqib chiqadi
@@ -407,11 +457,45 @@ va **5 soniyadan keyin o'zi o'chadi** (bosilsa darrov). Kassa ekranida joy
 tor — katta xabar qatori butun joylashuvni pastga suradi va ish buziladi.
 Kodi: `static/js/bildirishnoma.js`, uslubi `.xabarlar` / `.xabar`.
 
-## Ish tartibi: naqd sotuv
+## Ish tartibi: sotuv
 
-Bosh sahifadagi **Sotuv** — qarzga yozilmaydigan savdo: tovarlar qo'shiladi,
-pastdagi **Jami** ga kelishilgan summa yoziladi, yakunlangach tovarlar
-ombordan ayriladi. Kunlik tushum **Sotuvlar** sahifasida ko'rinadi.
+Bosh sahifadagi **Sotuv** — do'kondagi savdo cheki:
+
+1. Sahifa ochilganda kursor **«Kod»** da turadi (sichqoncha rejimida): yorliqdagi
+   raqam urib Enter → miqdor → Enter. Tovar qo'shilgach kursor yana «Kod» ga
+   qaytadi, ya'ni butun chek klaviaturadan teriladi. Skaner va «Yangi tovar»
+   (F2) ham avvalgidek.
+2. Tovar qo'shilishi bilan ombordan ayriladi; qatorni o'chirsa qaytadi.
+3. Pastdagi **Jami** ga chekning kelishilgan summasi yoziladi (so'm va dollar
+   alohida). Pul yetmasa — «Qarzga» (yuqoridagi bo'lim).
+4. **Sotuvni yakunlash.** Jami yozilmagan yoki dollar bor-u kurs yo'q bo'lsa
+   sahifa yuborilmaydi, darrov ogohlantirish chiqadi.
+
+Chek sarlavhasida raqami, ochilgan vaqti va tovarlar soni turadi; yonidagi
+**«Sotuvlar»** tugmasi kunlik ro'yxatni ochadi. Kunlik tushum va qarzga
+yozilgani o'sha sahifada.
+
+## Pul maydonlari: raqamlar o'zi bo'linadi
+
+Summa yozilayotganda raqamlar **o'zi guruhlanadi** (autosplit): `200000`
+yozilsa maydonda `200 000` bo'lib turadi — kassir nollarni sanab o'tirmaydi.
+Kassadagi Jami / Kurs / Oldindan, qarzga oynachasi, qaytarish, to'lov qabul
+qilish va tovar narxi — hammasida bir xil.
+
+Kodi `static/js/forma.js` da: maydonga `pul-maydon` klassi beriladi, kasr
+xonalari `data-kasr` bilan (so'mda 0 — tiyin yozilmaydi, dollar va kursda 2).
+Kasr vergul bilan ko'rinadi (`12,5 $`), nuqta yozilsa ham vergulga aylanadi.
+Kursor o'z raqamining yonida qoladi, numpad bilan yozganda ham ishlaydi.
+
+Server hech narsani o'zgartirmaydi: `ombor/xizmat.py` dagi `tozala` bo'shliqlarni
+(oddiy va uzilmas) olib tashlaydi, `VergulliDecimal` ham shuni ishlatadi.
+
+Shu faylda formalar uchun yana ikki qoida bor:
+
+| Atribut | Nima qiladi |
+|---|---|
+| `data-tasdiq="Savol?"` | yuborishdan oldin so'raydi. Avval `onsubmit="confirm('…')"` edi — «Qo'shilgan» dagi apostrof JS satrini buzib, chek **so'ramasdan** bekor bo'lib ketardi |
+| `data-bir-marta` | forma bir marta yuboriladi: tugma ikki bosilsa ikkinchi so'rov ketmaydi |
 
 ## Bir birlikda olinib boshqasida sotiladigan tovarlar
 
@@ -522,8 +606,10 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 - `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
 - `static/js/skaner.js` — skanerni klaviaturadan ajratadi va `/ombor/kod/` ga so'raydi
-- `static/js/sotuv_qarz.js`, `templates/sotuv/qarz_oyna.html` — chekning qarzga
-  qoladigan qismi va yangi qarzdor oynachasi
+- `static/js/sotuv_qarz.js`, `templates/sotuv/qarz_oyna.html` — «Jami» ni
+  to'langan va qarz qismga bo'lish (autosplit) va yangi qarzdor oynachasi
+- `static/js/forma.js` — pul maydonlarida raqamlarni guruhlash, `data-tasdiq`,
+  `data-bir-marta` (har bir sahifada yuklanadi)
 - `versiya.py`, `versiya.txt`, `VERSIYALAR.md` — versiyalash
 - `config/sinov.py` — testlar uchun asos (sayt login talab qilgani uchun
   har bir test kirib oladi)

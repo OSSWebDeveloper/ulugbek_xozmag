@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load xozmag %}
 
+{% block sarlavha %}Sotuvlar{% endblock %}
+
 {% block tana %}
 <div class="sahifa-keng sahifa-toliq">
   <div class="sarlavha">
-    Naqd sotuvlar
+    Sotuvlar
     <span class="kichik">{{ sana|date:"d.m.Y" }}{% if bugunmi %} (bugun){% endif %}</span>
   </div>
 
@@ -14,13 +16,22 @@
         <div class="nomi">Sotuvlar soni</div>
         <div class="qiymati">{{ soni }}</div>
       </div>
-      <div class="korsatkich diqqat">
+      <div class="korsatkich diqqat" title="Kassaga naqd tushgan pul — qarzga qolgani bu yerga kirmaydi">
         <div class="nomi">Kunlik tushum</div>
         <div class="qiymati">{{ jami|pul }} so'm</div>
         {% if jami_dollar %}
           <div class="dollar-yozuv katta">{{ jami_dollar|tekis }} $</div>
         {% endif %}
       </div>
+      {% if qarzga or qarzga_dollar %}
+        <div class="korsatkich ogoh" title="Shu kungi cheklardan qarzdorlarning daftariga yozilgani">
+          <div class="nomi">Qarzga yozildi</div>
+          <div class="qiymati">{% if qarzga %}{{ qarzga|pul }} so'm{% else %}0{% endif %}</div>
+          {% if qarzga_dollar %}
+            <div class="dollar-yozuv">{{ qarzga_dollar|tekis }} $</div>
+          {% endif %}
+        </div>
+      {% endif %}
       <form method="get" style="display:flex;gap:var(--oraliq);align-items:flex-end;flex:2">
         <div class="maydon" style="flex:1;margin:0">
           <label for="kun">Kunni tanlang</label>
@@ -40,7 +51,10 @@
     </div>
   </div>
 
+  {# Cheklar bitta qutida siljiydi — har biri o'z balandligida, siqilmaydi #}
+  <div class="cheklar">
   {% for s in sotuvlar %}
+    {% with qarz=s.qarz_hujjati %}
     <div class="jadval-quti {% if s.bekor_qilingan %}bekor{% endif %}">
       <table class="jadval">
         <thead>
@@ -49,32 +63,46 @@
               {{ s.sana|date:"H:i" }} &middot; chek #{{ s.pk }}
               {% if s.bekor_qilingan %}<span class="nishon xato-nishon">Bekor qilingan</span>{% endif %}
               {% if s.qaytarilganmi %}<span class="nishon ogoh">Qaytarish bo'lgan</span>{% endif %}
-              {% if s.qarz %}
+              {% if qarz %}
                 {# Pul yetmay qolgan qism — kimga yozilganini kun oxirida ko'rish kerak #}
-                <a class="nishon ogoh" href="{% url 'qarz:qarzdor_karta' s.qarz.qarzdor_id %}"
+                <a class="nishon ogoh" href="{% url 'qarz:qarzdor_karta' qarz.qarzdor_id %}"
                    title="Chekning qarzga qolgan qismi">
-                  Qarzga: {{ s.qarz.qarzdor.toliq_ism }}
+                  Qarzga: {{ qarz.qarzdor.toliq_ism }}
                 </a>
               {% endif %}
             </th>
             <th class="son">
-              {% if s.sof_jami %}{{ s.sof_jami|pul }} so'm{% endif %}
-              {% if s.sof_jami_dollar %}
-                <span class="dollar-yozuv">{{ s.sof_jami_dollar|tekis }} $</span>
-              {% endif %}
-              {% if s.qarz %}
-                <div class="kichkina">
-                  qarzga:
-                  {% if s.qarz.jami %}{{ s.qarz.jami|pul }} so'm{% endif %}
-                  {% if s.qarz.jami_dollar %}{{ s.qarz.jami_dollar|tekis }} ${% endif %}
-                </div>
-              {% endif %}
-              {% if s.qaytarilgan_summa or s.qaytarilgan_summa_dollar %}
-                <div class="kichkina">
-                  qaytarildi:
-                  {% if s.qaytarilgan_summa %}{{ s.qaytarilgan_summa|pul }} so'm{% endif %}
-                  {% if s.qaytarilgan_summa_dollar %}{{ s.qaytarilgan_summa_dollar|tekis }} ${% endif %}
-                </div>
+              {% if s.bekor_qilingan %}
+                &mdash;
+              {% else %}
+                {% if s.umumiy_jami or not s.umumiy_jami_dollar %}{{ s.umumiy_jami|pul }} so'm{% endif %}
+                {% if s.umumiy_jami_dollar %}
+                  <span class="dollar-yozuv">{{ s.umumiy_jami_dollar|tekis }} $</span>
+                {% endif %}
+                {% if qarz %}
+                  <div class="kichkina">
+                    naqd:
+                    {% if s.sof_jami or not s.sof_jami_dollar %}{{ s.sof_jami|pul }} so'm{% endif %}
+                    {% if s.sof_jami_dollar %}{{ s.sof_jami_dollar|tekis }} ${% endif %}
+                    &middot; qarzga:
+                    {% if qarz.sof_jami %}{{ qarz.sof_jami|pul }} so'm{% endif %}
+                    {% if qarz.sof_jami_dollar %}{{ qarz.sof_jami_dollar|tekis }} ${% endif %}
+                    {% if not qarz.sof_jami and not qarz.sof_jami_dollar %}0{% endif %}
+                  </div>
+                {% endif %}
+                {% if s.qaytarilgan_summa or s.qaytarilgan_summa_dollar or qarz.qaytarilgan_summa or qarz.qaytarilgan_summa_dollar %}
+                  <div class="kichkina">
+                    qaytarildi:
+                    {% if s.qaytarilgan_summa %}{{ s.qaytarilgan_summa|pul }} so'm{% endif %}
+                    {% if s.qaytarilgan_summa_dollar %}{{ s.qaytarilgan_summa_dollar|tekis }} ${% endif %}
+                    {% if qarz.qaytarilgan_summa or qarz.qaytarilgan_summa_dollar %}
+                      {% if s.qaytarilgan_summa or s.qaytarilgan_summa_dollar %}&middot;{% endif %}
+                      qarzdan
+                      {% if qarz.qaytarilgan_summa %}{{ qarz.qaytarilgan_summa|pul }} so'm{% endif %}
+                      {% if qarz.qaytarilgan_summa_dollar %}{{ qarz.qaytarilgan_summa_dollar|tekis }} ${% endif %}
+                    {% endif %}
+                  </div>
+                {% endif %}
               {% endif %}
             </th>
             <th style="width:1%"></th>
@@ -84,6 +112,7 @@
           {% for qator in s.qatorlar.all %}
             <tr>
               <td>
+                <span class="qator-kod">{{ qator.mahsulot.qisqa_kod }}</span>
                 {{ qator.mahsulot_nomi }}
                 {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
               </td>
@@ -106,16 +135,18 @@
         </tbody>
       </table>
     </div>
+    {% endwith %}
   {% empty %}
     <div class="quti">
       <div class="bosh-holat">
         <svg class="ikon"><use href="#i-savdo"></use></svg>
-        <b>Bu kuni naqd sotuv bo'lmagan</b>
+        <b>Bu kuni sotuv bo'lmagan</b>
         <a class="tugma yashil" href="{% url 'sotuv:boshlash' %}" style="margin-top:12px">
           Yangi sotuv boshlash
         </a>
       </div>
     </div>
   {% endfor %}
+  </div>
 </div>
 {% endblock %}

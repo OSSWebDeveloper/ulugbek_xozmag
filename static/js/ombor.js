@@ -4,8 +4,9 @@
 (function () {
   "use strict";
 
+  // Narx maydonida son guruhlangan turadi («45 000») — bo'shliqlar olinadi
   function son(matn) {
-    var q = parseFloat(String(matn || "").replace(",", "."));
+    var q = parseFloat(String(matn || "").replace(/\s/g, "").replace(",", "."));
     return isNaN(q) ? 0 : q;
   }
 

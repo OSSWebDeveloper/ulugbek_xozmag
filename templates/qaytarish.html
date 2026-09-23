@@ -38,7 +38,7 @@ hech qayerda saqlanmaydi.
     </div>
   </div>
 
-  <form method="post" class="quti forma-setka">
+  <form method="post" class="quti forma-setka" data-bir-marta>
     {% csrf_token %}
 
     <div class="maydon keng">
@@ -52,17 +52,26 @@ hech qayerda saqlanmaydi.
 
     <div class="maydon">
       <label for="summa">Qaytarilgan pul (so'm)</label>
-      <input type="text" class="kirish raqam-maydon" name="summa" id="summa"
-             inputmode="decimal" autocomplete="off" placeholder="0">
+      <input type="text" class="kirish raqam-maydon pul-maydon" name="summa" id="summa"
+             inputmode="decimal" autocomplete="off" placeholder="0" data-kasr="0">
       <div class="maydon-izoh">Hujjatda qolgani: {{ jami|pul }} so'm</div>
     </div>
 
     <div class="maydon">
       <label for="summa_dollar">Qaytarilgan pul ($)</label>
-      <input type="text" class="kirish raqam-maydon" name="summa_dollar" id="summa_dollar"
+      <input type="text" class="kirish raqam-maydon pul-maydon" name="summa_dollar" id="summa_dollar"
              inputmode="decimal" autocomplete="off" placeholder="0">
       <div class="maydon-izoh">Hujjatda qolgani: {{ jami_dollar|tekis }} $</div>
     </div>
+
+    {% if qarz %}
+      {# Chekning bir qismi qarzga yozilgan — qaytarilgan pul qayerga tushishi oldindan ko'rinsin #}
+      <div class="qoida-satri ogoh keng">
+        Chekdan {% if qarz.sof_jami %}{{ qarz.sof_jami|pul }} so'm{% endif %}{% if qarz.sof_jami and qarz.sof_jami_dollar %} va {% endif %}{% if qarz.sof_jami_dollar %}{{ qarz.sof_jami_dollar|tekis }} ${% endif %}
+        {{ qarz.qarzdor.toliq_ism }} ning qarziga yozilgan. Qaytarilgan pul avval shu qarzdan
+        ayriladi, qolgani mijozning qo'liga qaytariladi.
+      </div>
+    {% endif %}
 
     <div class="qator keng">
       <a class="tugma tinch" href="{{ orqaga }}" style="flex:1">

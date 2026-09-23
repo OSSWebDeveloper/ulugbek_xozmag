@@ -14,9 +14,9 @@
   var kodEl, kodiEl, kodSora;
   var faolMaydon = "miqdor";
 
+  // Pul maydonlarida son guruhlangan turadi («200 000») — js/forma.js o'qiydi
   function son(matn) {
-    var q = parseFloat(String(matn || "").replace(",", "."));
-    return isNaN(q) ? 0 : q;
+    return window.Pul.son(matn);
   }
 
   function sensorMi() {
@@ -43,13 +43,21 @@
     return kirish || miqdorEl;
   }
 
+  /* Numpad maydonga yozgach `input` hodisasini chiqaradi — pul maydoni
+     o'zi guruhlanadi, «Qarzga» tugmasi ham yangi «Jami» ni ko'radi. */
+  function yozildi(el) {
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    holatYangila();
+  }
+
   function raqamBos(belgi) {
     var el = joriyInput();
     var q = el.value === "0" ? "" : el.value;
-    if (belgi === "." && q.indexOf(".") !== -1) return;
-    if (belgi === "." && q === "") q = "0";
+    var kasrli = belgi === "." || belgi === ",";
+    if (kasrli && /[.,]/.test(q)) return;
+    if (kasrli && q === "") q = "0";
     el.value = q + belgi;
-    holatYangila();
+    yozildi(el);
   }
 
   function tozalaHammasi() {
@@ -148,8 +156,11 @@
     } else {
       dropdown.innerHTML = topilgan.map(function (k) {
         var yoq = k.classList.contains("yoq");
+        // Kod chapda, ustun bo'lib turadi — raqam bilan izlanganda nega
+        // topilgani ham ko'rinadi (mos kelgan raqamlar belgilanadi).
         return '<button type="button" class="dropdown-qator' + (yoq ? " yoq" : "") +
           '" role="option" data-id="' + k.dataset.id + '">' +
+          '<span class="d-kod">' + belgila(k.dataset.qisqa || "", soz) + "</span>" +
           '<span class="d-nom">' + belgila(k.dataset.nom, soz) + "</span>" +
           '<span class="d-qoldiq">' +
           (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik +
@@ -180,6 +191,29 @@
       dropdownYop();
       tovarTanla(karta);
     }
+  }
+
+  // ---------- Yakunlashdan oldin ----------
+  /* Server ham tekshiradi, lekin kassir xato uchun sahifa yangilanishini
+     kutmasin — yozgan narsalari (qarz tanlovi ham) o'chib ketmasin.
+     Bo'sh hujjat tekshirilmaydi: uni server o'zi o'chiradi. */
+  function yakunTekshir(e) {
+    if (!document.querySelector(".chek-royxat tbody tr")) return;
+    var som = son(document.getElementById("jami").value);
+    var dollar = son(document.getElementById("jami-dollar").value);
+    var xato = "", maydon = "";
+    if (som <= 0 && dollar <= 0) {
+      xato = "Jami summasini yozing — so'mda yoki dollarda.";
+      maydon = "jami";
+    } else if (dollar > 0 && son(document.getElementById("kurs").value) <= 0) {
+      xato = "Dollar summasi yozildi — o'sha kungi kursni ham yozing.";
+      maydon = "kurs";
+    }
+    if (!xato) return;
+    e.preventDefault();
+    window.xabarBer(xato, "error");
+    faolQoy(maydon);
+    if (!sensorMi()) document.getElementById(maydon).focus();
   }
 
   // ---------- Kod, shtrix va tarozi etiketkasi ----------
@@ -294,8 +328,8 @@
       if (t.dataset.raqam) raqamBos(t.dataset.raqam);
       else if (t.dataset.amal === "ochir") {
         var el = joriyInput();
-        el.value = el.value.slice(0, -1);
-        holatYangila();
+        el.value = el.value.replace(/\s+$/, "").slice(0, -1);
+        yozildi(el);
       }
     });
 
@@ -316,10 +350,19 @@
       if (e.key === "Enter" && document.activeElement.tagName !== "BUTTON") {
         // «Jami» maydonida Enter o'sha formani yuboradi — aralashmaymiz.
         if (document.activeElement.closest("form") !== forma) return;
-        if (!qoshTugma.disabled) { e.preventDefault(); forma.submit(); }
+        e.preventDefault();
+        // requestSubmit — `submit` hodisasi chiqadi, ya'ni forma.js dagi
+        // «bir marta» qoidasi ishlaydi: Enter ikki bosilsa tovar ikki marta tushmaydi
+        if (!qoshTugma.disabled) forma.requestSubmit(qoshTugma);
       }
     });
 
+    var jamiForma = document.getElementById("jami-forma");
+    if (jamiForma) jamiForma.addEventListener("submit", yakunTekshir);
+
     tozalaHammasi();
+    // Sichqoncha rejimida kursor darrov «Kod» da turadi: keyingi tovarning
+    // raqami urilib, Enter bilan qo'shilaveradi (sahifa har qo'shishda yangilanadi)
+    if (!sensorMi() && kodEl) kodEl.focus();
   });
 })();

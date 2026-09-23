@@ -1,4 +1,5 @@
-"""Naqd sotuv modellari (qarzsiz savdo)."""
+"""Sotuv modellari: do'kondagi savdo cheki."""
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 
@@ -6,7 +7,7 @@ from ombor.models import Mahsulot
 
 
 class Sotuv(models.Model):
-    """Bitta naqd savdo cheki.
+    """Bitta savdo cheki.
 
     Narx qatorlarda saqlanmaydi — do'konda pul kalkulyatorda hisoblanadi.
     Tizim qaysi tovar qancha chiqqanini yozadi, chek summasi esa yakunlashda
@@ -14,6 +15,13 @@ class Sotuv(models.Model):
 
     So'm va dollar **qo'shilmaydi**: ikkita alohida summa yoziladi. `kurs`
     o'sha kundagi dollar kursi — yozib qo'yiladi, lekin summalar birlashtirilmaydi.
+
+    `jami` — kassaga **naqd tushgan** pul (kunlik tushum shundan chiqadi).
+    Mijozda pul yetmasa qolgani alohida `Qarz` hujjatiga yoziladi va
+    `self.qarz` orqali bog'lanadi; chekning to'liq summasi — `umumiy_jami`.
+
+    `sana` — chek yakunlangan (yoki bekor qilingan) payt: kechagi ochiq chek
+    bugun yopilsa puli bugungi tushumga tushadi.
     """
 
     sana = models.DateTimeField("Sana", auto_now_add=True)
@@ -41,9 +49,38 @@ class Sotuv(models.Model):
         return self.qatorlar.count()
 
     @property
+    def ochiqmi(self):
+        """Chekka hali tovar qo'shish, uni yakunlash yoki bekor qilish mumkinmi."""
+        return not (self.yakunlangan or self.bekor_qilingan)
+
+    @property
     def dollarmi(self):
         """Chekda dollarlik qism bormi."""
         return self.jami_dollar > 0
+
+    # ---------- Qarzga qolgan qism ----------
+
+    @property
+    def qarz_hujjati(self):
+        """Pul yetmay qolgan qism yozilgan qarz hujjati; bo'lmasa None."""
+        try:
+            return self.qarz
+        except ObjectDoesNotExist:
+            return None
+
+    @property
+    def umumiy_jami(self):
+        """Chekning to'liq summasi: naqd tushgani + qarzga qolgani.
+
+        Ikkalasidan ham qaytarilgan pul ayrilgan — ya'ni mijozda qolgan mol puli.
+        """
+        qarz = self.qarz_hujjati
+        return self.sof_jami + (qarz.sof_jami if qarz else 0)
+
+    @property
+    def umumiy_jami_dollar(self):
+        qarz = self.qarz_hujjati
+        return self.sof_jami_dollar + (qarz.sof_jami_dollar if qarz else 0)
 
     # ---------- Qaytarib berish ----------
 

@@ -123,6 +123,32 @@
                     </td>
                   </tr>
                 {% endfor %}
+                {% if q.chekdanmi %}
+                  {# Tovarlar chekda turadi — ko'rinib tursin, qaytarish ham shu yerdan #}
+                  {% for qator in q.sotuv.qatorlar.all %}
+                    <tr>
+                      <td>
+                        {{ qator.mahsulot_nomi }}
+                        {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
+                      </td>
+                      <td class="son">
+                        {{ qator.qolgan_miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span>
+                        {% if qator.qaytarilgan %}
+                          <div class="kichkina">{{ qator.qaytarilgan|tekis }} {{ qator.birlik }} qaytarilgan</div>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if qator.qolgan_miqdor > 0 %}
+                          <a class="tugma tinch kichik"
+                             href="{% url 'sotuv:qaytarish' qator.pk %}?keyin={{ request.path|urlencode }}"
+                             title="Tovarni qaytarib olish — pul avval shu qarzdan ayriladi">
+                            <svg class="ikon"><use href="#i-kirim"></use></svg> Qaytarish
+                          </a>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
                 {% if not q.yakunlangan %}
                   <tr>
                     <td colspan="3">
@@ -173,8 +199,8 @@
                       <span class="sust">{% if t.dollarmi %}$ {% else %}so'm{% endif %}</span>
                     </td>
                     <td>
-                      <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}"
-                          onsubmit="return confirm('Bu to'lov o'chirilsinmi? Qarz summasi ortga qaytadi.')">
+                      <form method="post" action="{% url 'qarz:tolov_ochirish' t.pk %}" data-bir-marta
+                            data-tasdiq="Bu to'lov o'chirilsinmi? Qarz summasi ortga qaytadi.">
                         {% csrf_token %}
                         <button class="tugma xato kichik" type="submit" title="To'lovni o'chirish">
                           <svg class="ikon"><use href="#i-chiqar"></use></svg>

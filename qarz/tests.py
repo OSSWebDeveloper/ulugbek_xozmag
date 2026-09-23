@@ -278,6 +278,11 @@ class TolovChegarasiTest(KirganTest):
         self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
         self.assertContains(javob, "Qolgan so&#x27;m qarzi 100 000")
 
+    def test_guruhlangan_summa_qabul_qilinadi(self):
+        """Maydonda son «10 000» bo'lib turadi (js/forma.js) — shunday ham o'qiladi."""
+        self.client.post(self.manzil, {"summa": "10 000", "izoh": ""})
+        self.assertEqual(self.qarzdor.balans, Decimal("100000.00"))
+
 
 class QarzdorlarKorinishiTest(KirganTest):
     """Qarzdorlar bo'limi: tanlov -> hududlar -> ro'yxat."""
@@ -457,6 +462,21 @@ class OldindanTolovTest(KirganTest):
         javob = self.yakunla(oldindan="-100")
         self.assertContains(javob, "manfiy")
         self.assertEqual(Tolov.objects.count(), 0)
+
+    def test_ikki_marta_yakunlansa_tolov_ikki_marta_yozilmaydi(self):
+        """«Yakunlash» ikki bosilsa ham oldindan to'lov bitta bo'lib qoladi."""
+        self.yakunla(oldindan="200000")
+        self.yakunla(oldindan="200000")
+        self.assertEqual(Tolov.objects.count(), 1)
+        self.assertEqual(self.qarzdor.balans, Decimal("300000"))
+
+    def test_yakunlangan_hujjatga_tovar_qoshilmaydi(self):
+        self.yakunla()
+        self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]),
+                         {"mahsulot": self.mahsulot.pk, "miqdor": "5"})
+        self.assertEqual(self.qarz.qatorlar.count(), 1)
+        javob = self.client.get(reverse("qarz:qarz_tahrir", args=[self.qarz.pk]))
+        self.assertRedirects(javob, reverse("qarz:qarzdor_karta", args=[self.qarzdor.pk]))
 
 
 class QarzdorOynachaTest(KirganTest):

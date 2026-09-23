@@ -21,6 +21,20 @@ def pul_matn(son):
     return f"{son:,.0f}".replace(",", " ")
 
 
+def yopiq_hujjat(request, qarz):
+    """Yakunlangan qarz hujjatiga tovar qo'shilmaydi va u qayta yakunlanmaydi.
+
+    «Orqaga» tugmasi yopilgan hujjatning kassa ekranini qaytarib beradi,
+    «Yakunlash» ikki marta bosilishi ham mumkin — shunda oldindan to'lov
+    ikki marta yozilib, ombordan ortiqcha tovar ayrilardi. Hujjat ochiq
+    bo'lsa None, yopiq bo'lsa qarzdor kartasiga yo'naltirish qaytaradi.
+    """
+    if not qarz.yakunlangan:
+        return None
+    messages.info(request, f"Hujjat #{qarz.pk} yakunlangan — uni endi o'zgartirib bo'lmaydi.")
+    return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)
+
+
 def boshlash(request):
     """Bosh sahifa: eski qarzdormi yoki yangi qarzdormi?"""
     return render(request, "qarz/boshlash.html")
@@ -123,7 +137,9 @@ def qarzdor_karta(request, pk):
     qarzdor = get_object_or_404(Qarzdor.objects.select_related("hudud"), pk=pk)
     return render(request, "qarz/qarzdor_karta.html", {
         "qarzdor": qarzdor,
-        "qarzlar": qarzdor.qarzlar.prefetch_related("qatorlar__mahsulot"),
+        # Chekdan qolgan qarzning tovarlari chekda turadi — ular ham kerak
+        "qarzlar": qarzdor.qarzlar.select_related("sotuv").prefetch_related(
+            "qatorlar__mahsulot", "sotuv__qatorlar__mahsulot"),
         "tolovlar": qarzdor.tolovlar.all()[:20],
         "tolov_form": TolovForm(),
     })
@@ -156,6 +172,9 @@ def qarz_boshlash(request, qarzdor_pk):
 def qarz_tahrir(request, pk):
     """Qarz qo'shish sahifasi (kassa ko'rinishi)."""
     qarz = get_object_or_404(Qarz.objects.select_related("qarzdor__hudud"), pk=pk)
+    yopiq = yopiq_hujjat(request, qarz)
+    if yopiq:
+        return yopiq
     mahsulotlar = Mahsulot.objects.filter(faol=True)
     return render(request, "qarz/qarz_tahrir.html", {
         "qarz": qarz,
@@ -176,6 +195,9 @@ def qator_qoshish(request, pk):
     qarz = get_object_or_404(Qarz, pk=pk)
     if request.method != "POST":
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
+    yopiq = yopiq_hujjat(request, qarz)
+    if yopiq:
+        return yopiq
 
     mahsulot = get_object_or_404(Mahsulot, pk=request.POST.get("mahsulot"))
     miqdor, xato = songa(request.POST.get("miqdor"), "Miqdor")
@@ -198,6 +220,9 @@ def qator_ochirish(request, pk):
     qator = get_object_or_404(QarzQator.objects.select_related("qarz"), pk=pk)
     qarz_pk = qator.qarz.pk
     if request.method == "POST":
+        yopiq = yopiq_hujjat(request, qator.qarz)
+        if yopiq:
+            return yopiq
         qaytar(qator.mahsulot_id, qator.miqdor, f"Qarz #{qarz_pk} dan qaytarildi")
         qator.delete()
         messages.success(request, "Qator o'chirildi, tovar omborga qaytdi.")
@@ -300,6 +325,9 @@ def qarz_yakunlash(request, pk):
     """
     qarz = get_object_or_404(Qarz, pk=pk)
     if request.method == "POST":
+        yopiq = yopiq_hujjat(request, qarz)
+        if yopiq:
+            return yopiq
         if qarz.qatorlar_soni == 0:
             qarzdor_pk = qarz.qarzdor_id
             qarz.delete()

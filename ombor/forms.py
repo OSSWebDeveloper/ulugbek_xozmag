@@ -4,17 +4,20 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 
 from .models import Mahsulot, ShtrixKod, Valyuta, tekis_matn
+from .xizmat import tozala
 
 
 class VergulliDecimal(forms.DecimalField):
     """Sonni vergul bilan ham qabul qiladi: `2,5` -> `2.5`.
 
     Do'konda vergul bilan yozish odat; oddiy DecimalField uni rad etadi.
+    Pul maydonlarida son guruhlangan keladi («45 000») — bo'shliqlar ham
+    olib tashlanadi (`ombor.xizmat.tozala`).
     """
 
     def to_python(self, qiymat):
         if isinstance(qiymat, str):
-            qiymat = qiymat.replace(",", ".").strip()
+            qiymat = tozala(qiymat)
         return super().to_python(qiymat)
 
 
@@ -70,7 +73,7 @@ class MahsulotForm(forms.ModelForm):
             "olish_miqdori": forms.TextInput(attrs={"class": "kirish raqam-maydon",
                                                     "inputmode": "decimal", "autocomplete": "off",
                                                     "placeholder": "masalan 100"}),
-            "narx": forms.TextInput(attrs={"class": "kirish raqam-maydon", "id": "id_narx",
+            "narx": forms.TextInput(attrs={"class": "kirish raqam-maydon pul-maydon", "id": "id_narx",
                                            "inputmode": "decimal", "autocomplete": "off",
                                            "placeholder": "0"}),
             "qoldiq": forms.TextInput(attrs={"class": "kirish raqam-maydon",

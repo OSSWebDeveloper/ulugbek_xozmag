@@ -2,12 +2,16 @@
 Naqd sotuvda pul yetmay qolganda ochiladigan oynacha.
 
 Kassir sahifani tashlab ketolmaydi — mijoz qarshisida turibdi, chek ochiq.
-Shuning uchun hammasi shu yerda: qarzga qoladigan summa yoziladi, qarzdor
+Shuning uchun hammasi shu yerda: mijoz qancha to'lagani yoziladi, qarzdor
 tanlanadi, kerak bo'lsa yangi qarzdor ham shu yerda yaratiladi (sahifa
 almashmaydi, `/yangi/oyna/` ga so'rov ketadi).
 
-Tasdiqlangach oynacha yopiladi va tanlov pastdagi «Jami» formasining yashirin
-maydonlariga tushadi — yakunlash baribir bitta POST bo'lib qoladi.
+Pastdagi «Jami» o'zi ikkiga bo'linadi (autosplit): «To'ladi» yozilsa qarzga
+qolgani hisoblanadi, «Qarzga» yozilsa — to'langani. So'm va dollar alohida,
+dollarlik qism faqat chekda dollar bo'lsa ko'rinadi.
+
+Tasdiqlangach oynacha yopiladi va to'langan pul pastdagi «Jami» formasining
+yashirin maydonlariga tushadi — yakunlash baribir bitta POST bo'lib qoladi.
 {% endcomment %}
 {% load xozmag %}
 <div class="oyna-fon" id="qarz-oyna">
@@ -20,23 +24,48 @@ maydonlariga tushadi — yakunlash baribir bitta POST bo'lib qoladi.
     </div>
 
     <div class="oyna-tana qarz-oyna-tana">
-      {# ---- Chap ustun: qancha qarzga qoladi ---- #}
+      {# ---- Chap ustun: «Jami» qanday bo'linadi ---- #}
       <div class="qarz-summa-ustun">
-        <div class="tolov-maydon jami-maydon faol" data-qmaydon="qarz_jami"
-             title="Mijoz to'lamay qoldirgan so'mlik qism">
-          <span class="nomi">Qarzga</span>
-          <input type="text" class="qiymat raqam-maydon" id="qarz-jami"
-                 inputmode="decimal" autocomplete="off" placeholder="0">
-          <span class="birlik">so'm</span>
+        <div class="bolinish" data-valyuta="som">
+          <div class="bolinish-jami">
+            <span class="nomi">Jami</span>
+            <b data-jami>0</b><span class="birlik">so'm</span>
+          </div>
+          <div class="tolov-maydon" data-qmaydon title="Mijoz hozir bergan pul — kunlik tushumga shu tushadi">
+            <span class="nomi">To'ladi</span>
+            <input type="text" class="qiymat raqam-maydon pul-maydon" data-tolandi data-kasr="0"
+                   inputmode="decimal" autocomplete="off" placeholder="0">
+            <span class="birlik">so'm</span>
+          </div>
+          <div class="tolov-maydon qarzga-maydon" data-qmaydon title="Qarzdorning daftariga yoziladigan qism">
+            <span class="nomi">Qarzga</span>
+            <input type="text" class="qiymat raqam-maydon pul-maydon" data-qarz data-kasr="0"
+                   inputmode="decimal" autocomplete="off" placeholder="0">
+            <span class="birlik">so'm</span>
+          </div>
         </div>
 
-        <div class="tolov-maydon jami-maydon dollar" data-qmaydon="qarz_jami_dollar"
-             title="Dollarlik qismidan qolgani — so'mga qo'shilmaydi">
-          <span class="nomi">Qarzga</span>
-          <input type="text" class="qiymat raqam-maydon" id="qarz-jami-dollar"
-                 inputmode="decimal" autocomplete="off" placeholder="0">
-          <span class="birlik">$</span>
+        <div class="bolinish dollar" data-valyuta="dollar" hidden>
+          <div class="bolinish-jami">
+            <span class="nomi">Jami</span>
+            <b data-jami>0</b><span class="birlik">$</span>
+          </div>
+          <div class="tolov-maydon dollar" data-qmaydon title="Dollarlik qismdan hozir to'langani">
+            <span class="nomi">To'ladi</span>
+            <input type="text" class="qiymat raqam-maydon pul-maydon" data-tolandi
+                   inputmode="decimal" autocomplete="off" placeholder="0">
+            <span class="birlik">$</span>
+          </div>
+          <div class="tolov-maydon dollar qarzga-maydon" data-qmaydon
+               title="Dollarlik qarz — so'm qarziga qo'shilmaydi">
+            <span class="nomi">Qarzga</span>
+            <input type="text" class="qiymat raqam-maydon pul-maydon" data-qarz
+                   inputmode="decimal" autocomplete="off" placeholder="0">
+            <span class="birlik">$</span>
+          </div>
         </div>
+
+        <div class="bolinish-xato" id="bolinish-xato" hidden></div>
 
         {# Sensorli rejimda ko'rinadi (CSS hal qiladi) — oynachada ham raqam yozish kerak #}
         <div class="raqamlar qarz-raqamlar" id="qarz-raqamlar">
@@ -50,7 +79,7 @@ maydonlariga tushadi — yakunlash baribir bitta POST bo'lib qoladi.
           <button type="button" class="tugma" data-raqam="2">2</button>
           <button type="button" class="tugma" data-raqam="3">3</button>
           <button type="button" class="tugma" data-raqam="0">0</button>
-          <button type="button" class="tugma amal" data-raqam=".">,</button>
+          <button type="button" class="tugma amal" data-raqam=",">,</button>
           <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
         </div>
       </div>

@@ -2,7 +2,7 @@
 {% load xozmag %}
 {% load statik_versiya %}
 
-{% block sarlavha %}Naqd sotuv{% endblock %}
+{% block sarlavha %}Sotuv — chek #{{ sotuv.pk }}{% endblock %}
 
 {% block tana %}
 <div class="kassa">
@@ -10,16 +10,24 @@
     <div class="chek">
       <div class="chek-bosh">
         <div>
-          <div class="mijoz">Naqd sotuv</div>
-          <div class="kichkina">Qarzga yozilmaydi &middot; chek #{{ sotuv.pk }}</div>
+          <div class="mijoz">Sotuv</div>
+          <div class="kichkina">
+            chek #{{ sotuv.pk }} &middot; {{ sotuv.sana|date:"d.m H:i" }}
+            {% if qatorlar %}&middot; {{ qatorlar|length }} ta tovar{% endif %}
+          </div>
         </div>
-        <form method="post" action="{% url 'sotuv:bekor' sotuv.pk %}"
-              onsubmit="return confirm('Sotuv butunlay bekor qilinsinmi? Qo'shilgan tovarlar omborga qaytadi.')">
-          {% csrf_token %}
-          <button type="submit" class="tugma xato kichik" title="Sotuvni butunlay bekor qilish">
-            <svg class="ikon"><use href="#i-yopish"></use></svg> Bekor qilish
-          </button>
-        </form>
+        <div class="chek-bosh-tugmalar">
+          <a class="tugma tinch kichik" href="{% url 'sotuv:royxat' %}" title="Bugungi cheklar va kunlik tushum">
+            <svg class="ikon"><use href="#i-chek"></use></svg> Sotuvlar
+          </a>
+          <form method="post" action="{% url 'sotuv:bekor' sotuv.pk %}" data-bir-marta
+                data-tasdiq="Sotuv butunlay bekor qilinsinmi? Qo'shilgan tovarlar omborga qaytadi.">
+            {% csrf_token %}
+            <button type="submit" class="tugma xato kichik" title="Sotuvni butunlay bekor qilish">
+              <svg class="ikon"><use href="#i-yopish"></use></svg> Bekor qilish
+            </button>
+          </form>
+        </div>
       </div>
 
       <div class="chek-royxat">
@@ -38,14 +46,15 @@
                 <tr>
                   <td class="sust">{{ forloop.counter }}</td>
                   <td>
+                    <span class="qator-kod" title="Tovar kodi">{{ qator.mahsulot.qisqa_kod }}</span>
                     <b>{{ qator.mahsulot_nomi }}</b>
                     {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
                   </td>
                   <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
                   <td>
-                    <form method="post" action="{% url 'sotuv:qator_ochirish' qator.pk %}">
+                    <form method="post" action="{% url 'sotuv:qator_ochirish' qator.pk %}" data-bir-marta>
                       {% csrf_token %}
-                      <button type="submit" class="tugma xato kichik" title="Qatorni o'chirish">
+                      <button type="submit" class="tugma xato kichik" title="Qatorni o'chirish — tovar omborga qaytadi">
                         <svg class="ikon"><use href="#i-chiqar"></use></svg>
                       </button>
                     </form>
@@ -58,14 +67,14 @@
           <div class="bosh-holat">
             <svg class="ikon"><use href="#i-savdo"></use></svg>
             <b>Hali tovar qo'shilmadi</b>
-            O'ng tarafdagi «Yangi tovar» tugmasini bosing
+            Kodini yozing, skanerlang yoki «Yangi tovar» ni bosing
           </div>
         {% endif %}
       </div>
 
     </div>
 
-    {# Summa hisoblanmaydi - savdolashilgan narx kalkulyatordan ko'chiriladi #}
+    {# «Jami» — chekning to'liq summasi; pul yetmasa «Qarzga» uni to'langan va qarz qismga bo'ladi #}
     {% include "kassa_jami_panel.html" with hujjat=sotuv tugma="Sotuvni yakunlash" amal=yakun_manzili qarzga=1 %}
   </div>
 

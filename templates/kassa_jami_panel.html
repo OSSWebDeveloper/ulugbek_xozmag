@@ -6,9 +6,13 @@ ikki xil keladi, klientning asosiy sharti shu ikkisi aralashmasligi. Kurs
 dollarlik summa yozilgandagina so'raladi — keyin bu qarz qaysi kursda
 olingani kerak bo'ladi.
 
-`qarzga` berilsa naqd sotuvdagi **«Qarzga qoldirish»** tugmasi chiqadi: mijozda
-pul yetmasa oynacha ochiladi va chekning bir qismi qarzga yoziladi. Tanlov shu
-formaning yashirin maydonlariga tushadi — yakunlash bitta POST bo'lib qoladi.
+«Jami» — hujjatning **to'liq** summasi (kelishilgan narx). Raqamlar yozilgan
+zahoti guruhlanadi: 200000 -> «200 000» (js/forma.js, `pul-maydon`).
+
+`qarzga` berilsa naqd sotuvdagi **«Qarzga»** tugmasi chiqadi: mijozda pul
+yetmasa oynacha ochiladi, «Jami» to'langan va qarzga qoladigan qismga o'zi
+bo'linadi. Tanlov shu formaning yashirin maydonlariga tushadi — yakunlash
+bitta POST bo'lib qoladi.
 
 `oldindan` berilsa qarz ekranidagi **oldindan to'lov** maydonlari chiqadi:
 mijoz qarz yozdirayotganda bir qismini darrov to'lashi mumkin. Standart holatda
@@ -18,12 +22,12 @@ Chaqirilishi:
 {% include "kassa_jami_panel.html" with hujjat=<sotuv/qarz> amal=<forma manzili> tugma="Yakunlash" %}
 {% endcomment %}
 {% load xozmag %}
-<form method="post" action="{{ amal }}" class="tolov-panel">
+<form method="post" action="{{ amal }}" class="tolov-panel" id="jami-forma" data-bir-marta>
   {% csrf_token %}
   <div class="tolov-maydon jami-maydon" data-maydon="jami" title="So'mda olingan tovarlar summasi">
     <span class="nomi">Jami</span>
-    <input type="text" class="qiymat raqam-maydon" name="jami" id="jami"
-           inputmode="decimal" autocomplete="off" placeholder="0"
+    <input type="text" class="qiymat raqam-maydon pul-maydon" name="jami" id="jami"
+           inputmode="decimal" autocomplete="off" placeholder="0" data-kasr="0"
            value="{% if hujjat.jami %}{{ hujjat.jami|tekis }}{% endif %}">
     <span class="birlik">so'm</span>
   </div>
@@ -31,7 +35,7 @@ Chaqirilishi:
   <div class="tolov-maydon jami-maydon dollar" data-maydon="jami_dollar"
        title="Dollarda olingan tovarlar summasi — so'mga qo'shilmaydi">
     <span class="nomi">Jami</span>
-    <input type="text" class="qiymat raqam-maydon" name="jami_dollar" id="jami-dollar"
+    <input type="text" class="qiymat raqam-maydon pul-maydon" name="jami_dollar" id="jami-dollar"
            inputmode="decimal" autocomplete="off" placeholder="0"
            value="{% if hujjat.jami_dollar %}{{ hujjat.jami_dollar|tekis }}{% endif %}">
     <span class="birlik">$</span>
@@ -40,7 +44,7 @@ Chaqirilishi:
   <div class="tolov-maydon kurs-maydon" data-maydon="kurs"
        title="{% if hujjat.kurs %}Shu hujjatga yozilgan kurs{% elif oxirgi_kurs %}Standart qiymat: {{ oxirgi_kurs.manba }}{% else %}Bugungi dollar kursi{% endif %} — kerak bo'lsa ustidan yozing">
     <span class="nomi">Kurs</span>
-    <input type="text" class="qiymat raqam-maydon" name="kurs" id="kurs"
+    <input type="text" class="qiymat raqam-maydon pul-maydon" name="kurs" id="kurs"
            inputmode="decimal" autocomplete="off" placeholder="0"
            value="{% if hujjat.kurs %}{{ hujjat.kurs|tekis }}{% elif oxirgi_kurs %}{{ oxirgi_kurs.qiymat|tekis }}{% endif %}">
     <span class="birlik">so'm</span>
@@ -53,28 +57,32 @@ Chaqirilishi:
     <div class="tolov-maydon oldindan-maydon" data-maydon="oldindan"
          title="Mijoz shu hujjat uchun darrov to'lagan pul — qarzidan shu zahoti ayriladi">
       <span class="nomi">Oldindan</span>
-      <input type="text" class="qiymat raqam-maydon" name="oldindan" id="oldindan"
-             inputmode="decimal" autocomplete="off" placeholder="0">
+      <input type="text" class="qiymat raqam-maydon pul-maydon" name="oldindan" id="oldindan"
+             inputmode="decimal" autocomplete="off" placeholder="0" data-kasr="0">
       <span class="birlik">so'm</span>
     </div>
 
     <div class="tolov-maydon oldindan-maydon dollar" data-maydon="oldindan_dollar"
          title="Dollarlik qarzdan darrov to'langani — so'mga qo'shilmaydi">
       <span class="nomi">Oldindan</span>
-      <input type="text" class="qiymat raqam-maydon" name="oldindan_dollar" id="oldindan-dollar"
+      <input type="text" class="qiymat raqam-maydon pul-maydon" name="oldindan_dollar" id="oldindan-dollar"
              inputmode="decimal" autocomplete="off" placeholder="0">
       <span class="birlik">$</span>
     </div>
   {% endif %}
 
   {% if qarzga %}
+    {# Mijoz bergan pul; qarzga «Jami» dan shu ayrilgani qoladi (sotuv/views.py) #}
     <input type="hidden" name="qarzdor" id="qarz-qarzdor">
-    <input type="hidden" name="qarz_jami" id="qarz-jami-yashirin">
-    <input type="hidden" name="qarz_jami_dollar" id="qarz-jami-dollar-yashirin">
+    <input type="hidden" name="tolandi" id="qarz-tolandi">
+    <input type="hidden" name="tolandi_dollar" id="qarz-tolandi-dollar">
     <button type="button" class="tugma qarzga-tugma" id="qarzga-tugma"
             title="Mijozda pul yetmasa chekning bir qismini qarzga yozish">
       <svg class="ikon"><use href="#i-hamyon"></use></svg>
-      <span id="qarzga-yozuv">Qarzga</span>
+      <span class="qarzga-yozuv">
+        <small id="qarzga-izoh" hidden></small>
+        <span id="qarzga-yozuv">Qarzga</span>
+      </span>
     </button>
   {% endif %}
 
