@@ -5,9 +5,9 @@ tovarga yopishtiriladi. Zavod shtrixlari ishlatilmaydi — kassa faqat
 do'konning o'z etiketkasini taniydi. Tovar ikki yo'l bilan topiladi,
 ikkalasi ham shu faylga keladi:
 
-1. **Tovar kodi** — skaner etiketkadagi shtrixni o'qiydi (Code 128,
-   `ombor/shtrix.py`) va to'liq kod keladi; yoki kassir raqamlar
-   klaviaturasida kodning oxirgi 4 raqamini uradi. Og'ir tovarni (50 kg li
+1. **Tovar kodi** (5 xonali, tovar turgan joyi) — skaner etiketkadagi
+   shtrixni o'qiydi (Code 128, `ombor/shtrix.py`) yoki kassir raqamlar
+   klaviaturasida kodni uradi (`27` = `00027`). Og'ir tovarni (50 kg li
    bolg'a, sement qop) kassagacha ko'tarib kelish shart emas: yorliqdagi
    raqam uriladi.
 2. **Tarozi etiketkasi** — tarozi bosgan shtrix ichida ham tovar kodi, ham
@@ -42,7 +42,7 @@ Prefiks `2` — GS1 da do'kon o'zi bosadigan kodlar uchun ajratilgan
 from collections import namedtuple
 from decimal import Decimal
 
-from .models import KOD_UZUNLIK, QISQA_UZUNLIK, Mahsulot
+from .models import KOD_MAX, Mahsulot, kod_yasa
 
 PREFIKS = "2"          # do'konning o'z kodlari uchun ajratilgan boshlanish
 PLU_UZUNLIK = 6        # shtrix ichidagi tovar raqami
@@ -134,16 +134,17 @@ def rang_chekini_ochish(matn):
 # ---------- Qidirish ----------
 
 def _kod_bilan(qism):
-    """Kodning oxirgi raqamlari bo'yicha tovar topadi."""
+    """Tovarni kod bo'yicha topadi. Kod son sifatida o'qiladi: `27`, `00027`
+    va eski 10 xonali etiketkadagi `0000000027` — hammasi `00027`."""
     if not qism:
         return None, "Kod yozilmadi."
-    topilgan = list(Mahsulot.objects.filter(kod__endswith=qism)[:2])
-    if not topilgan:
+    raqam = int(qism)
+    if not 1 <= raqam <= KOD_MAX:
         return None, f"{qism} kodli tovar topilmadi."
-    if len(topilgan) > 1:
-        # 10 000 dan ortiq tovar bo'lganda oxirgi 4 raqam takrorlanishi mumkin.
-        return None, f"{qism} bilan tugaydigan bir nechta tovar bor — kodni to'liqroq yozing."
-    return topilgan[0], None
+    mahsulot = Mahsulot.objects.filter(kod=kod_yasa(raqam)).first()
+    if mahsulot is None:
+        return None, f"{kod_yasa(raqam)} kodli tovar topilmadi."
+    return mahsulot, None
 
 
 def topish(kiritilgan):
@@ -163,12 +164,12 @@ def topish(kiritilgan):
         mahsulot, xato = _kod_bilan(plu)
         return Natija(mahsulot, miqdor, "tarozi", xato)
 
-    # 2. Tovar kodi: kassir oxirgi raqamlarini uradi (odatda 4 ta) yoki skaner
-    #    etiketkadagi to'liq kodni o'qiydi (Code 128)
-    if matn.isdigit() and len(matn) <= KOD_UZUNLIK:
-        qism = matn.rjust(QISQA_UZUNLIK, "0")
-        mahsulot, xato = _kod_bilan(qism)
-        qanday = "qisqa" if len(qism) <= QISQA_UZUNLIK else "toliq"
+    # 2. Tovar kodi: kassir kodni uradi (boshidagi nollarsiz ham) yoki skaner
+    #    etiketkadagi kodni o'qiydi (Code 128). 10 raqamgacha — eski
+    #    etiketkalar (0000000027) ham o'qilsin.
+    if matn.isdigit() and len(matn) <= 10:
+        mahsulot, xato = _kod_bilan(matn)
+        qanday = "qisqa" if len(matn) < 5 else "toliq"
         return Natija(mahsulot, None, qanday, xato)
 
     # 3. Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi.

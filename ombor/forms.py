@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django import forms
 
-from .models import Mahsulot, Valyuta, tekis_matn
+from .models import KOD_MAX, Birlik, Mahsulot, Valyuta, kod_yasa, tekis_matn
 from .xizmat import tozala
 
 
@@ -44,7 +44,7 @@ class MahsulotForm(forms.ModelForm):
     )
     class Meta:
         model = Mahsulot
-        fields = ["nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
+        fields = ["kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
                   "qoldiq", "faol"]
         field_classes = {
             "qoldiq": VergulliDecimal,
@@ -52,6 +52,9 @@ class MahsulotForm(forms.ModelForm):
             "narx": VergulliDecimal,
         }
         widgets = {
+            "kod": forms.TextInput(attrs={"class": "kirish raqam-maydon", "inputmode": "numeric",
+                                          "autocomplete": "off", "maxlength": 5,
+                                          "placeholder": "bo'sh — o'zi beriladi"}),
             "nom": forms.TextInput(attrs={"class": "kirish", "autocomplete": "off",
                                           "placeholder": "Tovar nomi"}),
             "valyuta": forms.Select(attrs={
@@ -71,6 +74,15 @@ class MahsulotForm(forms.ModelForm):
                                              "inputmode": "decimal", "autocomplete": "off",
                                              "placeholder": "0"}),
         }
+
+    def clean_kod(self):
+        """Kod — tovar turgan joyi: «27» yozilsa ham «00027» bo'ladi."""
+        kod = tozala(self.cleaned_data.get("kod") or "").replace(".", "")
+        if not kod:
+            return self.instance.kod if self.instance.pk else ""
+        if not kod.isdigit() or not 1 <= int(kod) <= KOD_MAX:
+            raise forms.ValidationError("Kod 00001 dan 99999 gacha bo'lishi kerak.")
+        return kod_yasa(kod)
 
     def __init__(self, *args, yangi=False, **kwargs):
         super().__init__(*args, **kwargs)
@@ -197,3 +209,55 @@ class KirimForm(forms.Form):
         return self.mahsulot.sotuvga_aylantir(
             self.cleaned_data["miqdor"], self.kiritilgan_birlik(),
         )
+
+
+# ---------- Excel orqali yangilash ----------
+
+class ExcelYuklashForm(forms.Form):
+    fayl = forms.FileField(label="Excel fayl (.xlsx)",
+                           widget=forms.ClearableFileInput(attrs={"accept": ".xlsx", "class": "kirish"}))
+    izoh = forms.CharField(label="Izoh", required=False, max_length=200,
+                           widget=forms.TextInput(attrs={"class": "kirish", "autocomplete": "off",
+                                                         "placeholder": "Masalan: oktabr sanog'i"}))
+    yoqlarini_yashir = forms.BooleanField(
+        label="Faylda yo'q tovarlarni yashirish", required=False,
+        widget=forms.CheckboxInput(attrs={"class": "richag-kirish"}))
+
+    def clean_fayl(self):
+        f = self.cleaned_data["fayl"]
+        if not f.name.lower().endswith(".xlsx"):
+            raise forms.ValidationError("Faqat .xlsx fayl qabul qilinadi (eski .xls bo'lsa "
+                                        "Excel'da «Сохранить как» .xlsx qiling).")
+        if f.size > 15 * 1024 * 1024:
+            raise forms.ValidationError("Fayl 15 MB dan katta.")
+        return f
+
+
+class QatorForm(forms.Form):
+    """Qoralamadagi qatorni tuzatish — qiymatlar Excel'dagidek matn."""
+
+    kod = forms.CharField(label="Kod", required=False, max_length=10,
+                          help_text="Bo'sh bo'lsa navbatdagi bo'sh kod beriladi")
+    nom = forms.CharField(label="Tovar nomi", max_length=120)
+    birlik = forms.ChoiceField(label="Birlik", choices=Birlik.choices)
+    qoldiq = forms.CharField(label="Qoldiq", required=False, max_length=30)
+    narx = forms.CharField(label="Narxi", required=False, max_length=30)
+    valyuta = forms.ChoiceField(label="Valyuta", choices=Valyuta.choices)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in self.fields.values():
+            f.widget.attrs["class"] = "kirish"
+            f.widget.attrs["autocomplete"] = "off"
+
+    def clean(self):
+        from .excel import qatorni_tekshir
+        d = super().clean()
+        if self.errors:
+            return d
+        holat, xato, ogoh = qatorni_tekshir({m: d.get(m) for m in
+                                             ("kod", "nom", "birlik", "qoldiq", "narx", "valyuta")})
+        if xato:
+            raise forms.ValidationError(xato)
+        d["holat"], d["ogohlantirish"] = holat, ogoh
+        return d

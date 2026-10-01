@@ -408,23 +408,22 @@ class DollarKursiTest(KirganTest):
 
 
 class KodTest(KirganTest):
-    """Tovar kodi: yaratilganda beriladi va hech qachon o'zgarmaydi."""
+    """Tovar kodi — turgan joyi: 5 xonali, 00001 … 99999 (v3.0.0)."""
 
     def setUp(self):
         super().setUp()
         self.gisht = Mahsulot.objects.create(nom="G'isht", birlik=Birlik.DONA,
                                              qoldiq=Decimal("5000"))
 
-    def test_kod_id_dan_chiqadi(self):
-        self.assertEqual(self.gisht.kod, f"{self.gisht.pk:010d}")
-        self.assertEqual(len(self.gisht.kod), 10)
+    def test_kod_bosh_bolsa_navbatdagisi_beriladi(self):
+        self.assertEqual(len(self.gisht.kod), 5)
+        Mahsulot.objects.create(nom="Kran", kod="00040")
+        self.assertEqual(Mahsulot.objects.create(nom="Sement").kod, "00041")
 
-    def test_qisqa_kod_oxirgi_tort_raqam(self):
-        self.assertEqual(self.gisht.qisqa_kod, self.gisht.kod[-4:])
-        self.assertEqual(len(self.gisht.qisqa_kod), 4)
+    def test_qisqa_kod_kodning_ozi(self):
+        self.assertEqual(self.gisht.qisqa_kod, self.gisht.kod)
 
     def test_kod_qayta_saqlashda_ozgarmaydi(self):
-        """Kod o'zgarsa bosilgan yorliqlarning hammasi yaroqsiz bo'lib qoladi."""
         eski = self.gisht.kod
         self.gisht.nom = "G'isht qizil"
         self.gisht.save()
@@ -434,6 +433,14 @@ class KodTest(KirganTest):
     def test_har_bir_tovarda_boshqa_kod(self):
         sement = Mahsulot.objects.create(nom="Sement", birlik=Birlik.QOP)
         self.assertNotEqual(self.gisht.kod, sement.kod)
+
+    def test_formada_kod_ozgartiriladi(self):
+        javob = self.client.post(reverse("ombor:mahsulot_tahrir", args=[self.gisht.pk]), {
+            "kod": "125", "nom": "G'isht", "valyuta": "som", "birlik": "dona",
+            "olish_miqdori": "1", "narx": "0", "qoldiq": "5000", "faol": "on"})
+        self.assertEqual(javob.status_code, 302)
+        self.gisht.refresh_from_db()
+        self.assertEqual(self.gisht.kod, "00125")
 
 
 class KodQidirishTest(KirganTest):
@@ -447,8 +454,12 @@ class KodQidirishTest(KirganTest):
     def test_qisqa_kod_bilan_topiladi(self):
         natija = topish(self.gisht.qisqa_kod)
         self.assertEqual(natija.mahsulot, self.gisht)
-        self.assertEqual(natija.qanday, "qisqa")
+        self.assertEqual(natija.qanday, "toliq")
         self.assertIsNone(natija.miqdor)
+        self.assertEqual(topish(str(int(self.gisht.kod))).qanday, "qisqa")
+
+    def test_eski_10_xonali_etiketka_ham_oqiladi(self):
+        self.assertEqual(topish(f"{int(self.gisht.kod):010d}").mahsulot, self.gisht)
 
     def test_boshidagi_nollarsiz_ham_topiladi(self):
         """Kassir 0007 emas, shunchaki 7 deb ursa ham o'sha tovar chiqadi."""
@@ -481,10 +492,10 @@ class KodQidirishTest(KirganTest):
     # ---------- Etiketka va tarozi ----------
 
     def test_etiketka_kodi_tovar_kodining_ozi(self):
-        """Yozuvdagi oxirgi 4 raqam — kassir uradigan qisqa kod."""
+        """Shtrix — kod oldida bitta 0 (Code 128-C juft raqam talab qiladi)."""
         kod = self.gisht.etiketka_kodi
-        self.assertEqual(kod, self.gisht.kod)
-        self.assertEqual(kod[-4:], self.gisht.qisqa_kod)
+        self.assertEqual(kod, "0" + self.gisht.kod)
+        self.assertEqual(int(kod), int(self.gisht.qisqa_kod))
 
     def test_etiketka_skanerlansa_ham_qolda_urilsa_ham_bitta_tovar(self):
         skaner = topish(self.gisht.etiketka_kodi)
@@ -566,8 +577,8 @@ class EtiketkaTest(KirganTest):
             self.assertEqual((int(naqsh[0]) + int(naqsh[2]) + int(naqsh[4])) % 2, 0)
 
     def test_shtrix_qaytadan_oqiladi(self):
-        for kod in ("0000000001", "0000000027", "0000001234", "9876543210",
-                    self.rozetka.kod):
+        for kod in ("0000000001", "0000000027", "000001", "099999",
+                    self.rozetka.etiketka_kodi):
             self.assertEqual(ochir_code128(kod), kod)
 
     def test_nazorat_belgisi(self):
@@ -585,9 +596,9 @@ class EtiketkaTest(KirganTest):
                                 {"soni": "5"})
         self.assertEqual(javob.status_code, 200)
         self.assertContains(javob, "<svg")
-        self.assertContains(javob, f"<b>{self.rozetka.qisqa_kod}</b>")
+        self.assertContains(javob, f"<b>{self.rozetka.kod}</b>")
         self.assertContains(javob, 'value="5"')
-        self.assertEqual(javob.context["modullar"], 110)
+        self.assertEqual(javob.context["modullar"], 88)
 
     def test_nusxalar_soni_chegaralanadi(self):
         manzil = reverse("ombor:etiketka", args=[self.rozetka.pk])

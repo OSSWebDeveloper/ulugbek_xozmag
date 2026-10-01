@@ -12,7 +12,7 @@
       </span>
 
     {% else %}
-      <span class="kichik">kod saqlagandan keyin o'zi beriladi</span>
+      <span class="kichik">kod bo'sh qoldirilsa o'zi beriladi</span>
     {% endif %}
   </div>
 
@@ -25,6 +25,14 @@
         <span>{{ form.non_field_errors|striptags }}</span>
       </div>
     {% endif %}
+
+    <div class="maydon">
+      <label for="{{ form.kod.id_for_label }}">{{ form.kod.label }} (turgan joyi)</label>
+      {{ form.kod }}
+      <div class="maydon-izoh">00001 … 99999{% if not mahsulot %} · bo'sh bo'lsa navbatdagisi beriladi{% else %} · o'zgarsa etiketkani qayta chop eting{% endif %}</div>
+      {% if form.kod.errors %}<div class="xato-yozuv">{{ form.kod.errors|striptags }}</div>{% endif %}
+    </div>
+    <div class="maydon"></div>
 
     <div class="maydon keng">
       <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>

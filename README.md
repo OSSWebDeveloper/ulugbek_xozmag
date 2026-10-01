@@ -178,13 +178,15 @@ topadi, summa baribir qo'lda yoziladi (pastdagi «Kod, skaner va tarozi»).
 
 ## Kod, skaner va tarozi
 
-Har bir tovarga yaratilganda **kod** beriladi — `0000000001` dan boshlab, id
-bo'yicha. Kod bir marta beriladi va hech qachon o'zgarmaydi: o'zgarsa bosilgan
-yorliqlarning hammasi yaroqsiz bo'lib qolardi.
+Har bir tovarga **turgan joyiga qarab 5 xonali kod** beriladi: `00001` …
+`99999` (v3.0.0 dan; oldin id bo'yicha 10 xonali edi — migratsiya raqamni
+saqlab qisqartirdi: `0000000027` -> `00027`). Kod tovar kartasida va Excel
+faylida yoziladi; bo'sh qoldirilsa navbatdagi bo'sh kod beriladi. Kod
+o'zgartirilsa — o'sha tovarning etiketkasini qayta chop etish kerak.
 
-Kassada va tarozida **oxirgi 4 raqam** uriladi. 50 kg li bolg'ani yoki sement
-qopini kassagacha ko'tarib kelish shart emas — yorliqdagi `0027` uriladi va
-tovar ekranga chiqadi.
+Kassada va tarozida **kodning o'zi** uriladi, boshidagi nollarsiz ham bo'ladi:
+`27` = `00027`. 50 kg li bolg'ani yoki sement qopini kassagacha ko'tarib kelish
+shart emas — yorliqdagi raqam uriladi va tovar ekranga chiqadi.
 
 Tovar kassaga (sotuv va qarz ekraniga) to'rt yo'l bilan tushadi, hammasi bitta
 joyga (`tovarTanla()`) boradi:
@@ -241,7 +243,7 @@ joyda o'zgarmagani kabi, kod ham bitta joyda o'qiladi. Tartib:
 | Kiritilgan | Deb tushuniladi |
 |---|---|
 | 13 raqam, `2` bilan boshlanadi, nazorat raqami to'g'ri | tarozi etiketkasi (og'irligi bilan) |
-| 1–10 raqam | tovar kodi yoki uning oxiri: etiketka skanerlansa to'liq kod keladi, kassir oxirgi 4 raqamni uradi; `7` ham, `0007` ham bitta tovar |
+| 1–10 raqam | tovar kodi, son sifatida o'qiladi: `7`, `00007`, etiketkadagi `000007` va eski 10 xonali `0000000007` — hammasi bitta tovar |
 | 12 raqam, `77` bilan boshlanadi, nazorat raqami to'g'ri | rang (kolerovka) cheki — baza bo'yoq chekdagi miqdori bilan (pastdagi «Rang» bo'limi) |
 | Qolgani (zavod shtrixi va h.k.) | topilmaydi — «etiketkani skanerlang» |
 
@@ -252,15 +254,16 @@ etiketka printerida chop etilib tovarga yopishtiriladi:
 
 ```
     Rozetka
- ║▌║│▌║║│║▌│║▌║   <- skaner o'qisa kassaga «0000000009» tushadi, tovar darrov chekka
- 000000 0009      <- kassir yirik 4 raqamni uradi — o'sha tovar topiladi
+ ║▌║│▌║║│║▌│║▌║   <- skaner o'qisa kassaga «000009» tushadi, tovar darrov chekka
+     00009        <- kassir shu raqamni (yoki shunchaki 9 ni) uradi
 ```
 
 Shtrix turi — **Code 128** (`ombor/shtrix.py`), EAN-13 emas: EAN-13 ning oxirgi
 raqami har doim nazorat raqami, ya'ni yozuvdagi oxirgi 4 raqam tovar kodiga to'g'ri
 kelmasdi va kassir boshqa raqam urib qo'yardi. Code 128 ning nazorat belgisi
-chiziqlar ichida, yozuvga chiqmaydi. Kod 10 raqam — Code 128-C da bor-yo'g'i 5
-belgi, shtrix 40×30 mm etiketkaga ham bemalol sig'adi. Chizish ZXing bilan
+chiziqlar ichida, yozuvga chiqmaydi. Code 128-C raqamlarni juftlab yozadi, 5 xonali
+kod esa toq — shuning uchun shtrixda oldiga bitta `0` qo'shiladi (`000009`, 3 belgi;
+`Mahsulot.etiketka_kodi`), shtrix 40×30 mm etiketkaga bemalol sig'adi. Chizish ZXing bilan
 tekshirilgan (jadvalning hamma belgilari), testlarda esa chiziqlardan qaytadan
 o'qib ko'riladi.
 
@@ -309,8 +312,8 @@ to'g'ri kelmasa kod qabul qilinmaydi — skaner yarim o'qiganda noto'g'ri tovar
 sotilib ketmasin.
 
 **Tarozini shu formatga sozlash kerak:** prefiks `2`, PLU 6 raqam, og'irlik
-5 raqam (grammda). Tarozidagi PLU — tovarning oxirgi 4 raqami, oldiga ikkita
-nol qo'shiladi (`0027` -> `000027`). Tarozi narxni emas, **og'irlikni** kodga
+5 raqam (grammda). Tarozidagi PLU — tovar kodi, oldiga bitta nol qo'shiladi
+(`00027` -> `000027`). Tarozi narxni emas, **og'irlikni** kodga
 joylasin: narx do'konda savdolashiladi, shuning uchun tizimda hisobga olinmaydi.
 
 Tarozining o'z ichki ro'yxati bor — undagi PLU raqami va nomi bazadagi bilan
@@ -319,10 +322,53 @@ kiritib qo'yiladi.
 
 ### Ombor ro'yxati
 
-Birinchi ustunda kod turadi: yirik 4 raqam (kassada uriladigani) va ostida to'liq
-kod. Qidiruv maydoni nom bilan ham, kod bilan ham ishlaydi. Skanerlansa o'sha
-zahoti **kirim oynasi** ochiladi — mol tushirayotganda qo'l band bo'ladi,
-ro'yxatdan izlab o'tirishga vaqt yo'q.
+Birinchi ustunda 5 xonali kod turadi. Qidiruv maydoni nom bilan ham, kod bilan
+ham ishlaydi. Skanerlansa o'sha zahoti **kirim oynasi** ochiladi — mol
+tushirayotganda qo'l band bo'ladi, ro'yxatdan izlab o'tirishga vaqt yo'q.
+
+Ro'yxat 50 tadan sahifalanadi (Excel'dan 10 000 dan ortiq tovar keladi).
+Filtrlar: valyuta, **«Kam qolganlar birinchi»** (omborda qolgan hajmiga teskari
+tartib — eng kam qolgani tepada), «Faqat tugaganlar», «Yashirilganlar ham».
+«Omborni Excel'ga yuklab olish» aynan shu filtr va tartibda yuklab beradi.
+
+### Ombor: Excel orqali yangilash (v3.0.0)
+
+Ombor → «Excel'dan yangilash». Hammasi `ombor/excel.py` da, sahifalari
+`ombor/excel_views.py` da.
+
+1. **Fayl yuklanadi — ombor hali o'zgarmaydi.** Fayldan **qoralama** tuziladi:
+   har qator ombordagi bilan solishtiriladi — yangi tovar, o'zgargan, o'zgarmagan
+   yoki xato.
+2. **Ko'rib chiqiladi.** Eski qiymat ustidan chizilib, yangisi yonida turadi.
+   Xato qatorni «Tuzatish» bilan to'g'rilash, istalgan qatorni «chiqarib
+   tashlash» mumkin.
+3. **«Qo'llash».** Qoldiq o'zgarsa tovar tarixiga «Tuzatish» bo'lib yoziladi,
+   yangi tovarning qoldig'i — «Kirim (boshlang'ich qoldiq)». Qoralama tuzilgach
+   sotuv bo'lgan bo'lsa ham yo'qolmaydi: faqat fayl o'zgartirgan maydonlar yoziladi.
+4. **«Bekor qilish».** Ombor shu yangilanishdan oldingi holatiga qaytadi, qoldiq
+   farqi tarixga teskari «Tuzatish» bo'lib yoziladi. Tovar keyin yana o'zgargan
+   bo'lsa (sotuv, kirim, keyingi yangilanish) bekor qilinmaydi — qaysi
+   yangilanish xalaqit berayotgani ko'rsatiladi, avval o'sha bekor qilinadi.
+
+Fayl qoidalari:
+
+- Sarlavhalar: `Kod`, `Tovar nomi`, `Birlik`, `Qoldiq`, `Narxi`, `Valyuta`
+  (tartibi muhim emas). Bo'sh shablon va hozirgi ombor shu ko'rinishda yuklab olinadi.
+- Tovar avval **kod** bo'yicha (kod — joy), kod bo'lmasa **nomi** bo'yicha
+  (harfma-harf bir xil) topiladi; topilmasa — yangi tovar.
+- **Faylda yo'q ustun o'zgarmaydi**: faqat `Kod` + `Qoldiq` fayli faqat qoldiqni yangilaydi.
+- Do'kon dasturining «Products …xlsx» eksporti (`Товар`, `Остаток`,
+  `Sotish narxi` = «180726 UZS») to'g'ridan-to'g'ri o'qiladi; boshqa narx
+  ustunlari (ko'cha, diller, internet) hozircha olinmaydi.
+- «Faylda yo'q tovarlarni yashirish» — tovar o'chmaydi (sotuv tarixi unga
+  bog'langan), `faol=False` bo'ladi.
+- Narx 4 xonali kasrgacha saqlanadi (`3,5432 $`).
+
+10 169 qatorli haqiqiy fayl: tekshirish ~8 s, qo'llash ~6 s, yuklab olish ~6 s.
+
+**Diqqat — kassa:** tovar tanlash oynasi (sotuv, qarz, rang ekranlari) hamma
+faol tovarni birdaniga chizadi. 10 000 tovarda bu ekranlar ~10 s ochiladi va
+7,6 MB bo'ladi — buni alohida hal qilish kerak.
 
 ## Rang (kolerovka) — Soruda mashinasi
 

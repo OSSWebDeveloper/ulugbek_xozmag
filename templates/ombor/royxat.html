@@ -9,9 +9,14 @@
   </div>
 
   <div class="quti">
-    <form method="get" class="qator">
+    <form method="get" class="qator" id="ombor-filtr">
       <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
              placeholder="Tovar nomi yoki kodi" autocomplete="off">
+      <select name="valyuta" class="kirish" style="flex:1" title="Qaysi pulda sotiladi">
+        <option value="">Hamma valyuta</option>
+        <option value="som" {% if f.valyuta == 'som' %}selected{% endif %}>So'mda</option>
+        <option value="dollar" {% if f.valyuta == 'dollar' %}selected{% endif %}>Dollarda</option>
+      </select>
       <button type="submit" class="tugma" style="flex:1">
         <svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish
       </button>
@@ -19,10 +24,34 @@
         <svg class="ikon"><use href="#i-plus"></use></svg> Yangi tovar
       </a>
     </form>
+    <div class="ombor-belgilar">
+      {# Omborda qolgan hajmiga teskari tartib: eng kam qolgani birinchi #}
+      <label class="ombor-belgi"><input type="checkbox" name="kam" value="1" form="ombor-filtr"
+             {% if f.kam_birinchi %}checked{% endif %}> Kam qolganlar birinchi</label>
+      <label class="ombor-belgi"><input type="checkbox" name="tugagan" value="1" form="ombor-filtr"
+             {% if f.tugagan %}checked{% endif %}> Faqat tugaganlar</label>
+      <label class="ombor-belgi"><input type="checkbox" name="yashirilgan" value="1" form="ombor-filtr"
+             {% if f.yashirilgan %}checked{% endif %}> Yashirilganlar ham</label>
+      <span class="sust">{{ topildi|tekis }} ta tovar</span>
+    </div>
+    <div class="ombor-excel">
+      <a class="tugma kichik yashil" href="{% url 'ombor:eksport' %}{% if qidiruv_satri %}?{{ qidiruv_satri }}{% endif %}"
+         title="Yuqoridagi filtr va tartib bilan">
+        <svg class="ikon"><use href="#i-yuklab-ol"></use></svg> Omborni Excel'ga yuklab olish
+      </a>
+      <a class="tugma kichik asosiy" href="{% url 'ombor:excel_yuklash' %}">
+        <svg class="ikon"><use href="#i-yuklash"></use></svg> Excel'dan yangilash
+      </a>
+      <a class="tugma kichik tinch" href="{% url 'ombor:yangilanishlar' %}">
+        <svg class="ikon"><use href="#i-tarix"></use></svg> Yangilanishlar
+        {% if qoralamalar %}<span class="nishon ogoh">{{ qoralamalar }} qoralama</span>{% endif %}
+      </a>
+      <a class="tugma kichik tinch" href="{% url 'ombor:shablon' %}">Bo'sh shablon</a>
+    </div>
     {% if tugagan %}
       <div class="xabar warning" style="margin-top:var(--oraliq)">
         <svg class="ikon"><use href="#i-ogoh"></use></svg>
-        <span>{{ tugagan }} ta tovar tugagan — kirim qilish kerak.</span>
+        <span>{{ tugagan|tekis }} ta tovar tugagan — kirim qilish kerak.</span>
       </div>
     {% endif %}
   </div>
@@ -46,7 +75,7 @@
               data-kirim="{% url 'ombor:kirim' m.pk %}?oyna=1" data-nom="{{ m.nom }}"
               title="Kirim qilish uchun bosing">
             <td class="son">
-              {# Kassada va tarozida shu 4 raqam uriladi #}
+              {# Tovar turgan joyi; kassada va tarozida shu kod uriladi #}
               <b class="qisqa-kod">{{ m.qisqa_kod }}</b>
             </td>
             <td>
@@ -106,6 +135,20 @@
       </tbody>
     </table>
   </div>
+
+  {% if mahsulotlar.paginator.num_pages > 1 %}
+  <nav class="sahifalash" aria-label="Sahifalar">
+    {% if mahsulotlar.has_previous %}
+      <a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page=1">&laquo;</a>
+      <a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page={{ mahsulotlar.previous_page_number }}">&lsaquo; Oldingi</a>
+    {% endif %}
+    <span class="sust">{{ mahsulotlar.number }} / {{ mahsulotlar.paginator.num_pages }}</span>
+    {% if mahsulotlar.has_next %}
+      <a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page={{ mahsulotlar.next_page_number }}">Keyingi &rsaquo;</a>
+      <a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page={{ mahsulotlar.paginator.num_pages }}">&raquo;</a>
+    {% endif %}
+  </nav>
+  {% endif %}
 </div>
 
 {# Kirim alohida sahifa emas — shu yerda ichki oyna bo'lib ochiladi #}
@@ -125,4 +168,10 @@
 {% block skript %}
 <script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/ombor.js' %}"></script>
+<script>
+/* Belgilar va valyuta darhol qo'llanadi */
+document.querySelectorAll("#ombor-filtr select, .ombor-belgi input").forEach(function (el) {
+  el.addEventListener("change", function () { document.getElementById("ombor-filtr").submit(); });
+});
+</script>
 {% endblock %}

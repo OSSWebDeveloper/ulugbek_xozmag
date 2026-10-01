@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load xozmag %}
+
+{% block sarlavha %}Yangilanish #{{ y.pk }}{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng sahifa-toliq">
+  <div class="sarlavha">
+    {% if y.holat == 'qoralama' %}Qoralama{% else %}Yangilanish{% endif %} #{{ y.pk }}
+    {% if y.holat == 'qoralama' %}<span class="nishon ogoh">hali qo'llanmagan</span>
+    {% elif y.holat == 'qollandi' %}<span class="nishon yashil">qo'llangan</span>
+    {% else %}<span class="nishon">bekor qilingan</span>{% endif %}
+    <span class="kichik">{{ y.fayl_nomi }}{% if y.izoh %} · {{ y.izoh }}{% endif %}</span>
+  </div>
+
+  <div class="quti">
+    <div class="qator">
+      <div class="korsatkich"><div class="nomi">Yangi tovarlar</div><div class="qiymati">{{ sanoq.yangi|tekis }}</div></div>
+      <div class="korsatkich"><div class="nomi">{% if y.holat == 'qoralama' %}O'zgaradigan{% else %}O'zgargan{% endif %}</div><div class="qiymati">{{ sanoq.ozgardi|tekis }}</div></div>
+      <div class="korsatkich"><div class="nomi">{% if y.holat == 'qoralama' %}Yashiriladigan{% else %}Yashirilgan{% endif %}</div><div class="qiymati">{{ sanoq.yashirildi|tekis }}</div></div>
+      <div class="korsatkich {% if sanoq.xato and y.holat == 'qoralama' %}diqqat{% endif %}"><div class="nomi">Xato qatorlar</div><div class="qiymati">{{ sanoq.xato|tekis }}</div></div>
+    </div>
+    <div class="sust" style="margin-top:10px">
+      Faylda {{ y.jami_qator|tekis }} qator, shundan {{ y.ozgarmagan|tekis }} tasi ombordagi bilan bir xil.
+      Yuklangan: {{ y.yaratilgan|date:"d.m.Y H:i" }}{% if y.qollangan %} · qo'llangan: {{ y.qollangan|date:"d.m.Y H:i" }}{% endif %}{% if y.bekor_qilingan %} · bekor qilingan: {{ y.bekor_qilingan|date:"d.m.Y H:i" }}{% endif %}.
+      {% if y.yoqlarini_yashir %}Faylda yo'q tovarlar yashiriladi.{% endif %}
+    </div>
+
+    {% if y.holat == 'qoralama' %}
+      {% if sanoq.xato %}
+        <div class="xabar warning" style="margin-top:var(--oraliq)">
+          <svg class="ikon"><use href="#i-ogoh"></use></svg>
+          <span><b>{{ sanoq.xato }} ta qatorda xato bor</b> — ular qo'llanmaydi. «Tuzatish» tugmasi bilan
+            to'g'rilang yoki chiqarib tashlang.</span>
+        </div>
+      {% endif %}
+      <div class="qator tor" style="margin-top:var(--oraliq)">
+        <form method="post" action="{% url 'ombor:yangilanish_amal' y.pk %}" data-tasdiq="Ombor yangilansinmi? Keyin bekor qilish mumkin.">
+          {% csrf_token %}<input type="hidden" name="amal" value="qollash">
+          <button class="tugma yashil" type="submit" {% if not qollasa_boladi %}disabled{% endif %}>
+            <svg class="ikon"><use href="#i-belgi"></use></svg> Qo'llash</button>
+        </form>
+        {% if sanoq.xato %}
+        <form method="post" action="{% url 'ombor:yangilanish_amal' y.pk %}">
+          {% csrf_token %}<input type="hidden" name="amal" value="xatolarni_chiqar">
+          <button class="tugma tinch" type="submit">Xato qatorlarni chiqarib tashlash</button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'ombor:yangilanish_amal' y.pk %}" data-tasdiq="Qoralama o'chirilsinmi? Ombor o'zgarmaydi.">
+          {% csrf_token %}<input type="hidden" name="amal" value="ochirish">
+          <button class="tugma xato" type="submit">Qoralamani o'chirish</button>
+        </form>
+      </div>
+    {% elif y.holat == 'qollandi' %}
+      {% if toqnash %}
+        <div class="xabar warning" style="margin-top:var(--oraliq)">
+          <svg class="ikon"><use href="#i-ogoh"></use></svg>
+          <span><b>Hozir bekor qilib bo'lmaydi</b> — keyin bu tovarlar yana o'zgargan.
+            Avval keyingi yangilanishlarni bekor qiling:
+            {% for kod, sabab, keyingi in toqnash|slice:":10" %}
+              <br><b>{{ kod }}</b> — {{ sabab }}{% if keyingi %} (<a href="{% url 'ombor:yangilanish' keyingi.pk %}">#{{ keyingi.pk }}</a>){% endif %}
+            {% endfor %}
+            {% if toqnash|length > 10 %}<br>… yana {{ toqnash|length|add:"-10" }} ta{% endif %}
+          </span>
+        </div>
+      {% else %}
+        <form method="post" action="{% url 'ombor:yangilanish_amal' y.pk %}" class="qator tor"
+              style="margin-top:var(--oraliq);align-items:center"
+              data-tasdiq="Yangilanish bekor qilinsinmi? Ombor shu yangilanishdan oldingi holatiga qaytadi.">
+          {% csrf_token %}<input type="hidden" name="amal" value="bekor">
+          <button class="tugma xato" type="submit">↶ Bekor qilish</button>
+          <span class="sust">Yangi tovarlar o'chadi, o'zgarganlar eski qiymatiga qaytadi,
+            yashirilganlar yana ko'rinadi. Qoldiq farqi tarixga yoziladi.</span>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="quti">
+    <form method="get" class="qator">
+      {% if turi %}<input type="hidden" name="turi" value="{{ turi }}">{% endif %}
+      <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
+             placeholder="Kod yoki tovar nomi" autocomplete="off">
+      <button type="submit" class="tugma" style="flex:1"><svg class="ikon"><use href="#i-qidir"></use></svg> Qidirish</button>
+    </form>
+    <div class="qator tor" style="margin-top:10px">
+      <a class="tugma kichik {% if not turi %}asosiy{% else %}tinch{% endif %}" href="?">Hammasi</a>
+      {% for k, n, soni in turlar %}
+        <a class="tugma kichik {% if turi == k %}asosiy{% else %}tinch{% endif %}" href="?turi={{ k }}">{{ n }} · {{ soni|tekis }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="jadval-quti">
+    <table class="jadval">
+      <thead>
+        <tr>
+          <th class="son" style="width:1%">Qator</th><th>Amal</th><th class="son" style="width:1%">Kod</th>
+          <th>Tovar</th><th class="son">Qoldiq</th><th class="son">Narxi</th><th style="width:1%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for q in qatorlar %}
+          {% with e=q.eski n=q.yangi %}
+          <tr class="{% if q.chiqarilgan %}ombor-chiqarilgan{% endif %}">
+            <td class="son sust">{{ q.excel_qator|default:"—" }}</td>
+            <td>
+              {% if q.chiqarilgan %}<span class="nishon">chiqarilgan</span>
+              {% elif q.amal == 'yangi' %}<span class="nishon yashil">Yangi</span>
+              {% elif q.amal == 'ozgardi' %}<span class="nishon kok">O'zgardi</span>
+              {% elif q.amal == 'yashirildi' %}<span class="nishon ogoh">Yashiriladi</span>
+              {% else %}<span class="nishon xato-nishon">Xato</span>{% endif %}
+            </td>
+            <td class="son ozg-katak">
+              {% if q.amal == 'ozgardi' and e.kod != n.kod %}<span class="eski">{{ e.kod }}</span><b class="yangi qisqa-kod">{{ n.kod }}</b>
+              {% else %}<b class="qisqa-kod">{{ q.kod|default:"—" }}</b>{% endif %}
+            </td>
+            <td class="ozg-katak">
+              {% if q.amal == 'ozgardi' and e.nom != n.nom %}<span class="eski">{{ e.nom }}</span><b class="yangi">{{ n.nom }}</b>
+              {% elif q.amal == 'yashirildi' %}<b>{{ e.nom }}</b>
+              {% else %}<b>{{ n.nom|default:"—" }}</b>{% endif %}
+              {% if q.amal == 'ozgardi' and not e.faol and n.faol %}<span class="nishon yashil">yana ko'rinadi</span>{% endif %}
+              {% if q.xato %}<div class="xato-yozuv">{{ q.xato }}</div>{% endif %}
+              {% if q.ogohlantirish %}<div class="ogoh-yozuv">{{ q.ogohlantirish }}</div>{% endif %}
+            </td>
+            {% for k in q.katakchalar %}
+              <td class="son ozg-katak">
+                {% if k.ozgardi %}
+                  <span class="eski">{{ k.eski|tekis }} {{ k.eski_qoshimcha }}</span>
+                  <b class="yangi">{{ k.yangi|tekis }} {{ k.qoshimcha }}</b>
+                {% elif k.yangi != "" %}{{ k.yangi|tekis }} <span class="sust">{{ k.qoshimcha }}</span>
+                {% else %}—{% endif %}
+              </td>
+            {% endfor %}
+            <td style="white-space:nowrap">
+              {% if y.holat == 'qoralama' %}
+                {% if q.amal != 'yashirildi' %}
+                  <a class="tugma kichik tinch" href="{% url 'ombor:qator' q.pk %}?keyingi={{ request.get_full_path|urlencode }}">
+                    <svg class="ikon"><use href="#i-qalam"></use></svg>{% if q.amal == 'xato' %} Tuzatish{% endif %}</a>
+                {% endif %}
+                <form method="post" action="{% url 'ombor:qator_chiqar' q.pk %}" style="display:inline">
+                  {% csrf_token %}<input type="hidden" name="keyingi" value="{{ request.get_full_path }}">
+                  <button class="tugma kichik tinch" type="submit"
+                          title="{% if q.chiqarilgan %}Qatorni qaytarish{% else %}Bu qator qo'llanmasin{% endif %}">
+                    {% if q.chiqarilgan %}↺ Qaytarish{% else %}<svg class="ikon"><use href="#i-yopish"></use></svg>{% endif %}
+                  </button>
+                </form>
+              {% elif q.mahsulot_id %}
+                <a class="tugma kichik tinch" href="{% url 'ombor:harakatlar' q.mahsulot_id %}" title="Tovar tarixi">
+                  <svg class="ikon"><use href="#i-tarix"></use></svg></a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endwith %}
+        {% empty %}
+          <tr><td colspan="7"><div class="bosh-holat">
+            <svg class="ikon"><use href="#i-belgi"></use></svg>
+            <b>Bu bo'limda qator yo'q{% if y.ozgarmagan and not turi %} — fayldagi tovarlar ombordagi bilan bir xil{% endif %}</b>
+          </div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if qatorlar.paginator.num_pages > 1 %}
+  <nav class="sahifalash">
+    {% if qatorlar.has_previous %}<a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page={{ qatorlar.previous_page_number }}">&lsaquo; Oldingi</a>{% endif %}
+    <span class="sust">{{ qatorlar.number }} / {{ qatorlar.paginator.num_pages }}</span>
+    {% if qatorlar.has_next %}<a class="tugma tinch kichik" href="?{{ qidiruv_satri }}&amp;page={{ qatorlar.next_page_number }}">Keyingi &rsaquo;</a>{% endif %}
+  </nav>
+  {% endif %}
+
+  <a class="tugma tinch" href="{% url 'ombor:yangilanishlar' %}">
+    <svg class="ikon"><use href="#i-chap"></use></svg> Yangilanishlar
+  </a>
+</div>
+{% endblock %}
+
+{% block skript %}
+<script>
+/* Muhim amallardan oldin so'rash */
+document.querySelectorAll("form[data-tasdiq]").forEach(function (f) {
+  f.addEventListener("submit", function (e) {
+    if (!window.confirm(f.dataset.tasdiq)) e.preventDefault();
+  });
+});
+</script>
+{% endblock %}

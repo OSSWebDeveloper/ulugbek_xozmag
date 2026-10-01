@@ -9,7 +9,7 @@ Ichida:  Python, Django, sayt fayllari, ikonka va tayyor ma'lumotlar bazasi.
 
 Kompyuterda `pyinstaller` va `pillow` bo'lishi kerak:
 
-    python -m pip install pyinstaller pillow
+    python -m pip install pyinstaller pillow openpyxl
 """
 import os
 import shutil
@@ -76,6 +76,7 @@ def dasturni_yig() -> Path:
         "--add-data", f"{IKON}{os.pathsep}.",
         "--add-data", f"{ILDIZ / 'db.sqlite3'}{os.pathsep}boshlangich_baza",
         "--collect-all", "django",
+        "--collect-all", "openpyxl",          # ombor: Excel o'qish/yozish (v3.0.0)
         "--collect-submodules", "config",
         "--collect-submodules", "ombor",
         "--collect-submodules", "qarz",

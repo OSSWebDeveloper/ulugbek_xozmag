@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load xozmag %}
+
+{% block sarlavha %}Ombor yangilanishlari{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng sahifa-toliq">
+  <div class="sarlavha">
+    Ombor yangilanishlari
+    <span class="kichik">Excel orqali kiritilgan o'zgarishlar</span>
+  </div>
+
+  <div class="quti qator tor">
+    <a class="tugma kichik {% if not holat %}asosiy{% else %}tinch{% endif %}" href="?">Hammasi</a>
+    {% for k, n in holatlar %}
+      <a class="tugma kichik {% if holat == k %}asosiy{% else %}tinch{% endif %}" href="?holat={{ k }}">{{ n }}</a>
+    {% endfor %}
+    <a class="tugma kichik yashil" href="{% url 'ombor:excel_yuklash' %}" style="margin-left:auto">
+      <svg class="ikon"><use href="#i-yuklash"></use></svg> Excel yuklash
+    </a>
+  </div>
+
+  <div class="jadval-quti">
+    <table class="jadval">
+      <thead>
+        <tr><th>#</th><th>Fayl</th><th>Holat</th><th>O'zgarishlar</th><th>Vaqt</th><th style="width:1%"></th></tr>
+      </thead>
+      <tbody>
+        {% for y in yangilanishlar %}
+          <tr>
+            <td class="sust">{{ y.pk }}</td>
+            <td><b>{{ y.fayl_nomi|default:"—" }}</b>{% if y.izoh %}<div class="sust">{{ y.izoh }}</div>{% endif %}</td>
+            <td>
+              {% if y.holat == 'qoralama' %}<span class="nishon ogoh">Qoralama</span>
+              {% elif y.holat == 'qollandi' %}<span class="nishon yashil">Qo'llangan</span>
+              {% else %}<span class="nishon">Bekor qilingan</span>{% endif %}
+            </td>
+            <td style="white-space:nowrap">
+              {% if y.n_yangi %}<span class="nishon yashil">+{{ y.n_yangi|tekis }} yangi</span>{% endif %}
+              {% if y.n_ozgardi %}<span class="nishon kok">{{ y.n_ozgardi|tekis }} o'zgardi</span>{% endif %}
+              {% if y.n_yashirildi %}<span class="nishon ogoh">{{ y.n_yashirildi|tekis }} yashirildi</span>{% endif %}
+              {% if y.n_xato %}<span class="nishon xato-nishon">{{ y.n_xato|tekis }} xato</span>{% endif %}
+              {% if not y.n_yangi and not y.n_ozgardi and not y.n_yashirildi and not y.n_xato %}<span class="sust">o'zgarish yo'q</span>{% endif %}
+            </td>
+            <td class="sust" style="white-space:nowrap">
+              {{ y.yaratilgan|date:"d.m.Y H:i" }}
+              {% if y.bekor_qilingan %}<div>bekor: {{ y.bekor_qilingan|date:"d.m.Y H:i" }}</div>{% endif %}
+            </td>
+            <td><a class="tugma kichik tinch" href="{% url 'ombor:yangilanish' y.pk %}">Ochish</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6"><div class="bosh-holat">
+            <svg class="ikon"><use href="#i-tarix"></use></svg><b>Hali yangilanish yo'q</b>
+          </div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if yangilanishlar.paginator.num_pages > 1 %}
+  <nav class="sahifalash">
+    {% if yangilanishlar.has_previous %}<a class="tugma tinch kichik" href="?holat={{ holat }}&amp;page={{ yangilanishlar.previous_page_number }}">&lsaquo; Oldingi</a>{% endif %}
+    <span class="sust">{{ yangilanishlar.number }} / {{ yangilanishlar.paginator.num_pages }}</span>
+    {% if yangilanishlar.has_next %}<a class="tugma tinch kichik" href="?holat={{ holat }}&amp;page={{ yangilanishlar.next_page_number }}">Keyingi &rsaquo;</a>{% endif %}
+  </nav>
+  {% endif %}
+
+  <a class="tugma tinch" href="{% url 'ombor:royxat' %}">
+    <svg class="ikon"><use href="#i-chap"></use></svg> Omborga qaytish
+  </a>
+</div>
+{% endblock %}

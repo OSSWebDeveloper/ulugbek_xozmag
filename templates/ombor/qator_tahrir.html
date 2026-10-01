@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block sarlavha %}Qatorni tuzatish{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:880px">
+  <div class="sarlavha">
+    Qatorni {% if q.amal == 'xato' %}tuzatish{% else %}tahrirlash{% endif %}
+    {% if q.excel_qator %}<span class="kichik">Excel'dagi {{ q.excel_qator }}-qator</span>{% endif %}
+  </div>
+
+  {% if q.xato %}
+    <div class="xabar error" style="margin-bottom:var(--oraliq)">
+      <svg class="ikon"><use href="#i-ogoh"></use></svg><span><b>Xato:</b> {{ q.xato }}</span>
+    </div>
+  {% endif %}
+  {% if q.amal == 'ozgardi' and q.mahsulot %}
+    <div class="xabar info" style="margin-bottom:var(--oraliq)">
+      <svg class="ikon"><use href="#i-quti"></use></svg>
+      <span>Ombordagi tovar: <b>{{ q.mahsulot.kod }}</b> · {{ q.mahsulot.nom }}. O'zgarish shu tovarga yoziladi.</span>
+    </div>
+  {% endif %}
+
+  <form method="post" class="quti forma-setka">
+    {% csrf_token %}
+    <input type="hidden" name="keyingi" value="{{ keyingi }}">
+    {% if form.non_field_errors %}
+      <div class="xabar error keng">
+        <svg class="ikon"><use href="#i-ogoh"></use></svg><span>{{ form.non_field_errors|join:" " }}</span>
+      </div>
+    {% endif %}
+    {% for field in form %}
+      <div class="maydon {% if field.name == 'nom' %}keng{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="maydon-izoh">{{ field.help_text }}</div>{% endif %}
+        {% if field.errors %}<div class="xato-yozuv">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <div class="forma-tugmalar keng qator tor">
+      <button class="tugma yashil" type="submit"><svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash</button>
+      <a class="tugma tinch" href="{% if keyingi %}{{ keyingi }}{% else %}{% url 'ombor:yangilanish' q.yangilanish_id %}{% endif %}">Qoralamaga qaytish</a>
+      <span class="sust">Ombor hozir o'zgarmaydi — faqat qoralamadagi qator yangilanadi.</span>
+    </div>
+  </form>
+</div>
+{% endblock %}

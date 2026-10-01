@@ -1,36 +1,42 @@
 """Ombor (sklad) ko'rinishlari."""
+from urllib.parse import urlencode
+
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from . import excel
+from .excel_views import filtrlar
 from .forms import KirimForm, MahsulotForm
 from .kod import topish
-from .models import (ETIKETKA_KOPI, HarakatTuri, Mahsulot, OmborHarakati, tekis_matn,
-                     tekis_son)
+from .models import (ETIKETKA_KOPI, HarakatTuri, Mahsulot, OmborHarakati, OmborYangilanish,
+                     tekis_matn, tekis_son)
 from .shtrix import chiziqlar
 
 
 def royxat(request):
-    """Skladdagi barcha tovarlar.
+    """Skladdagi tovarlar — 50 tadan sahifalab (Excel'dan 10 000 tagacha tovar keladi).
 
     Qidiruv maydoni nom bilan ham, kod bilan ham ishlaydi: yorliqdagi
     raqam yozilsa (yoki skaner o'qib bersa) o'sha tovar chiqadi.
+    «Kam qolganlar birinchi» belgilansa — omborda qolgan hajmiga teskari tartib.
+    Yuklab olinadigan Excel ham aynan shu filtr va tartibda bo'ladi.
     """
-    matn = request.GET.get("q", "").strip()
-    mahsulotlar = Mahsulot.objects.all()
-    if matn:
-        izlov = Q(nom__icontains=matn)
-        raqam = matn.replace(" ", "")
-        if raqam.isdigit():
-            izlov |= Q(kod__endswith=raqam)
-        mahsulotlar = mahsulotlar.filter(izlov)
+    f = filtrlar(request)
+    mahsulotlar = excel.tovarlar(**f)
+    sahifa = Paginator(mahsulotlar, 50).get_page(request.GET.get("page"))
+    soralgan = {k: v for k, v in request.GET.items() if k != "page" and v}
     return render(request, "ombor/royxat.html", {
-        "mahsulotlar": mahsulotlar,
-        "matn": matn,
+        "mahsulotlar": sahifa,
+        "matn": f["q"],
+        "f": f,
+        "topildi": sahifa.paginator.count,
+        "qidiruv_satri": urlencode(soralgan),
         "tugagan": Mahsulot.objects.filter(faol=True, qoldiq__lte=0).count(),
+        "qoralamalar": OmborYangilanish.objects.filter(holat=OmborYangilanish.QORALAMA).count(),
     })
 
 
@@ -188,7 +194,7 @@ def etiketka(request, pk):
         "soni": min(max(soni, 1), ETIKETKA_KOPI),
         "eng_kop": ETIKETKA_KOPI,
         # Shtrix eni modulda — etiketkada mm ga aylanadi (o'lchamga qarab)
-        "modullar": chiziqlar(mahsulot.kod)[1],
+        "modullar": chiziqlar(mahsulot.etiketka_kodi)[1],
     })
 
 

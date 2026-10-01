@@ -280,11 +280,12 @@ class StansiyaTest(KirganTest):
         self.assertEqual(javob["narx"], "120000")
 
     def test_raqamli_rang_kodi_tovardan_oldin(self):
-        """«0001» rang kodi tovarning oxirgi 4 raqami bilan adashmasin."""
+        """«00001» rang kodi tovar kodi bilan adashmasin: qo'lda yozilsa — rang,
+        etiketka skanerlansa (000001) — baza."""
         rang = Rang.objects.create(kod=self.baza.qisqa_kod)
         javob = self.kod(self.baza.qisqa_kod)
         self.assertEqual((javob["tur"], javob["id"]), ("rang", rang.pk))
-        self.assertEqual(self.kod(self.baza.kod)["tur"], "baza")     # to'liq etiketka — baza
+        self.assertEqual(self.kod(self.baza.etiketka_kodi)["tur"], "baza")   # etiketka — baza
 
     def test_notanish_kod(self):
         javob = self.kod("NCS S 9999")

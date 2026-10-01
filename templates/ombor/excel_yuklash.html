@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block sarlavha %}Omborni Excel'dan yangilash{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:980px">
+  <div class="sarlavha">
+    Omborni Excel'dan yangilash
+    <span class="kichik">fayl yuklanganda ombor hali o'zgarmaydi</span>
+  </div>
+
+  <div class="qator" style="align-items:flex-start">
+    <form method="post" enctype="multipart/form-data" class="quti">
+      {% csrf_token %}
+      <div class="maydon">
+        <label for="{{ form.fayl.id_for_label }}">{{ form.fayl.label }}</label>
+        {{ form.fayl }}
+        {% if form.fayl.errors %}{% for x in form.fayl.errors %}<div class="xato-yozuv">{{ x }}</div>{% endfor %}{% endif %}
+      </div>
+      <div class="maydon">
+        <label for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
+        {{ form.izoh }}
+      </div>
+      <label class="richag keng">
+        {{ form.yoqlarini_yashir }}
+        <span class="yo-l"><span class="dasta"></span></span>
+        <span class="richag-matn">
+          <b>{{ form.yoqlarini_yashir.label }}</b>
+          <small>Belgilanmasa, faylda bo'lmagan tovarlar o'zgarmaydi. Yashirilgan tovar
+            o'chmaydi — sotuv tarixi saqlanadi, kerak bo'lsa qaytariladi.</small>
+        </span>
+      </label>
+      <button class="tugma asosiy keng" type="submit" style="margin-top:var(--oraliq)">
+        <svg class="ikon"><use href="#i-yuklash"></use></svg> Faylni tekshirish
+      </button>
+    </form>
+
+    <div class="quti">
+      <div class="ichki-sarlavha">Fayl qanday bo'lishi kerak</div>
+      <p>Birinchi qatorda sarlavhalar: <b>Kod</b>, <b>Tovar nomi</b>, <b>Birlik</b>,
+         <b>Qoldiq</b>, <b>Narxi</b>, <b>Valyuta</b>. Tartibi muhim emas.</p>
+      <ol class="ombor-qadamlar">
+        <li><b>Kod</b> — 5 xonali (00001 … 99999), tovar turgan joyi. Bo'sh bo'lsa navbatdagi bo'sh kod beriladi.</li>
+        <li>Kod bo'lsa tovar kod bo'yicha, bo'lmasa nomi bo'yicha topiladi.</li>
+        <li>Faylda yo'q ustun o'zgarmaydi — masalan faqat <i>Kod + Qoldiq</i> faqat qoldiqni yangilaydi.</li>
+        <li>Qoldiq o'zgarsa tovar tarixiga «Tuzatish» bo'lib yoziladi.</li>
+        <li>Do'kon dasturining «Products …xlsx» faylini ham to'g'ridan-to'g'ri yuklash mumkin.</li>
+      </ol>
+      <div class="qator tor" style="margin-top:var(--oraliq)">
+        <a class="tugma kichik tinch" href="{% url 'ombor:shablon' %}">
+          <svg class="ikon"><use href="#i-yuklab-ol"></use></svg> Bo'sh shablon</a>
+        <a class="tugma kichik tinch" href="{% url 'ombor:eksport' %}">
+          <svg class="ikon"><use href="#i-yuklab-ol"></use></svg> Hozirgi ombor</a>
+      </div>
+    </div>
+  </div>
+
+  <a class="tugma tinch" href="{% url 'ombor:royxat' %}">
+    <svg class="ikon"><use href="#i-chap"></use></svg> Omborga qaytish
+  </a>
+</div>
+{% endblock %}

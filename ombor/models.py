@@ -5,14 +5,30 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
-KOD_UZUNLIK = 10      # tovar kodi: 0000000001, 0000000002 ...
-QISQA_UZUNLIK = 4     # kassada va tarozida uriladigan oxirgi raqamlar soni
+KOD_UZUNLIK = 5       # tovar kodi — turgan joyi: 00001 … 99999
+KOD_MAX = 99999
+QISQA_UZUNLIK = KOD_UZUNLIK   # kassada butun kod uriladi, boshidagi nollarsiz ham bo'ladi
 ETIKETKA_KOPI = 500   # bir yo'la chop etiladigan etiketkalar chegarasi
 
 
 def kod_yasa(raqam):
-    """Tovar id sidan kod yasaydi: 7 -> '0000000007'."""
+    """Raqamdan kod yasaydi: 7 -> '00007'."""
     return f"{int(raqam):0{KOD_UZUNLIK}d}"
+
+
+def keyingi_kod(band=None):
+    """Navbatdagi bo'sh kod: eng kattasidan keyingisi, 99999 to'lsa — bo'shliqlardan.
+
+    `band` — qo'shimcha band kodlar (masalan hali saqlanmagan qoralama qatorlari).
+    Bo'sh kod qolmagan bo'lsa None.
+    """
+    band = set(band or ()) | set(Mahsulot.objects.values_list("kod", flat=True))
+    raqamlar = {int(k) for k in band if k and k.isdigit()}
+    eng_katta = max(raqamlar, default=0)
+    if eng_katta < KOD_MAX:
+        return kod_yasa(eng_katta + 1)
+    bosh = next((r for r in range(1, KOD_MAX + 1) if r not in raqamlar), None)
+    return kod_yasa(bosh) if bosh else None
 
 
 def tekis_son(son):
@@ -66,9 +82,11 @@ class Mahsulot(models.Model):
     yoziladi (`Sotuv.jami`, `Qarz.jami`). Narx ma'lumot uchun — sotuvchi
     ko'rib turadi, keyinchalik elektron tarozi shu narxdan foydalanadi.
 
-    Har bir tovarga yaratilganda **kod** beriladi (`0000000001` dan boshlab,
-    id bo'yicha). Kassada va tarozida uning **oxirgi 4 raqami** uriladi —
-    og'ir tovarni kassagacha ko'tarib kelish shart emas. Etiketkadagi shtrix
+    Har bir tovarga turgan joyiga qarab **5 xonali kod** beriladi (`00001` …
+    `99999`, v3.0.0 dan; oldin id bo'yicha 10 xonali edi). Bo'sh qoldirilsa
+    navbatdagi bo'sh kod beriladi. Kassada va tarozida shu kod uriladi
+    (boshidagi nollarsiz ham: `27` = `00027`) — og'ir tovarni kassagacha
+    ko'tarib kelish shart emas. Etiketkadagi shtrix
     ham shu kodning o'zi — etiketka chop etilib tovarga yopishtiriladi va
     kassada skanerlanadi (`ombor/shtrix.py`). Zavod shtrixlari saqlanmaydi.
 
@@ -83,7 +101,7 @@ class Mahsulot(models.Model):
                            error_messages={"unique": "Bunday nomli tovar allaqachon bor."})
     kod = models.CharField(
         "Kod", max_length=KOD_UZUNLIK, unique=True, blank=True, db_index=True,
-        help_text="Tovar yaratilganda o'zi beriladi va hech qachon o'zgarmaydi.",
+        help_text="Tovar turgan joyi: 00001 … 99999. Bo'sh qoldirilsa navbatdagi bo'sh kod beriladi.",
     )
     birlik = models.CharField("Sotuv birligi", max_length=10, choices=Birlik,
                               default=Birlik.DONA)
@@ -100,7 +118,7 @@ class Mahsulot(models.Model):
         help_text="1 olish birligida nechta sotuv birligi bor. Masalan 1 rulon = 100 metr.",
     )
     narx = models.DecimalField(
-        "Narxi", max_digits=12, decimal_places=2, default=0,
+        "Narxi", max_digits=16, decimal_places=4, default=0,
         help_text="1 sotuv birligi uchun, tovarning valyutasida. Kassada summa "
                   "baribir qo'lda yoziladi — bu narx ma'lumot uchun.",
     )
@@ -120,27 +138,26 @@ class Mahsulot(models.Model):
 
     @property
     def qisqa_kod(self):
-        """Kassada va tarozida uriladigan oxirgi 4 raqam: '0000000027' -> '0027'."""
-        return self.kod[-QISQA_UZUNLIK:] if self.kod else ""
+        """Kassada va tarozida uriladigan kod — 5 xonali kodning o'zi."""
+        return self.kod or ""
 
     @property
     def etiketka_kodi(self):
-        """O'zimiz bosadigan etiketkadagi shtrix — tovar kodining o'zi (Code 128).
+        """O'zimiz bosadigan etiketkadagi shtrix (Code 128-C): kod oldiga bitta `0`.
 
-        Etiketkada shtrix ostida shu raqam yoziladi va kassir uning **oxirgi 4
-        raqamini** uradi, skaner esa to'liq kodni o'qiydi — ikkalasi bitta
-        tovarga olib boradi (`ombor/kod.py`). Shuning uchun EAN-13 emas: uning
-        oxirgi raqami nazorat raqami bo'lib, yozuvdagi oxirgi 4 raqam tovar
-        kodiga to'g'ri kelmasdi (`ombor/shtrix.py`). Tarozi esa o'z etiketkasini
-        EAN-13 da bosadi — og'irlik bilan (`ichki_shtrix`).
+        Code 128-C raqamlarni juftlab yozadi, 5 xonali kod esa toq — shuning
+        uchun `00027` shtrixda `000027` bo'ladi. Skaner o'qigani ham, kassir
+        urgani ham son sifatida o'qiladi va bitta tovarga olib boradi
+        (`ombor/kod.py`). Etiketkadagi yozuv — kodning o'zi (`00027`).
+        Tarozi esa o'z etiketkasini EAN-13 da bosadi — og'irlik bilan (`ichki_shtrix`).
         """
-        return self.kod
+        return self.kod.rjust(KOD_UZUNLIK + 1, "0") if self.kod else ""
 
     @property
     def etiketka_svg(self):
         """Etiketkadagi shtrixning SVG si (ombor/shtrix.py)."""
         from .shtrix import svg
-        return svg(self.kod) if self.kod else ""
+        return svg(self.etiketka_kodi) if self.kod else ""
 
     def etiketka_soni(self, miqdor=None, birlik=None):
         """Nechta etiketka kerak: sanaladigan tovarning har biriga bittadan.
@@ -274,12 +291,9 @@ class Mahsulot(models.Model):
             self.olish_birligi = ""
         if not self.olish_birligi:
             self.olish_miqdori = Decimal("1")
-        super().save(*args, **kwargs)
-        # Kod id dan chiqadi, ya'ni yozuv bazaga tushgandan keyin ma'lum bo'ladi.
-        # Bir marta beriladi va boshqa o'zgarmaydi — etiketkalar qayta bosilmasin.
         if not self.kod:
-            self.kod = kod_yasa(self.pk)
-            super().save(update_fields=["kod"])
+            self.kod = keyingi_kod()
+        super().save(*args, **kwargs)
 
 
 class DollarKursi(models.Model):
@@ -343,3 +357,120 @@ class OmborHarakati(models.Model):
                 and self.kiritilgan_birlik != self.mahsulot.birlik):
             return f"{tekis_matn(self.kiritilgan_miqdor)} {self.kiritilgan_birlik} = {asos}"
         return asos
+
+
+# ---------- Excel orqali yangilash (v3.0.0) ----------
+
+# Yangilanish qatorida saqlanadigan tovar maydonlari — Excel ustunlari bilan bir xil
+HOLAT_MAYDONLARI = ["kod", "nom", "birlik", "qoldiq", "narx", "valyuta", "faol"]
+SON_MAYDONLARI = {"qoldiq", "narx"}
+
+
+def mahsulot_holati(m):
+    """Tovarning qoralama/tarix uchun ko'rinishi — hammasi matn (faol — bool)."""
+    return {
+        "kod": m.kod or "", "nom": m.nom, "birlik": m.birlik,
+        "qoldiq": tekis_son(m.qoldiq), "narx": tekis_son(m.narx),
+        "valyuta": m.valyuta, "faol": bool(m.faol),
+    }
+
+
+def holatni_qoy(m, holat):
+    for maydon in HOLAT_MAYDONLARI:
+        if maydon not in holat:
+            continue
+        qiymat = holat[maydon]
+        if maydon in SON_MAYDONLARI:
+            qiymat = Decimal(qiymat or "0")
+        setattr(m, maydon, qiymat)
+
+
+class OmborYangilanish(models.Model):
+    """Omborga bir yo'la kiritilgan o'zgarishlar: Excel fayl yoki qo'lda.
+
+    Fayl yuklanganda avval **qoralama** bo'ladi — nima o'zgarishi ko'rsatiladi,
+    qatorlarni tuzatish yoki chiqarib tashlash mumkin. «Qo'llash»dan keyin
+    ombor yangilanadi; har qatorda tovarning oldingi holati saqlangani uchun
+    yangilanishni keyin **bekor qilish** mumkin.
+    """
+
+    QORALAMA, QOLLANDI, BEKOR = "qoralama", "qollandi", "bekor"
+    HOLATLAR = [(QORALAMA, "Qoralama"), (QOLLANDI, "Qo'llangan"), (BEKOR, "Bekor qilingan")]
+
+    holat = models.CharField("Holat", max_length=10, choices=HOLATLAR, default=QORALAMA,
+                             db_index=True)
+    fayl_nomi = models.CharField("Fayl nomi", max_length=255, blank=True)
+    izoh = models.CharField("Izoh", max_length=200, blank=True)
+    yoqlarini_yashir = models.BooleanField("Faylda yo'q tovarlarni yashirish", default=False)
+    jami_qator = models.PositiveIntegerField("Fayldagi qatorlar", default=0)
+    ozgarmagan = models.PositiveIntegerField("O'zgarmagan qatorlar", default=0)
+    yaratilgan = models.DateTimeField("Yuklangan", auto_now_add=True)
+    qollangan = models.DateTimeField("Qo'llangan", null=True, blank=True)
+    bekor_qilingan = models.DateTimeField("Bekor qilingan", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Ombor yangilanishi"
+        verbose_name_plural = "Ombor yangilanishlari"
+        ordering = ["-yaratilgan"]
+
+    def __str__(self):
+        return f"#{self.pk} {self.nomi}"
+
+    @property
+    def nomi(self):
+        return self.fayl_nomi or self.izoh or "Qo'lda"
+
+    def sanoq(self):
+        """Amal turi bo'yicha qatorlar soni; chiqarib tashlanganlar alohida."""
+        natija = {k: 0 for k, _ in YangilanishQatori.AMALLAR}
+        natija["chiqarilgan"] = 0
+        for amal, chiqarilgan, soni in (self.qatorlar.values_list("amal", "chiqarilgan")
+                                        .annotate(n=models.Count("id"))):
+            natija["chiqarilgan" if chiqarilgan else amal] += soni
+        return natija
+
+
+class YangilanishQatori(models.Model):
+    """Yangilanishdagi bitta tovar o'zgarishi: oldingi va keyingi holat."""
+
+    YANGI, OZGARDI, YASHIRILDI, XATO = "yangi", "ozgardi", "yashirildi", "xato"
+    AMALLAR = [(YANGI, "Yangi tovar"), (OZGARDI, "O'zgardi"),
+               (YASHIRILDI, "Yashiriladi"), (XATO, "Xato")]
+
+    yangilanish = models.ForeignKey(OmborYangilanish, on_delete=models.CASCADE,
+                                    related_name="qatorlar")
+    mahsulot = models.ForeignKey(Mahsulot, null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name="yangilanish_qatorlari")
+    excel_qator = models.PositiveIntegerField("Excel qatori", null=True, blank=True)
+    amal = models.CharField("Amal", max_length=10, choices=AMALLAR, db_index=True)
+    kod = models.CharField("Kod", max_length=KOD_UZUNLIK, blank=True, db_index=True)
+    eski = models.JSONField("Oldingi holat", null=True, blank=True)
+    yangi = models.JSONField("Yangi holat", null=True, blank=True)
+    xato = models.CharField("Xato", max_length=300, blank=True)
+    ogohlantirish = models.CharField("Ogohlantirish", max_length=300, blank=True)
+    chiqarilgan = models.BooleanField("Qo'llanmaydi", default=False)
+
+    class Meta:
+        verbose_name = "Yangilanish qatori"
+        verbose_name_plural = "Yangilanish qatorlari"
+        ordering = ["id"]
+
+    def ozgargan_maydonlar(self):
+        if self.amal != self.OZGARDI or not self.eski or not self.yangi:
+            return set()
+        return {m for m in HOLAT_MAYDONLARI if self.eski.get(m) != self.yangi.get(m)}
+
+    def katakchalar(self):
+        """Shablon uchun: qoldiq va narx ustunlari (valyuta narx yonida)."""
+        ozg = self.ozgargan_maydonlar()
+        eski = self.eski or {}
+        yangi = eski if self.amal == self.YASHIRILDI else (self.yangi or {})
+        return [
+            {"maydon": "qoldiq", "eski": eski.get("qoldiq", ""), "yangi": yangi.get("qoldiq", ""),
+             "ozgardi": "qoldiq" in ozg, "qoshimcha": yangi.get("birlik", ""),
+             "eski_qoshimcha": eski.get("birlik", "")},
+            {"maydon": "narx", "eski": eski.get("narx", ""), "yangi": yangi.get("narx", ""),
+             "ozgardi": bool(ozg & {"narx", "valyuta"}),
+             "qoshimcha": "$" if yangi.get("valyuta") == Valyuta.DOLLAR else "so'm",
+             "eski_qoshimcha": "$" if eski.get("valyuta") == Valyuta.DOLLAR else "so'm"},
+        ]
