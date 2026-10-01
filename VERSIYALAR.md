@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.0.0 — 2026-10-01
+
+Ombor: Excel orqali yangilash va bekor qilish, 5 xonali joy kodi, kam qolganlar birinchi
+
 ## 2.8.0 — 2026-09-23
 
 Sotuv qayta ishlandi: autosplit va qidiruvda tovar kodi
