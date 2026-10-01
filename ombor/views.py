@@ -12,6 +12,7 @@ from . import excel
 from .excel_views import filtrlar
 from .forms import KirimForm, MahsulotForm
 from .kod import topish
+from .xizmat import QIDIRUV_SONI, karta_malumoti
 from .models import (ETIKETKA_KOPI, HarakatTuri, Mahsulot, OmborHarakati, OmborYangilanish,
                      tekis_matn, tekis_son)
 from .shtrix import chiziqlar
@@ -74,6 +75,22 @@ def kod_qidir(request):
         # Rang cheki bo'lsa — kassa uni hujjatga bog'laydi (rang/kassa.py):
         # bitta chek ikki marta ishlatilmaydi
         "rang_chek": natija.rang_cheki.pk if natija.rang_cheki else "",
+    })
+
+
+def tovar_qidir(request):
+    """Tovar tanlash oynasining qidiruvi — nom yoki kod bo'yicha, ko'pi bilan 30 ta.
+
+    Oynaga hamma tovar chizilmaydi (`xizmat.oyna_tovarlari`), shuning uchun
+    qidiruv brauzerda emas, shu yerda bo'ladi.
+    """
+    matn = request.GET.get("q", "").strip()
+    if not matn:
+        return JsonResponse({"tovarlar": []})
+    topilgan = list(excel.tovarlar(q=matn)[:QIDIRUV_SONI + 1])
+    return JsonResponse({
+        "tovarlar": [karta_malumoti(m) for m in topilgan[:QIDIRUV_SONI]],
+        "yana": len(topilgan) > QIDIRUV_SONI,
     })
 
 

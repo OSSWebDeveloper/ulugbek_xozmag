@@ -212,3 +212,33 @@ def qaytar(mahsulot_id, miqdor, izoh, tur=HarakatTuri.KIRIM):
         mahsulot=mahsulot, tur=tur, miqdor=miqdor, izoh=izoh,
     )
     return mahsulot
+
+
+# ---------- Kassadagi tovar tanlash oynasi ----------
+
+OYNA_SONI = 60       # oynada darrov ko'rinadigan kartalar (eng ko'p sotiladiganlari)
+QIDIRUV_SONI = 30    # qidiruvda serverdan keladigan natijalar
+
+
+def oyna_tovarlari():
+    """Tovar tanlash oynasidagi kartalar — eng ko'p sotiladigan 60 tasi.
+
+    Omborda 10 000 dan ortiq tovar bor (Excel'dan keladi): hammasini sahifaga
+    chizsak kassa 10 soniyada ochilardi. Qolgani qidiruv orqali serverdan
+    keladi (`/ombor/tovar-qidir/`), kod va skaner esa avvalgidek `/ombor/kod/`.
+    """
+    from django.db.models import Count
+    return list(Mahsulot.objects.filter(faol=True)
+                .annotate(sotilgan=Count("sotuv_qatorlari", distinct=True)
+                          + Count("qarz_qatorlari", distinct=True))
+                .order_by("-sotilgan", "nom")[:OYNA_SONI])
+
+
+def karta_malumoti(m):
+    """Oynadagi kartaning `data-*` qiymatlari — JS server javobidan ham shu kartani yasaydi."""
+    from qarz.templatetags.xozmag import narxi, tekis
+    return {
+        "id": m.pk, "nom": m.nom, "kod": m.kod, "qisqa": m.qisqa_kod,
+        "qoldiq": tekis(m.qoldiq), "birlik": m.birlik, "ikkinchi": m.qadoq_matni,
+        "valyuta": m.valyuta_belgisi, "narx": narxi(m), "yoq": m.qoldiq <= 0,
+    }

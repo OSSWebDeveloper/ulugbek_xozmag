@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from ombor.models import HarakatTuri, Mahsulot
-from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, pulga, qaytar,
-                          qaytarishni_oqi, songa, summalarni_oqi)
+from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, oyna_tovarlari, pulga,
+                          qaytar, qaytarishni_oqi, songa, summalarni_oqi)
 
 from qarz.forms import QarzdorForm
 from qarz.models import Qarz, Qarzdor
@@ -72,7 +72,7 @@ def tahrir(request, pk):
     return render(request, "sotuv/tahrir.html", {
         "sotuv": sotuv,
         "qatorlar": sotuv.qatorlar.select_related("mahsulot"),
-        "mahsulotlar": Mahsulot.objects.filter(faol=True),
+        "mahsulotlar": oyna_tovarlari(),
         "qator_manzili": reverse("sotuv:qator_qoshish", args=[sotuv.pk]),
         "yakun_manzili": reverse("sotuv:yakunlash", args=[sotuv.pk]),
         "oxirgi_kurs": oxirgi_kurs(),

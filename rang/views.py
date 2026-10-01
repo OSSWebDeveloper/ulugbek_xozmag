@@ -23,7 +23,7 @@ from ombor.kod import topish
 from ombor.models import Mahsulot, tekis_matn, tekis_son
 from ombor.shtrix import chiziqlar as raqam_chiziqlari
 from ombor.shtrix import svg as raqam_svg
-from ombor.xizmat import pulga, songa
+from ombor.xizmat import oyna_tovarlari, pulga, songa
 from qarz.templatetags.xozmag import narxi
 
 from .forms import RangForm
@@ -94,7 +94,7 @@ def stansiya(request):
         # Kechagi (va undan oldingi) to'lanmagan bo'yoq ko'zdan qochmasin
         "eskilar": cheklar.filter(sana__lt=boshi, sana__gte=boshi - timedelta(days=ESKI_KUNLAR),
                                   bekor_qilingan=False, sotuv__isnull=True, qarz__isnull=True),
-        "mahsulotlar": Mahsulot.objects.filter(faol=True),
+        "mahsulotlar": oyna_tovarlari(),
         "ranglar_soni": Rang.objects.count(),
         "tanlov": tanlov,
         # Rang mashinasi kompyuteri Wi-Fi orqali shu manzil bilan ulanadi

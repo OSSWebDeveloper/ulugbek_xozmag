@@ -163,24 +163,21 @@
     });
   }
 
+  /* Qidiruv butun ombordan — serverda (static/js/tovar_oyna.js). */
   function dropdownYangila() {
-    var soz = qidiruv.value.toLowerCase().trim();
-    if (!soz) return dropdownYop();
-    var raqammi = /^\d+$/.test(soz);
-    var topilgan = [].slice.call(oyna.querySelectorAll(".tovar-karta")).filter(function (k) {
-      if (k.dataset.nom.toLowerCase().indexOf(soz) !== -1) return true;
-      return raqammi && (k.dataset.kod || "").indexOf(soz) !== -1;
+    window.TovarOyna.izla(qidiruv.value, function (tovarlar, yana) {
+      if (!tovarlar) return dropdownYop();
+      dropdown.innerHTML = tovarlar.length ? tovarlar.map(function (d) {
+        return '<button type="button" class="dropdown-qator' + (d.yoq ? " yoq" : "") +
+          '" data-kod="' + himoya(d.kod) + '">' +
+          '<span class="d-kod">' + himoya(d.qisqa || "") + "</span>" +
+          '<span class="d-nom">' + himoya(d.nom) + "</span>" +
+          '<span class="d-qoldiq">' + (d.yoq ? "tugagan" : himoya(d.qoldiq + " " + d.birlik)) +
+          "</span></button>";
+      }).join("") + (yana ? '<div class="dropdown-bosh">Yana bor — aniqroq yozing</div>' : "")
+        : '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
+      dropdown.classList.add("ochiq");
     });
-    dropdown.innerHTML = topilgan.length ? topilgan.map(function (k) {
-      var yoq = k.classList.contains("yoq");
-      return '<button type="button" class="dropdown-qator' + (yoq ? " yoq" : "") +
-        '" data-kod="' + himoya(k.dataset.kod) + '">' +
-        '<span class="d-kod">' + himoya(k.dataset.qisqa || "") + "</span>" +
-        '<span class="d-nom">' + himoya(k.dataset.nom) + "</span>" +
-        '<span class="d-qoldiq">' + (yoq ? "tugagan" : himoya(k.dataset.qoldiq + " " + k.dataset.birlik)) +
-        "</span></button>";
-    }).join("") : '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
-    dropdown.classList.add("ochiq");
   }
 
   function kartadanTanla(kod) {

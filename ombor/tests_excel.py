@@ -183,3 +183,28 @@ class ExcelTest(KirganTest):
         self.assertContains(javob, "3 / 3")
         self.assertContains(javob, "00101")
         self.assertNotContains(javob, "00050")
+
+
+class TovarOynasiTest(KirganTest):
+    """Kassadagi tovar oynasi: 60 ta karta, qolgani server qidiruvi orqali."""
+
+    def setUp(self):
+        super().setUp()
+        Mahsulot.objects.bulk_create([Mahsulot(nom=f"Tovar {i:03d}", kod=f"{i:05d}",
+                                               qoldiq=Decimal("5")) for i in range(1, 151)])
+
+    def test_kassada_faqat_60_ta_karta(self):
+        from .xizmat import OYNA_SONI
+        javob = self.client.get(reverse("sotuv:boshlash"), follow=True)
+        self.assertEqual(len(javob.context["mahsulotlar"]), OYNA_SONI)
+        self.assertContains(javob, 'data-qidir-manzil="/ombor/tovar-qidir/"')
+
+    def test_qidiruv_nom_va_kod(self):
+        url = reverse("ombor:tovar_qidir")
+        javob = self.client.get(url, {"q": "Tovar 14"}).json()     # so'zlar alohida izlanadi
+        self.assertEqual(len(javob["tovarlar"]), 12)                 # 014, 114, 140-149
+        self.assertEqual(javob["tovarlar"][0]["nom"], "Tovar 014")
+        self.assertEqual(self.client.get(url, {"q": "137"}).json()["tovarlar"][0]["kod"], "00137")
+        javob = self.client.get(url, {"q": "Tovar"}).json()
+        self.assertEqual((len(javob["tovarlar"]), javob["yana"]), (30, True))
+        self.assertEqual(self.client.get(url, {"q": ""}).json()["tovarlar"], [])

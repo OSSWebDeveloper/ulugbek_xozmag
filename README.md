@@ -366,9 +366,12 @@ Fayl qoidalari:
 
 10 169 qatorli haqiqiy fayl: tekshirish ~8 s, qo'llash ~6 s, yuklab olish ~6 s.
 
-**Diqqat — kassa:** tovar tanlash oynasi (sotuv, qarz, rang ekranlari) hamma
-faol tovarni birdaniga chizadi. 10 000 tovarda bu ekranlar ~10 s ochiladi va
-7,6 MB bo'ladi — buni alohida hal qilish kerak.
+**Kassadagi tovar oynasi** (sotuv, qarz, rang ekranlari) faqat eng ko'p
+sotiladigan 60 ta tovarni chizadi (`ombor/xizmat.py`, `oyna_tovarlari`).
+Qidiruv butun ombordan — serverda (`/ombor/tovar-qidir/`, ko'pi bilan 30 natija,
+`static/js/tovar_oyna.js`). Kod va skaner avvalgidek `/ombor/kod/` orqali;
+oynada chizilmagan tovar kartasi server javobidan yasaladi. Oldin hamma tovar
+chizilardi — 10 000 tovarda kassa ~10 s ochilardi (7,6 MB), endi ~0,3 s (69 KB).
 
 ## Rang (kolerovka) — Soruda mashinasi
 

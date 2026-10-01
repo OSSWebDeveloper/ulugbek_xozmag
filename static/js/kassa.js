@@ -144,37 +144,31 @@
     nishonda = -1;
   }
 
+  /* Qidiruv butun ombordan — serverda (static/js/tovar_oyna.js): oynaga faqat
+     eng ko'p sotiladigan tovarlar chizilgan. Raqam yozilsa kod bo'yicha ham. */
   function dropdownYangila() {
     var soz = qidiruv.value.toLowerCase().trim();
-    if (!soz) return dropdownYop();
-
-    // Raqam yozilsa kod bo'yicha ham izlanadi: yorliqdagi 0027 ham topadi.
-    var raqammi = /^\d+$/.test(soz);
-    var topilgan = [].slice.call(document.querySelectorAll(".tovar-karta"))
-      .filter(function (k) {
-        if (k.dataset.nom.toLowerCase().indexOf(soz) !== -1) return true;
-        return raqammi && (k.dataset.kod || "").indexOf(soz) !== -1;
-      });
-
-    if (!topilgan.length) {
-      dropdown.innerHTML = '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
-    } else {
-      dropdown.innerHTML = topilgan.map(function (k) {
-        var yoq = k.classList.contains("yoq");
-        // Kod chapda, ustun bo'lib turadi — raqam bilan izlanganda nega
-        // topilgani ham ko'rinadi (mos kelgan raqamlar belgilanadi).
-        return '<button type="button" class="dropdown-qator' + (yoq ? " yoq" : "") +
-          '" role="option" data-id="' + k.dataset.id + '">' +
-          '<span class="d-kod">' + belgila(k.dataset.qisqa || "", soz) + "</span>" +
-          '<span class="d-nom">' + belgila(k.dataset.nom, soz) + "</span>" +
-          '<span class="d-qoldiq">' +
-          (yoq ? "tugagan" : k.dataset.qoldiq + " " + k.dataset.birlik +
-            (k.dataset.ikkinchi ? " · " + k.dataset.ikkinchi : "")) + "</span></button>";
-      }).join("");
-    }
-    dropdown.classList.add("ochiq");
-    qidiruv.setAttribute("aria-expanded", "true");
-    nishonda = -1;
+    window.TovarOyna.izla(soz, function (tovarlar, yana) {
+      if (!tovarlar) return dropdownYop();
+      if (!tovarlar.length) {
+        dropdown.innerHTML = '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
+      } else {
+        dropdown.innerHTML = tovarlar.map(function (d) {
+          // Kod chapda, ustun bo'lib turadi — raqam bilan izlanganda nega
+          // topilgani ham ko'rinadi (mos kelgan raqamlar belgilanadi).
+          return '<button type="button" class="dropdown-qator' + (d.yoq ? " yoq" : "") +
+            '" role="option" data-id="' + d.id + '">' +
+            '<span class="d-kod">' + belgila(d.qisqa || "", soz) + "</span>" +
+            '<span class="d-nom">' + belgila(d.nom, soz) + "</span>" +
+            '<span class="d-qoldiq">' +
+            (d.yoq ? "tugagan" : himoya(d.qoldiq + " " + d.birlik +
+              (d.ikkinchi ? " · " + d.ikkinchi : ""))) + "</span></button>";
+        }).join("") + (yana ? '<div class="dropdown-bosh">Yana bor — aniqroq yozing</div>' : "");
+      }
+      dropdown.classList.add("ochiq");
+      qidiruv.setAttribute("aria-expanded", "true");
+      nishonda = -1;
+    });
   }
 
   function qatorlar() {
@@ -191,7 +185,7 @@
   }
 
   function dropdowndanTanla(id) {
-    var karta = document.querySelector('.tovar-karta[data-id="' + id + '"]');
+    var karta = window.TovarOyna.karta(id);
     if (karta && !karta.classList.contains("yoq")) {
       dropdownYop();
       tovarTanla(karta);
@@ -222,18 +216,18 @@
   }
 
   // ---------- Kod, shtrix va tarozi etiketkasi ----------
-  /* Server tovarni topib berdi — kartasini ro'yxatdan olib tanlaymiz.
-     Karta topilmasligi mumkin: tovar yashirilgan (faol emas) bo'lsa
-     ro'yxatga umuman chiqmaydi.
+  /* Server tovarni topib berdi — kartasini olib tanlaymiz (oynada chizilmagan
+     bo'lsa server javobidan yasaladi). Yashirilgan (faol emas) tovar
+     tanlanmaydi.
 
      Skanerlangan tovar darrov chekka tushadi (skanerdanQosh). «Kod»
      maydoniga qo'lda urilgani esa faqat tanlanadi — miqdorni kassir yozadi. */
   function kodTopildi(javob, skanerdan) {
-    var karta = document.querySelector('.tovar-karta[data-id="' + javob.id + '"]');
-    if (!karta) {
-      return window.xabarBer(javob.nom + " ro'yxatda yo'q — ombordan faollashtiring.",
+    if (!javob.faol) {
+      return window.xabarBer(javob.nom + " ombordan yashirilgan — avval faollashtiring.",
                              "error");
     }
+    var karta = window.TovarOyna.koddanKarta(javob);
     if (karta.classList.contains("yoq")) {
       return window.xabarBer(javob.nom + " omborda tugagan.", "error");
     }

@@ -8,8 +8,8 @@ from django.urls import reverse
 
 from ombor.models import Mahsulot
 from ombor.models import HarakatTuri, Valyuta
-from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, pulga, qaytar,
-                          qaytarishni_oqi, songa, summalarni_oqi)
+from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, oyna_tovarlari, pulga,
+                          qaytar, qaytarishni_oqi, songa, summalarni_oqi)
 from rang import kassa as rang_kassa
 
 from .forms import QarzdorForm, TolovForm
@@ -176,7 +176,7 @@ def qarz_tahrir(request, pk):
     yopiq = yopiq_hujjat(request, qarz)
     if yopiq:
         return yopiq
-    mahsulotlar = Mahsulot.objects.filter(faol=True)
+    mahsulotlar = oyna_tovarlari()
     return render(request, "qarz/qarz_tahrir.html", {
         "qarz": qarz,
         "qarzdor": qarz.qarzdor,
