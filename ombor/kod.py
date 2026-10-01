@@ -1,19 +1,23 @@
 """Kod bo'yicha tovar topish — kassa, tarozi va ombor uchun yagona joy.
 
-Do'konda tovar uch yo'l bilan topiladi, uchalasi ham shu faylga keladi:
+Har bir tovarga yaratilganda kod beriladi va shu kod etiketkada chop etilib
+tovarga yopishtiriladi. Zavod shtrixlari ishlatilmaydi — kassa faqat
+do'konning o'z etiketkasini taniydi. Tovar ikki yo'l bilan topiladi,
+ikkalasi ham shu faylga keladi:
 
-1. **Qisqa kod** — kassir raqamlar klaviaturasida tovar kodining oxirgi
-   4 raqamini uradi. Og'ir tovarni (50 kg li bolg'a, sement qop) kassagacha
-   ko'tarib kelish shart emas: yorliqdagi raqam uriladi.
-2. **Zavod shtrixi** — skaner o'qiydi, `ShtrixKod` jadvalidan topiladi.
-3. **Tarozi etiketkasi** — tarozi bosgan shtrix ichida ham tovar kodi, ham
+1. **Tovar kodi** — skaner etiketkadagi shtrixni o'qiydi (Code 128,
+   `ombor/shtrix.py`) va to'liq kod keladi; yoki kassir raqamlar
+   klaviaturasida kodning oxirgi 4 raqamini uradi. Og'ir tovarni (50 kg li
+   bolg'a, sement qop) kassagacha ko'tarib kelish shart emas: yorliqdagi
+   raqam uriladi.
+2. **Tarozi etiketkasi** — tarozi bosgan shtrix ichida ham tovar kodi, ham
    og'irlik turadi; miqdor kassada qo'lda yozilmaydi.
 
 Qoidalar JS tomonida takrorlanmaydi — `static/js/skaner.js` kiritilganini
 shu yerga (`/ombor/kod/`) yuboradi va tayyor javob oladi. Ya'ni kod bo'yicha
 qidirish bitta joyda turadi, xuddi qoldiq `ombor/xizmat.py` da turgani kabi.
 
-Ichki shtrixning tuzilishi (13 raqam, EAN-13):
+Tarozi shtrixining tuzilishi (13 raqam, EAN-13):
 
     2 | 000027 | 01250 | 4
     ^     ^        ^     ^
@@ -24,19 +28,33 @@ Ichki shtrixning tuzilishi (13 raqam, EAN-13):
 
 Prefiks `2` — GS1 da do'kon o'zi bosadigan kodlar uchun ajratilgan
 (20–29), shuning uchun hech qanday zavod kodi bilan to'qnashmaydi.
+
+3. **Rang (kolerovka) cheki** — rang mashinasi yonida chop etiladi
+   (`rang/`), mijoz uni kassaga olib keladi. Skanerlansa chekdagi baza
+   bo'yoq miqdori bilan chekka tushadi. Tuzilishi (12 raqam, Code 128):
+
+       77 | 000000012 | 3
+       ^        ^      ^
+       |        |      nazorat raqami (qo'lda xato urilsa qabul qilinmaydi)
+       |        chek raqami
+       rang cheki belgisi — tovar kodidan (10 raqam) va tarozidan (13) uzun-qisqaligi farq qiladi
 """
 from collections import namedtuple
 from decimal import Decimal
 
-from .models import KOD_UZUNLIK, QISQA_UZUNLIK, Mahsulot, ShtrixKod
+from .models import KOD_UZUNLIK, QISQA_UZUNLIK, Mahsulot
 
 PREFIKS = "2"          # do'konning o'z kodlari uchun ajratilgan boshlanish
 PLU_UZUNLIK = 6        # shtrix ichidagi tovar raqami
 OGIRLIK_UZUNLIK = 5    # og'irlik grammda: 99999 g = 99,999 kg
 SHTRIX_UZUNLIK = 13
 
+RANG_PREFIKS = "77"    # rang (kolerovka) cheki
+RANG_UZUNLIK = 12
 
-Natija = namedtuple("Natija", "mahsulot miqdor qanday xato")
+
+# `rang_cheki` — kod rang cheki bo'lsa o'sha buyurtma (rang.Buyurtma), aks holda None
+Natija = namedtuple("Natija", "mahsulot miqdor qanday xato rang_cheki", defaults=(None,))
 
 
 def tozala(kiritilgan):
@@ -50,17 +68,20 @@ def tozala(kiritilgan):
 # ---------- EAN-13 ----------
 
 def nazorat_raqami(o_n_ikki):
-    """EAN-13 ning oxirgi raqami. Kiruvchi — 12 ta raqamdan iborat matn."""
+    """EAN-13 ning oxirgi raqami. Kiruvchi — 12 ta raqamdan iborat matn
+    (rang chekida 11 ta — hisob usuli bir xil)."""
     yigindi = sum(int(raqam) * (3 if joy % 2 else 1)
                   for joy, raqam in enumerate(o_n_ikki))
     return (10 - yigindi % 10) % 10
 
 
 def ichki_shtrix(kod, ogirlik=None):
-    """Tovar kodidan 13 raqamli shtrix yasaydi — etiketkaga bosish uchun.
+    """Tarozi etiketkasining 13 raqamli shtrixi (EAN-13, `2` bilan boshlanadi).
 
-    `ogirlik` berilsa (kg) u ham shtrix ichiga joylanadi — tarozi ham xuddi
-    shu formatda bosadi, ya'ni kassa ikkalasini bir xil o'qiydi.
+    `ogirlik` berilsa (kg) u ham shtrix ichiga joylanadi — tarozi aynan shu
+    formatda bosadi. O'zimiz bosadigan etiketkada esa Code 128 ishlatiladi
+    (`Mahsulot.etiketka_kodi`): EAN-13 ning oxirgi raqami nazorat raqami,
+    yozuvdagi oxirgi 4 raqam tovar kodiga to'g'ri kelmasdi.
     """
     plu = str(kod)[-PLU_UZUNLIK:].rjust(PLU_UZUNLIK, "0")
     gramm = 0
@@ -76,14 +97,14 @@ def shtrixni_ochish(matn):
     """Ichki yoki tarozi shtrixini ochadi.
 
     `(plu, miqdor)` qaytaradi; boshqa formatdagi kod bo'lsa `(None, None)` —
-    demak bu zavod shtrixi yoki oddiy tovar kodi.
+    demak bu oddiy tovar kodi (yoki umuman notanish kod).
     """
     if len(matn) != SHTRIX_UZUNLIK or not matn.isdigit():
         return None, None
     if not matn.startswith(PREFIKS):
         return None, None
-    # Nazorat raqami to'g'ri kelmasa bu bizning kod emas — zavodniki bo'lishi
-    # mumkin, shuning uchun xato qaytarilmaydi, qidiruv davom etadi.
+    # Nazorat raqami to'g'ri kelmasa bu tarozi kodi emas (yoki skaner yarim
+    # o'qigan) — tovar topilmaydi, noto'g'ri tovar sotilib ketmaydi.
     if str(nazorat_raqami(matn[:12])) != matn[12]:
         return None, None
 
@@ -91,6 +112,23 @@ def shtrixni_ochish(matn):
     gramm = int(matn[1 + PLU_UZUNLIK:12])
     miqdor = (Decimal(gramm) / 1000).quantize(Decimal("0.001")) if gramm else None
     return plu, miqdor
+
+
+# ---------- Rang cheki ----------
+
+def rang_cheki_kodi(raqam):
+    """Rang chekidagi shtrix: `77` + 9 raqamli chek raqami + nazorat raqami."""
+    asos = RANG_PREFIKS + f"{int(raqam):0{RANG_UZUNLIK - len(RANG_PREFIKS) - 1}d}"
+    return asos + str(nazorat_raqami(asos))
+
+
+def rang_chekini_ochish(matn):
+    """Rang cheki kodidan chek raqamini oladi; boshqa kod bo'lsa None."""
+    if len(matn) != RANG_UZUNLIK or not matn.isdigit() or not matn.startswith(RANG_PREFIKS):
+        return None
+    if str(nazorat_raqami(matn[:-1])) != matn[-1]:
+        return None
+    return int(matn[len(RANG_PREFIKS):-1])
 
 
 # ---------- Qidirish ----------
@@ -112,31 +150,36 @@ def topish(kiritilgan):
     """Kassa, tarozi va omborning yagona qidiruvi.
 
     `Natija(mahsulot, miqdor, qanday, xato)` qaytaradi. `miqdor` faqat kod
-    o'zi miqdorni aytganda to'ladi (tarozi etiketkasi yoki quti shtrixi);
+    o'zi miqdorni aytganda to'ladi (tarozi etiketkasidagi og'irlik);
     qolgan hollarda None — miqdorni kassir yozadi.
     """
     matn = tozala(kiritilgan)
     if not matn:
         return Natija(None, None, "", "Kod yozilmadi.")
 
-    # 1. Tarozi etiketkasi yoki o'zimiz bosgan shtrix
+    # 1. Tarozi etiketkasi (og'irlik bilan)
     plu, miqdor = shtrixni_ochish(matn)
     if plu:
         mahsulot, xato = _kod_bilan(plu)
         return Natija(mahsulot, miqdor, "tarozi", xato)
 
-    # 2. Zavod shtrixi — bazaga biriktirilgan bo'lsa
-    shtrix = (ShtrixKod.objects.select_related("mahsulot").filter(kod=matn).first())
-    if shtrix:
-        return Natija(shtrix.mahsulot, shtrix.miqdor, "shtrix", None)
-
-    # 3. Tovar kodi: kassir oxirgi raqamlarini uradi (odatda 4 ta)
+    # 2. Tovar kodi: kassir oxirgi raqamlarini uradi (odatda 4 ta) yoki skaner
+    #    etiketkadagi to'liq kodni o'qiydi (Code 128)
     if matn.isdigit() and len(matn) <= KOD_UZUNLIK:
         qism = matn.rjust(QISQA_UZUNLIK, "0")
         mahsulot, xato = _kod_bilan(qism)
         qanday = "qisqa" if len(qism) <= QISQA_UZUNLIK else "toliq"
         return Natija(mahsulot, None, qanday, xato)
 
-    # 4. Uzun kod, lekin bazada yo'q — skanerlangan yangi tovar
-    return Natija(None, None, "shtrix",
-                  f"{matn} — bu shtrix hali biror tovarga biriktirilmagan.")
+    # 3. Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi.
+    #    Buyurtma rang ilovasida — ombor unga faqat shu yerda murojaat qiladi.
+    raqam = rang_chekini_ochish(matn)
+    if raqam:
+        from rang.kassa import chekni_top
+        return chekni_top(raqam)
+
+    # 4. Bizning formatga to'g'ri kelmaydi. Ko'pincha bu qadoqdagi zavod
+    #    shtrixi — skaner etiketka o'rniga shuni o'qib qo'ygan.
+    return Natija(None, None, "notanish",
+                  f"{matn} — bunday kod yo'q. Tovarga yopishtirilgan etiketkani "
+                  f"skanerlang.")

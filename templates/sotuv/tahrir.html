@@ -43,12 +43,13 @@
             </thead>
             <tbody>
               {% for qator in qatorlar %}
-                <tr>
+                <tr {% if qator.pk == yangi_qator %}class="yangi"{% endif %}>
                   <td class="sust">{{ forloop.counter }}</td>
                   <td>
                     <span class="qator-kod" title="Tovar kodi">{{ qator.mahsulot.qisqa_kod }}</span>
                     <b>{{ qator.mahsulot_nomi }}</b>
                     {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
+                    {% include "rang/_kassa_nishon.html" with hujjat=sotuv %}
                   </td>
                   <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
                   <td>

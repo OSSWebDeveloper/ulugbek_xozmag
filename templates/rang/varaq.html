@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load statik_versiya %}
+
+{% comment %}
+Katalog varag'i — rang mashinasi oldiga qo'yiladi (A4, oddiy rangli printer).
+
+Har bir katakda: rang namunasi, kodi, nomi va shtrix. Shtrix Soruda kodining
+o'zi (rang/shtrix.py): mijoz rangni ko'rsatadi, sotuvchi skanerlaydi — kod
+Soruda'ga ham, do'kon stansiyasiga ham xuddi qo'lda yozilgandek tushadi.
+
+Har bir to'plam yangi sahifadan boshlanadi. `tur=bosh` — namuna o'rnida bo'sh
+katak (unga rang kartasidan haqiqiy namuna yopishtiriladi).
+{% endcomment %}
+
+{% block sarlavha %}Katalog varag'i{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/rang.css' %}">{% endblock %}
+
+{% block tana %}
+<div class="varaq-sahifa">
+  <div class="chop-boshqaruv">
+    <div class="sarlavha">
+      Katalog varag'i
+      <span class="kichik">{{ soni }} ta rang &middot; A4 &middot; rang mashinasi oldiga qo'yiladi</span>
+    </div>
+
+    <form method="get" class="quti chop-sozlama" id="varaq-sozlama">
+      <div class="maydon">
+        <label for="varaq-toplam">To'plam</label>
+        <select name="t" id="varaq-toplam" class="kirish" {% if toplam is None %}data-hammasi{% endif %}>
+          <option value="*" {% if toplam is None %}selected{% endif %}>Hammasi</option>
+          {% for t in toplamlar %}
+            <option value="{{ t }}" {% if toplam == t %}selected{% endif %}>{{ t|default:"To'plamsiz" }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="maydon">
+        <label for="varaq-ustun">Bir qatorda</label>
+        <select name="ustun" id="varaq-ustun" class="kirish">
+          {% for u in ustunlar %}<option value="{{ u }}" {% if u == ustun %}selected{% endif %}>{{ u }} ta rang</option>{% endfor %}
+        </select>
+      </div>
+      <div class="maydon">
+        <label for="varaq-tur">Namuna</label>
+        <select name="tur" id="varaq-tur" class="kirish">
+          <option value="rang" {% if tur == "rang" %}selected{% endif %}>Rangli</option>
+          <option value="bosh" {% if tur == "bosh" %}selected{% endif %}>Bo'sh katak</option>
+        </select>
+      </div>
+      <button type="button" class="tugma yashil" id="chop-et" {% if not soni %}disabled{% endif %}>
+        <svg class="ikon"><use href="#i-printer"></use></svg> Chop etish
+      </button>
+      <a class="tugma tinch" href="{% url 'rang:ranglar' %}">
+        <svg class="ikon"><use href="#i-chap"></use></svg> Ranglar
+      </a>
+      <div class="maydon-izoh keng">
+        Chop etish oynasida: qog'oz — <b>A4</b>, masshtab — <b>100%</b>. Printer rangi haqiqiy
+        bo'yoqdan farq qiladi — aniq rangni rang kartasidan ko'rsating yoki <b>«Bo'sh katak»</b>
+        tanlab, kataklarga kartadan namuna yopishtiring.
+      </div>
+    </form>
+  </div>
+
+  <div class="varaq-korinish">
+    {% for toplam_nomi, ranglar in guruhlar %}
+      <section class="varaq tur-{{ tur }}" data-ustun="{{ ustun }}" style="--ustun: {{ ustun }}">
+        <header class="varaq-bosh">
+          <div class="vb-dokon">Ulug'bek Xozmag &middot; ranglar katalogi{% if toplam_nomi %} &middot; <b>{{ toplam_nomi }}</b>{% endif %}</div>
+          <div class="vb-izoh">Rangni tanlang va sotuvchiga ko'rsating — u shtrixni skanerlaydi.</div>
+        </header>
+        <div class="varaq-setka">
+          {% for r in ranglar %}
+            <div class="katak">
+              <div class="katak-rang{% if tur == 'bosh' or not r.hex %} bosh{% endif %}"
+                   {% if tur != 'bosh' and r.hex %}style="--rang: {{ r.hex }}"{% endif %}></div>
+              <div class="katak-matn">
+                <div class="katak-kod">{{ r.kod }}</div>
+                <div class="katak-nom">{{ r.nom|default:"&nbsp;" }}</div>
+                <div class="katak-shtrix" style="--modullar: {{ r.modullar }}">{{ r.shtrix_svg|safe }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% empty %}
+      <div class="bosh-holat">
+        <svg class="ikon"><use href="#i-palitra"></use></svg>
+        <b>Chop etiladigan rang yo'q</b>
+        <a class="tugma yashil" href="{% url 'rang:yuklash' %}" style="margin-top:12px">Ranglarni yuklash</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<style>@page { size: A4 portrait; margin: 8mm; }</style>
+{% endblock %}
+
+{% block skript %}<script src="{% statik 'js/rang_varaq.js' %}"></script>{% endblock %}

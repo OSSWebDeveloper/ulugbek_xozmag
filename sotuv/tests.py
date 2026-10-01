@@ -32,6 +32,41 @@ class SotuvTest(KirganTest):
         harakat = OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).first()
         self.assertIn(f"Sotuv #{self.sotuv.pk}", harakat.izoh)
 
+    def test_bir_xil_tovar_bitta_qatorga_yigiladi(self):
+        """Skaner bilan bir xil tovar qayta o'qilsa yangi qator ochilmaydi."""
+        manzil = reverse("sotuv:qator_qoshish", args=[self.sotuv.pk])
+        self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "1"})
+        javob = self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "2"})
+        qator = self.sotuv.qatorlar.get()
+        self.assertEqual(qator.miqdor, Decimal("3.000"))
+        self.mahsulot.refresh_from_db()
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("97.000"))
+        self.assertEqual(OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).count(), 2)
+        # Qo'shilgan qator ekranda belgilanadi (bir marta — keyingi ochilishda emas)
+        self.assertRedirects(javob, reverse("sotuv:tahrir", args=[self.sotuv.pk]),
+                             fetch_redirect_response=False)
+        ekran = self.client.get(javob["Location"])
+        self.assertEqual(ekran.context["yangi_qator"], qator.pk)
+        self.assertContains(ekran, 'class="yangi"')
+        self.assertIsNone(self.client.get(javob["Location"]).context["yangi_qator"])
+
+    def test_boshqa_tovar_yangi_qator_ochadi(self):
+        gips = Mahsulot.objects.create(nom="Gips 30 kg", birlik=Birlik.QOP, qoldiq=Decimal("10"))
+        manzil = reverse("sotuv:qator_qoshish", args=[self.sotuv.pk])
+        self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "1"})
+        self.client.post(manzil, {"mahsulot": gips.pk, "miqdor": "1"})
+        self.assertEqual(self.sotuv.qatorlar.count(), 2)
+
+    def test_yetmasa_mavjud_qator_ozgarmaydi(self):
+        manzil = reverse("sotuv:qator_qoshish", args=[self.sotuv.pk])
+        self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "60"})
+        javob = self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "50"},
+                                 follow=True)
+        self.assertContains(javob, "Omborda yetarli emas")
+        self.assertEqual(self.sotuv.qatorlar.get().miqdor, Decimal("60.000"))
+        self.mahsulot.refresh_from_db()
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("40.000"))
+
     def test_omborda_yetmasa_qoshilmaydi(self):
         javob = self.client.post(reverse("sotuv:qator_qoshish", args=[self.sotuv.pk]), {
             "mahsulot": self.mahsulot.pk, "miqdor": "500",

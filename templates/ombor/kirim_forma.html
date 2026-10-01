@@ -89,8 +89,14 @@ ombor ro'yxatidagi ichki oyna (`?oyna=1` bilan shu fayl yolg'iz qaytariladi).
     {% else %}
       <a class="tugma tinch" href="{% url 'ombor:royxat' %}" style="flex:1">Bekor qilish</a>
     {% endif %}
+    {# Asosiy tugma birinchi turadi — maydonda Enter bosilsa aynan shu ishlaydi #}
     <button type="submit" class="tugma yashil" style="flex:2">
       <svg class="ikon"><use href="#i-kirim"></use></svg> Omborga qo'shish
+    </button>
+    {# Kelgan molning har biriga etiketka yopishtiriladi #}
+    <button type="submit" class="tugma" style="flex:2" name="etiketka" value="1"
+            title="Kirim yoziladi va kelgan mol soniga etiketka chop etish sahifasi ochiladi">
+      <svg class="ikon"><use href="#i-printer"></use></svg> Qo'shish va etiketka
     </button>
   </div>
 </form>

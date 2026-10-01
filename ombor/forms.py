@@ -1,9 +1,9 @@
 """Ombor formalari."""
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django import forms
 
-from .models import Mahsulot, ShtrixKod, Valyuta, tekis_matn
+from .models import Mahsulot, Valyuta, tekis_matn
 from .xizmat import tozala
 
 
@@ -35,15 +35,6 @@ class MahsulotForm(forms.ModelForm):
     birlik_ozgaradi = forms.BooleanField(
         label="Birlik o'zgaradi", required=False,
         widget=forms.CheckboxInput(attrs={"class": "richag-kirish", "id": "birlik-ozgaradi"}),
-    )
-    shtrix = forms.CharField(
-        label="Zavod shtrixlari", required=False,
-        help_text="Tovarni skanerlang — har bir kod alohida qatorga tushadi. "
-                  "Quti kodi bo'lsa yoniga qutidagi sonini yozing: «4780001 1000». "
-                  "Qatorni o'chirsangiz kod ham o'chadi.",
-        widget=forms.Textarea(attrs={"class": "kirish shtrix-maydon", "rows": 2,
-                                     "autocomplete": "off", "spellcheck": "false",
-                                     "placeholder": "Skanerlang"}),
     )
     qadoq_soni = VergulliDecimal(
         label="Necha qadoq keldi", max_digits=12, decimal_places=3, min_value=0, required=False,
@@ -98,8 +89,6 @@ class MahsulotForm(forms.ModelForm):
         ]
         if not self.is_bound:
             self.fields["birlik_ozgaradi"].initial = self.instance.ikki_birlikmi
-            if self.instance.pk:
-                self.initial["shtrix"] = self.shtrixlar_matni()
             sonli = ("qoldiq", "olish_miqdori", "narx")
             if self.instance.pk is None:
                 # Yangi tovarda modeldagi standart qiymatlar (0 va 1) maydonda
@@ -110,69 +99,6 @@ class MahsulotForm(forms.ModelForm):
                 # Tahrirlashda ortiqcha nollar ko'rinmasin: 45.00 -> 45, 2.500 -> 2,5
                 for maydon in sonli:
                     self.initial[maydon] = tekis_matn(getattr(self.instance, maydon))
-
-    # ---------- Zavod shtrixlari ----------
-
-    def shtrixlar_matni(self):
-        """Biriktirilgan kodlarni maydon uchun matnga aylantiradi."""
-        qatorlar = []
-        for shtrix in self.instance.shtrixlar.all():
-            if shtrix.miqdor == 1:
-                qatorlar.append(shtrix.kod)
-            else:
-                qatorlar.append(f"{shtrix.kod} {tekis_matn(shtrix.miqdor)}")
-        return "\n".join(qatorlar)
-
-    def clean_shtrix(self):
-        """Har bir qatorni «kod [miqdor]» deb o'qiydi.
-
-        Kod boshqa tovarga biriktirilgan bo'lsa saqlanmaydi: bitta shtrix
-        ikki tovarni bildirsa kassa qaysi birini olishni bilmaydi.
-        """
-        natija = {}
-        for qator in (self.cleaned_data.get("shtrix") or "").splitlines():
-            bolaklar = qator.replace(",", ".").split()
-            if not bolaklar:
-                continue
-            kod, miqdor = bolaklar[0].strip(), Decimal("1")
-            if len(bolaklar) > 1:
-                try:
-                    miqdor = Decimal(bolaklar[1])
-                except InvalidOperation:
-                    raise forms.ValidationError(
-                        f"«{qator.strip()}» tushunarsiz — koddan keyin faqat son yoziladi "
-                        f"(qutidagi soni).")
-                if miqdor <= 0:
-                    raise forms.ValidationError(
-                        f"{kod} yonidagi son noldan katta bo'lishi kerak.")
-            band = ShtrixKod.objects.filter(kod=kod)
-            if self.instance.pk:
-                band = band.exclude(mahsulot_id=self.instance.pk)
-            band = band.select_related("mahsulot").first()
-            if band:
-                raise forms.ValidationError(
-                    f"{kod} allaqachon «{band.mahsulot.nom}» ga biriktirilgan.")
-            natija[kod] = miqdor
-        return natija
-
-    def shtrixlarni_saqla(self, mahsulot):
-        """Maydonda nima yozilgan bo'lsa tovarning kodlari ham o'sha bo'ladi."""
-        kerakli = self.cleaned_data.get("shtrix") or {}
-        mahsulot.shtrixlar.exclude(kod__in=kerakli).delete()
-        borlar = {s.kod: s for s in mahsulot.shtrixlar.all()}
-        for kod, miqdor in kerakli.items():
-            bor = borlar.get(kod)
-            if bor is None:
-                ShtrixKod.objects.create(mahsulot=mahsulot, kod=kod, miqdor=miqdor)
-            elif bor.miqdor != miqdor:
-                bor.miqdor = miqdor
-                bor.save(update_fields=["miqdor"])
-
-    def save(self, commit=True):
-        mahsulot = super().save(commit=commit)
-        if commit:
-            self.shtrixlarni_saqla(mahsulot)
-        return mahsulot
 
     # ---------- Tekshiruv ----------
 

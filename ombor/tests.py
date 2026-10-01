@@ -10,11 +10,9 @@ from django.utils import timezone
 from config.sinov import KirganTest
 from django.urls import reverse
 
-from .forms import MahsulotForm
 from .kod import ichki_shtrix, nazorat_raqami, topish
 from .markaziy_bank import bankdan_sora, bugungi_kurs
-from .models import (Birlik, DollarKursi, HarakatTuri, Mahsulot, OmborHarakati,
-                     ShtrixKod)
+from .models import Birlik, DollarKursi, HarakatTuri, Mahsulot, OmborHarakati
 from .xizmat import oxirgi_kurs
 
 
@@ -445,10 +443,6 @@ class KodQidirishTest(KirganTest):
         super().setUp()
         self.gisht = Mahsulot.objects.create(nom="G'isht", birlik=Birlik.DONA,
                                              qoldiq=Decimal("5000"))
-        self.mix = Mahsulot.objects.create(
-            nom="Mix 100 mm", birlik=Birlik.DONA, olish_birligi=Birlik.PACHKA,
-            olish_miqdori=Decimal("1000"), qoldiq=Decimal("5020"),
-        )
 
     def test_qisqa_kod_bilan_topiladi(self):
         natija = topish(self.gisht.qisqa_kod)
@@ -477,40 +471,37 @@ class KodQidirishTest(KirganTest):
 
     # ---------- Zavod shtrixi ----------
 
-    def test_zavod_shtrixi_topiladi(self):
-        ShtrixKod.objects.create(mahsulot=self.gisht, kod="4780123456789")
+    def test_zavod_shtrixi_tanilmaydi(self):
+        """Skaner qadoqdagi zavod shtrixini o'qisa hech narsa chekka tushmaydi —
+        kassirga etiketkani skanerlash aytiladi."""
         natija = topish("4780123456789")
-        self.assertEqual(natija.mahsulot, self.gisht)
-        self.assertEqual(natija.qanday, "shtrix")
-        self.assertEqual(natija.miqdor, Decimal("1"))
-
-    def test_quti_shtrixi_qutidagi_sonni_beradi(self):
-        """Quti skanerlansa 1 dona emas, qutidagi 1000 dona tushadi."""
-        ShtrixKod.objects.create(mahsulot=self.mix, kod="4780000000017",
-                                 miqdor=Decimal("1000"), izoh="quti")
-        natija = topish("4780000000017")
-        self.assertEqual(natija.mahsulot, self.mix)
-        self.assertEqual(natija.miqdor, Decimal("1000"))
-
-    def test_notanish_shtrix_alohida_aytiladi(self):
-        """Ombor shunga qarab «yangi tovar qo'shilsinmi?» deb so'raydi."""
-        natija = topish("4780999999995")
         self.assertIsNone(natija.mahsulot)
-        self.assertEqual(natija.qanday, "shtrix")
+        self.assertIn("etiketkani skanerlang", natija.xato)
 
     # ---------- Etiketka va tarozi ----------
 
-    def test_etiketka_kodi_on_uch_raqam(self):
+    def test_etiketka_kodi_tovar_kodining_ozi(self):
+        """Yozuvdagi oxirgi 4 raqam — kassir uradigan qisqa kod."""
         kod = self.gisht.etiketka_kodi
+        self.assertEqual(kod, self.gisht.kod)
+        self.assertEqual(kod[-4:], self.gisht.qisqa_kod)
+
+    def test_etiketka_skanerlansa_ham_qolda_urilsa_ham_bitta_tovar(self):
+        skaner = topish(self.gisht.etiketka_kodi)
+        qolda = topish(self.gisht.qisqa_kod)
+        self.assertEqual(skaner.mahsulot, self.gisht)
+        self.assertEqual(qolda.mahsulot, self.gisht)
+        self.assertIsNone(skaner.miqdor)   # miqdorni kassir yozadi (skanerda — 1)
+
+    def test_tarozi_shtrixi_ogirliksiz(self):
+        kod = ichki_shtrix(self.gisht.kod)
         self.assertEqual(len(kod), 13)
         self.assertTrue(kod.startswith("2"))
         self.assertEqual(str(nazorat_raqami(kod[:12])), kod[12])
-
-    def test_etiketka_kodi_ogirliksiz(self):
-        natija = topish(self.gisht.etiketka_kodi)
+        natija = topish(kod)
         self.assertEqual(natija.mahsulot, self.gisht)
         self.assertEqual(natija.qanday, "tarozi")
-        self.assertIsNone(natija.miqdor)   # miqdorni kassir yozadi
+        self.assertIsNone(natija.miqdor)
 
     def test_tarozi_etiketkasi_ogirlikni_beradi(self):
         kod = ichki_shtrix(self.gisht.kod, Decimal("1.25"))
@@ -520,13 +511,126 @@ class KodQidirishTest(KirganTest):
 
     def test_nazorat_raqami_notogri_shtrix_qabul_qilinmaydi(self):
         """Skaner yarim o'qisa noto'g'ri tovar sotilib ketmasin."""
-        toliq = self.gisht.etiketka_kodi
+        toliq = ichki_shtrix(self.gisht.kod)
         buzuq = toliq[:12] + ("1" if toliq[12] == "0" else "0")
         self.assertIsNone(topish(buzuq).mahsulot)
 
     def test_ogirlik_shtrixga_sigmasa_xato(self):
         with self.assertRaises(ValueError):
             ichki_shtrix(self.gisht.kod, Decimal("150"))
+
+
+def ochir_code128(raqamlar):
+    """Chizilgan shtrixni qaytadan o'qiydi — chiziqlar kengligidan belgilarga.
+
+    Chizish (ombor/shtrix.py) ZXing bilan tekshirilgan; bu esa uni kelajakda
+    tasodifan buzib qo'ymaslik uchun: chiziqlar -> belgilar -> nazorat -> raqamlar.
+    """
+    from .shtrix import JIM_ZONA, NAQSHLAR, chiziqlar
+    qora, eni = chiziqlar(raqamlar)
+    modullar = [0] * eni
+    for x, en in qora:
+        for i in range(x, x + en):
+            modullar[i] = 1
+    kengliklar, joriy, soni = [], modullar[JIM_ZONA], 0
+    for m in modullar[JIM_ZONA:eni - JIM_ZONA]:
+        if m == joriy:
+            soni += 1
+        else:
+            kengliklar.append(soni)
+            joriy, soni = m, 1
+    kengliklar.append(soni)
+    belgilar = []
+    for i in range(0, len(kengliklar) - 7, 6):
+        belgilar.append(NAQSHLAR.index("".join(map(str, kengliklar[i:i + 6]))))
+    assert "".join(map(str, kengliklar[-7:])) == NAQSHLAR[106], "tugash belgisi yo'q"
+    *asosiy, nazorat = belgilar
+    assert asosiy[0] == 105, "C to'plami bilan boshlanmagan"
+    assert nazorat == (asosiy[0] + sum(q * i for i, q in enumerate(asosiy[1:], 1))) % 103
+    return "".join(f"{q:02d}" for q in asosiy[1:])
+
+
+class EtiketkaTest(KirganTest):
+    """Etiketka: shtrix tovar kodining o'zi, chop etish sahifasi va nusxalar soni."""
+
+    def setUp(self):
+        super().setUp()
+        self.rozetka = Mahsulot.objects.create(nom="Rozetka", birlik=Birlik.DONA,
+                                               qoldiq=Decimal("20"))
+
+    def test_code128_jadvali(self):
+        from .shtrix import NAQSHLAR
+        self.assertEqual(len(set(NAQSHLAR)), 107)
+        for naqsh in NAQSHLAR[:106]:
+            self.assertEqual(sum(map(int, naqsh)), 11)
+            self.assertEqual((int(naqsh[0]) + int(naqsh[2]) + int(naqsh[4])) % 2, 0)
+
+    def test_shtrix_qaytadan_oqiladi(self):
+        for kod in ("0000000001", "0000000027", "0000001234", "9876543210",
+                    self.rozetka.kod):
+            self.assertEqual(ochir_code128(kod), kod)
+
+    def test_nazorat_belgisi(self):
+        from .shtrix import belgilar
+        # 105 + 9*5 = 150; 150 % 103 = 47
+        self.assertEqual(belgilar("0000000009"), [105, 0, 0, 0, 0, 9, 47, 106])
+
+    def test_toq_sonli_raqam_rad_etiladi(self):
+        from .shtrix import belgilar
+        with self.assertRaises(ValueError):
+            belgilar("123")
+
+    def test_sahifa_shtrix_va_yirik_qisqa_kod(self):
+        javob = self.client.get(reverse("ombor:etiketka", args=[self.rozetka.pk]),
+                                {"soni": "5"})
+        self.assertEqual(javob.status_code, 200)
+        self.assertContains(javob, "<svg")
+        self.assertContains(javob, f"<b>{self.rozetka.qisqa_kod}</b>")
+        self.assertContains(javob, 'value="5"')
+        self.assertEqual(javob.context["modullar"], 110)
+
+    def test_nusxalar_soni_chegaralanadi(self):
+        manzil = reverse("ombor:etiketka", args=[self.rozetka.pk])
+        self.assertEqual(self.client.get(manzil, {"soni": "0"}).context["soni"], 1)
+        self.assertEqual(self.client.get(manzil, {"soni": "99999"}).context["soni"], 500)
+        self.assertEqual(self.client.get(manzil, {"soni": "abc"}).context["soni"], 1)
+
+    def test_etiketka_soni(self):
+        self.assertEqual(self.rozetka.etiketka_soni(), 20)                  # 20 dona
+        self.assertEqual(self.rozetka.etiketka_soni(Decimal("3"), Birlik.RULON), 3)
+        self.assertEqual(self.rozetka.etiketka_soni(Decimal("200"), Birlik.METR), 1)
+        self.assertEqual(self.rozetka.etiketka_soni(Decimal("5000")), 1)    # g'isht kabi
+        self.assertEqual(self.rozetka.etiketka_soni(Decimal("2.5")), 1)
+        self.assertEqual(self.rozetka.etiketka_soni(Decimal("0")), 1)
+
+    def test_yangi_tovardan_keyin_etiketka_ochiladi(self):
+        javob = self.client.post(reverse("ombor:mahsulot_yangi"), {
+            "nom": "Kalit", "birlik": Birlik.DONA, "qoldiq": "12", "faol": "on",
+        })
+        kalit = Mahsulot.objects.get(nom="Kalit")
+        self.assertRedirects(javob, reverse("ombor:etiketka", args=[kalit.pk]) + "?soni=12")
+
+    def test_tovar_formasida_skanerlanadigan_maydon_yoq(self):
+        """Shtrix tovar yaratilganda o'zi beriladi — formada kiritilmaydi."""
+        javob = self.client.get(reverse("ombor:mahsulot_yangi"))
+        self.assertNotContains(javob, 'name="shtrix"')
+        self.assertNotContains(javob, "Skanerlang")
+
+    def test_kirimdan_keyin_etiketka(self):
+        javob = self.client.post(reverse("ombor:kirim", args=[self.rozetka.pk]),
+                                 {"miqdor": "30", "izoh": "", "etiketka": "1"})
+        self.assertRedirects(javob, reverse("ombor:etiketka", args=[self.rozetka.pk]) + "?soni=30")
+        self.rozetka.refresh_from_db()
+        self.assertEqual(self.rozetka.qoldiq, Decimal("50.000"))
+
+    def test_oddiy_kirim_omborga_qaytadi(self):
+        javob = self.client.post(reverse("ombor:kirim", args=[self.rozetka.pk]),
+                                 {"miqdor": "30", "izoh": ""})
+        self.assertRedirects(javob, reverse("ombor:royxat"))
+
+    def test_ombor_royxatida_etiketka_tugmasi(self):
+        javob = self.client.get(reverse("ombor:royxat"))
+        self.assertContains(javob, reverse("ombor:etiketka", args=[self.rozetka.pk]))
 
 
 class KodManziliTest(KirganTest):
@@ -559,64 +663,6 @@ class KodManziliTest(KirganTest):
         javob = self.javob("9999")
         self.assertFalse(javob["topildi"])
         self.assertIn("topilmadi", javob["xato"])
-        self.assertEqual(javob["kod"], "9999")
-
-
-class ShtrixFormaTest(KirganTest):
-    """Tovar kartochkasidagi «Zavod shtrixlari» maydoni."""
-
-    def asos(self, **qoshimcha):
-        malumot = {"nom": "Rozetka", "birlik": Birlik.DONA, "qoldiq": "50",
-                   "faol": "on"}
-        malumot.update(qoshimcha)
-        return malumot
-
-    def test_skanerlangan_kod_saqlanadi(self):
-        forma = MahsulotForm(self.asos(shtrix="4780123456789"), yangi=True)
-        self.assertTrue(forma.is_valid(), forma.errors)
-        mahsulot = forma.save()
-        self.assertEqual([s.kod for s in mahsulot.shtrixlar.all()], ["4780123456789"])
-
-    def test_quti_kodi_miqdor_bilan_yoziladi(self):
-        forma = MahsulotForm(self.asos(shtrix="4780123456789\n4780000000017 1000"),
-                             yangi=True)
-        self.assertTrue(forma.is_valid(), forma.errors)
-        mahsulot = forma.save()
-        quti = mahsulot.shtrixlar.get(kod="4780000000017")
-        self.assertEqual(quti.miqdor, Decimal("1000"))
-
-    def test_band_kod_boshqa_tovarga_berilmaydi(self):
-        """Bitta shtrix ikki tovarni bildirsa kassa qaysi birini olishni bilmaydi."""
-        gisht = Mahsulot.objects.create(nom="G'isht", birlik=Birlik.DONA)
-        ShtrixKod.objects.create(mahsulot=gisht, kod="4780123456789")
-        forma = MahsulotForm(self.asos(shtrix="4780123456789"), yangi=True)
-        self.assertFalse(forma.is_valid())
-        self.assertIn("G'isht", forma.errors["shtrix"][0])
-
-    def test_qator_ochirilsa_kod_ham_ochadi(self):
-        mahsulot = Mahsulot.objects.create(nom="Rozetka", birlik=Birlik.DONA)
-        ShtrixKod.objects.create(mahsulot=mahsulot, kod="4780123456789")
-        forma = MahsulotForm(self.asos(shtrix=""), instance=mahsulot, yangi=False)
-        self.assertTrue(forma.is_valid(), forma.errors)
-        forma.save()
-        self.assertEqual(mahsulot.shtrixlar.count(), 0)
-
-    def test_tahrirlashda_mavjud_kodlar_maydonda_turadi(self):
-        mahsulot = Mahsulot.objects.create(nom="Rozetka", birlik=Birlik.DONA)
-        ShtrixKod.objects.create(mahsulot=mahsulot, kod="4780123456789")
-        forma = MahsulotForm(instance=mahsulot, yangi=False)
-        self.assertEqual(forma.initial["shtrix"], "4780123456789")
-
-    def test_ozining_kodi_band_deb_hisoblanmaydi(self):
-        mahsulot = Mahsulot.objects.create(nom="Rozetka", birlik=Birlik.DONA)
-        ShtrixKod.objects.create(mahsulot=mahsulot, kod="4780123456789")
-        forma = MahsulotForm(self.asos(shtrix="4780123456789"), instance=mahsulot,
-                             yangi=False)
-        self.assertTrue(forma.is_valid(), forma.errors)
-
-    def test_koddan_keyingi_matn_xato_beradi(self):
-        forma = MahsulotForm(self.asos(shtrix="4780123456789 quti"), yangi=True)
-        self.assertFalse(forma.is_valid())
 
 
 class OmborKodBilanQidirishTest(KirganTest):

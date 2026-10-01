@@ -11,12 +11,13 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from ombor.models import HarakatTuri, Mahsulot
-from ombor.xizmat import (OmborXatosi, ayir, oxirgi_kurs, pulga, qaytar,
+from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, pulga, qaytar,
                           qaytarishni_oqi, songa, summalarni_oqi)
 
 from qarz.forms import QarzdorForm
 from qarz.models import Qarz, Qarzdor
 from qarz.templatetags.xozmag import pul, tekis
+from rang import kassa as rang_kassa
 
 from .models import Sotuv, SotuvQator
 
@@ -78,6 +79,7 @@ def tahrir(request, pk):
         # Pul yetmay qolganda ochiladigan oynacha uchun — sahifa almashmasin
         "qarzdorlar": Qarzdor.objects.select_related("hudud"),
         "qarzdor_form": QarzdorForm(),
+        "yangi_qator": request.session.pop("sotuv_yangi_qator", None),
     })
 
 
@@ -95,14 +97,25 @@ def qator_qoshish(request, pk):
     if xato:
         messages.error(request, xato)
         return redirect("sotuv:tahrir", pk=sotuv.pk)
+    # Rang mashinasining cheki skanerlangan bo'lsa — u ikkinchi marta o'tmasin
+    rang_cheki, xato = rang_kassa.chekni_oqi(request.POST, mahsulot)
+    if xato:
+        messages.error(request, xato)
+        return redirect("sotuv:tahrir", pk=sotuv.pk)
 
     try:
-        ayir(mahsulot.pk, miqdor, f"Sotuv #{sotuv.pk}")
+        qator = hujjatga_qosh(sotuv.qatorlar, mahsulot, miqdor, f"Sotuv #{sotuv.pk}")
     except OmborXatosi as xato:
         messages.error(request, str(xato))
         return redirect("sotuv:tahrir", pk=sotuv.pk)
+    if rang_cheki:
+        rang_kassa.boglash(rang_cheki, sotuv=sotuv)
+        messages.info(request, rang_kassa.kassa_xabari(rang_cheki))
 
-    SotuvQator.objects.create(sotuv=sotuv, mahsulot=mahsulot, miqdor=miqdor)
+    # Qo'shilgan qator ko'rinib tursin: chek uzun bo'lsa ham o'sha yerga
+    # siljiydi va bir lahza yonib turadi. URL dagi #langar emas, sessiya —
+    # langar bo'lsa brauzer fokusni «Kod» maydonidan olib qo'yadi.
+    request.session["sotuv_yangi_qator"] = qator.pk
     return redirect("sotuv:tahrir", pk=sotuv.pk)
 
 
@@ -115,6 +128,7 @@ def qator_ochirish(request, pk):
         if yopiq:
             return yopiq
         qaytar(qator.mahsulot_id, qator.miqdor, f"Sotuv #{sotuv.pk} dan qaytarildi")
+        rang_kassa.ajratish(sotuv=sotuv, mahsulot_id=qator.mahsulot_id)
         qator.delete()
         messages.success(request, "Qator o'chirildi, tovar omborga qaytdi.")
     return redirect("sotuv:tahrir", pk=sotuv.pk)
@@ -246,6 +260,8 @@ def bekor(request, pk):
             for qator in sotuv.qatorlar.all():
                 qaytar(qator.mahsulot_id, qator.qolgan_miqdor,
                        f"Sotuv #{sotuv.pk} bekor qilindi")
+            # Rang cheklari yana bo'sh: mijoz qaytib kelsa boshqa chekka o'tadi
+            rang_kassa.ajratish(sotuv=sotuv)
             sotuv.bekor_qilingan = True
             sotuv.sana = timezone.now()
             sotuv.save(update_fields=["bekor_qilingan", "sana"])

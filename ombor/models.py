@@ -7,6 +7,7 @@ from django.db import models
 
 KOD_UZUNLIK = 10      # tovar kodi: 0000000001, 0000000002 ...
 QISQA_UZUNLIK = 4     # kassada va tarozida uriladigan oxirgi raqamlar soni
+ETIKETKA_KOPI = 500   # bir yo'la chop etiladigan etiketkalar chegarasi
 
 
 def kod_yasa(raqam):
@@ -67,8 +68,9 @@ class Mahsulot(models.Model):
 
     Har bir tovarga yaratilganda **kod** beriladi (`0000000001` dan boshlab,
     id bo'yicha). Kassada va tarozida uning **oxirgi 4 raqami** uriladi —
-    og'ir tovarni kassagacha ko'tarib kelish shart emas. Shu kod ichki
-    shtrixning ham ichida turadi (`ombor/kod.py`).
+    og'ir tovarni kassagacha ko'tarib kelish shart emas. Etiketkadagi shtrix
+    ham shu kodning o'zi — etiketka chop etilib tovarga yopishtiriladi va
+    kassada skanerlanadi (`ombor/shtrix.py`). Zavod shtrixlari saqlanmaydi.
 
     Qoldiq har doim **sotuv birligida** yuritiladi. Ba'zi tovarlar boshqa
     birlikda olinadi — polietilen lenta rulonda olinib metrda sotiladi.
@@ -123,14 +125,36 @@ class Mahsulot(models.Model):
 
     @property
     def etiketka_kodi(self):
-        """O'zimiz bosadigan etiketkadagi 13 raqamli shtrix.
+        """O'zimiz bosadigan etiketkadagi shtrix — tovar kodining o'zi (Code 128).
 
-        Bazada saqlanmaydi — kodning o'zidan hisoblanadi, shuning uchun
-        ikki joyda turib bir-biriga zid bo'lib qolmaydi. Import ichkarida:
-        `ombor.kod` shu modelni o'qiydi.
+        Etiketkada shtrix ostida shu raqam yoziladi va kassir uning **oxirgi 4
+        raqamini** uradi, skaner esa to'liq kodni o'qiydi — ikkalasi bitta
+        tovarga olib boradi (`ombor/kod.py`). Shuning uchun EAN-13 emas: uning
+        oxirgi raqami nazorat raqami bo'lib, yozuvdagi oxirgi 4 raqam tovar
+        kodiga to'g'ri kelmasdi (`ombor/shtrix.py`). Tarozi esa o'z etiketkasini
+        EAN-13 da bosadi — og'irlik bilan (`ichki_shtrix`).
         """
-        from .kod import ichki_shtrix
-        return ichki_shtrix(self.kod) if self.kod else ""
+        return self.kod
+
+    @property
+    def etiketka_svg(self):
+        """Etiketkadagi shtrixning SVG si (ombor/shtrix.py)."""
+        from .shtrix import svg
+        return svg(self.kod) if self.kod else ""
+
+    def etiketka_soni(self, miqdor=None, birlik=None):
+        """Nechta etiketka kerak: sanaladigan tovarning har biriga bittadan.
+
+        20 ta rozetka keldi — 20 ta etiketka; 3 rulon keldi — 3 ta. Metr, kg,
+        litr bilan o'lchanadigani (yoki juda ko'pi — 5000 g'isht) bitta.
+        `miqdor`/`birlik` berilmasa — ombordagi qoldiq va sotuv birligi.
+        """
+        miqdor = self.qoldiq if miqdor is None else Decimal(str(miqdor))
+        birlik = birlik or self.birlik
+        sanaladi = birlik not in (Birlik.KG, Birlik.METR, Birlik.LITR, Birlik.TONNA)
+        if sanaladi and miqdor == miqdor.to_integral_value() and 0 < miqdor <= ETIKETKA_KOPI:
+            return int(miqdor)
+        return 1
 
     # ---------- Valyuta ----------
 
@@ -319,41 +343,3 @@ class OmborHarakati(models.Model):
                 and self.kiritilgan_birlik != self.mahsulot.birlik):
             return f"{tekis_matn(self.kiritilgan_miqdor)} {self.kiritilgan_birlik} = {asos}"
         return asos
-
-
-class ShtrixKod(models.Model):
-    """Tovarga biriktirilgan shtrix kod.
-
-    Alohida jadval, chunki bitta tovarda bir nechta kod bo'ladi: dona kodi
-    va quti kodi, yoki bir xil tovar ikki zavoddan kelgani. `miqdor` — bitta
-    skan nechta sotuv birligini bildiradi: quti kodi skanerlansa 1000 dona
-    tushadi.
-
-    Bu yerda faqat **zavod** kodlari saqlanadi. O'zimiz bosadigan etiketka
-    kodi hech qayerda saqlanmaydi — u tovarning `kod` idan hisoblanadi
-    (`ombor/kod.py`), ya'ni bazada ikki joyda turib bir-biriga zid bo'lib
-    qolmaydi.
-    """
-
-    mahsulot = models.ForeignKey(Mahsulot, on_delete=models.CASCADE,
-                                 related_name="shtrixlar", verbose_name="Tovar")
-    kod = models.CharField(
-        "Shtrix kod", max_length=32, unique=True, db_index=True,
-        error_messages={"unique": "Bu shtrix kod boshqa tovarga biriktirilgan."},
-    )
-    miqdor = models.DecimalField(
-        "Bitta skan", max_digits=12, decimal_places=3, default=1,
-        help_text="Bir marta skanerlanganda nechta sotuv birligi. Quti kodi "
-                  "bo'lsa qutidagi soni (masalan 1000).",
-    )
-    izoh = models.CharField("Izoh", max_length=60, blank=True,
-                            help_text="Masalan «quti» yoki «eski partiya».")
-    yaratilgan = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Shtrix kod"
-        verbose_name_plural = "Shtrix kodlar"
-        ordering = ["mahsulot__nom", "kod"]
-
-    def __str__(self):
-        return f"{self.kod} — {self.mahsulot.nom}"

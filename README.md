@@ -92,7 +92,8 @@ O'rnatgich nima qiladi:
 
 Dastur ochilganda o'zi Django serverini ko'taradi, bo'sh portni topadi (8000
 dan boshlab) va brauzerni ochadi. Ekranda kichkina oyna qoladi — u yopilsa
-server ham to'xtaydi.
+server ham to'xtaydi. Server do'kon Wi-Fi'iga ham ochiq, oynada boshqa
+kompyuterlar uchun manzil yoziladi (pastdagi «Ichki tarmoq (Wi-Fi)»).
 
 Baza dastur papkasida emas, `%LOCALAPPDATA%\UlugbekXozmag\db.sqlite3` da
 turadi. Shuning uchun dasturni ustidan qayta o'rnatish bazaga tegmaydi.
@@ -185,17 +186,32 @@ Kassada va tarozida **oxirgi 4 raqam** uriladi. 50 kg li bolg'ani yoki sement
 qopini kassagacha ko'tarib kelish shart emas — yorliqdagi `0027` uriladi va
 tovar ekranga chiqadi.
 
-Tovar endi to'rt yo'l bilan tanlanadi, hammasi bitta joyga (`tovarTanla()`) boradi:
+Tovar kassaga (sotuv va qarz ekraniga) to'rt yo'l bilan tushadi, hammasi bitta
+joyga (`tovarTanla()`) boradi:
 
 | Yo'l | Qachon | Nima bo'ladi |
 |---|---|---|
-| Ro'yxatdan bosish | avvalgidek | tovar tanlanadi |
-| O'ng paneldagi **Kod** maydoni | og'ir tovar kassaga kelmaydi | tovar tanlanadi |
-| **Skanerlash** | zavod shtrixi bor tovar | tovar tanlanadi (quti kodi bo'lsa miqdor ham) |
-| **Tarozi etiketkasi** | kg bilan sotiladigani | tovar tanlanadi, og'irlik miqdorga tushadi |
+| Ro'yxatdan bosish | avvalgidek | tovar tanlanadi, miqdorni kassir yozadi |
+| O'ng paneldagi **Kod** maydoni | og'ir tovar kassaga kelmaydi | tovar tanlanadi, miqdorni kassir yozadi |
+| **Skanerlash** | tovarga yopishtirilgan etiketka | **darrov chekka qo'shiladi** — «Qo'shish» bosilmaydi |
+| **Tarozi etiketkasi** | kg bilan sotiladigani | darrov qo'shiladi, og'irligi bilan |
 
-Miqdor faqat kodning o'zi aytganda to'ladi (tarozi yoki quti). Qolgan hollarda
-bo'sh qoladi — do'konda miqdor kamdan-kam 1 ta bo'ladi.
+Skanerlangan tovarning miqdori:
+
+1. kodning o'zi aytgani — tarozi etiketkasidagi og'irlik;
+2. bo'lmasa — tovar tanlanmasdan oldin **«Miqdor»** ga yozilgan son: `20` yozib
+   sement qopini skanerlasa 20 qop tushadi;
+3. bo'lmasa — **1**.
+
+**Bir xil tovar qayta skanerlansa yangi qator ochilmaydi** — mavjud qatorning
+miqdori oshadi: uchta rozetka o'qilsa chekda «Rozetka 3 dona» turadi. Bu qoida
+qo'lda qo'shilganda ham ishlaydi (`ombor/xizmat.py`, `hujjatga_qosh`).
+Qo'shilgan qator ko'rinadigan joyga siljiydi va bir lahza yonib turadi, kursor
+esa yana «Kod» ga qaytadi — keyingi tovarni darrov skanerlash mumkin.
+
+**Zavod shtrixlari ishlatilmaydi** — kassa faqat do'konning o'z etiketkasini
+taniydi. Skaner qadoqdagi zavod shtrixini o'qib qo'ysa chekka hech narsa
+tushmaydi, «etiketkani skanerlang» degan xabar chiqadi.
 
 Kod hamma joyda ko'rinadi: tovar kartalarida, **tovar tanlash oynasining
 qidiruv ro'yxatida** (har qator oldida ustun bo'lib; raqam bilan izlanganda mos
@@ -224,33 +240,59 @@ joyda o'zgarmagani kabi, kod ham bitta joyda o'qiladi. Tartib:
 
 | Kiritilgan | Deb tushuniladi |
 |---|---|
-| 13 raqam, `2` bilan boshlanadi, nazorat raqami to'g'ri | do'kon etiketkasi yoki tarozi kodi |
-| Bazadagi zavod shtrixi | o'sha tovar (va kodning o'z miqdori) |
-| 1–10 raqam | tovar kodining oxiri: `7` ham, `0007` ham bitta tovar |
+| 13 raqam, `2` bilan boshlanadi, nazorat raqami to'g'ri | tarozi etiketkasi (og'irligi bilan) |
+| 1–10 raqam | tovar kodi yoki uning oxiri: etiketka skanerlansa to'liq kod keladi, kassir oxirgi 4 raqamni uradi; `7` ham, `0007` ham bitta tovar |
+| 12 raqam, `77` bilan boshlanadi, nazorat raqami to'g'ri | rang (kolerovka) cheki — baza bo'yoq chekdagi miqdori bilan (pastdagi «Rang» bo'limi) |
+| Qolgani (zavod shtrixi va h.k.) | topilmaydi — «etiketkani skanerlang» |
 
-### Zavod shtrixlari
+### Etiketka: tovar qo'shilganda shtrix tayyor
 
-Tovar kartochkasidagi **Zavod shtrixlari** maydoniga skanerlanadi — skaner Enter
-bosgani uchun har bir kod o'zi alohida qatorga tushadi. Qatorni o'chirsangiz kod
-ham o'chadi. Quti kodi bo'lsa yoniga qutidagi sonini yozing:
+Tovar yaratilganda unga kod beriladi — **shu kodning o'zi uning shtrixi**. U
+etiketka printerida chop etilib tovarga yopishtiriladi:
 
 ```
-4780123456789
-4780000000017 1000
+    Rozetka
+ ║▌║│▌║║│║▌│║▌║   <- skaner o'qisa kassaga «0000000009» tushadi, tovar darrov chekka
+ 000000 0009      <- kassir yirik 4 raqamni uradi — o'sha tovar topiladi
 ```
 
-Ikkinchi qator skanerlansa chekka 1 dona emas, **1000 dona** tushadi.
+Shtrix turi — **Code 128** (`ombor/shtrix.py`), EAN-13 emas: EAN-13 ning oxirgi
+raqami har doim nazorat raqami, ya'ni yozuvdagi oxirgi 4 raqam tovar kodiga to'g'ri
+kelmasdi va kassir boshqa raqam urib qo'yardi. Code 128 ning nazorat belgisi
+chiziqlar ichida, yozuvga chiqmaydi. Kod 10 raqam — Code 128-C da bor-yo'g'i 5
+belgi, shtrix 40×30 mm etiketkaga ham bemalol sig'adi. Chizish ZXing bilan
+tekshirilgan (jadvalning hamma belgilari), testlarda esa chiziqlardan qaytadan
+o'qib ko'riladi.
 
-Ombor ro'yxatida notanish shtrix skanerlansa dastur «shu kod bilan yangi tovar
-qo'shilsinmi?» deb so'raydi va kartochkani kod to'ldirilgan holda ochadi. Katalog
-shu bilan **mol tushirish paytida** o'zi to'lib boradi — hammasini bir kunda
-o'tirib kiritish shart emas.
+Chop etish — **brauzerning o'z chop etish oynasi** (`/ombor/<id>/etiketka/`):
 
-### Ichki etiketka va tarozi kodi
+- printer Windows'da o'rnatilgan bo'lsa bas, modeli muhim emas;
+- etiketka o'lchami tanlanadi (40×30, 58×40, 50×30, 30×20 mm) va shu kompyuterda
+  eslab qolinadi; har bir etiketka alohida sahifa, sahifa o'lchami (`@page`) —
+  etiketka o'lchami;
+- shtrix moduli 0,25 / 0,375 mm — 203 dpi printerda aniq 2 / 3 nuqta, chiziqlar
+  buzilmaydi. Chrome chiqargan PDF 203 va 300 dpi da rasmga aylantirilib, shtrix
+  qaytadan o'qib tekshirilgan;
+- chop etish oynasida: printer — etiketka printeri, qog'oz — etiketka o'lchami,
+  chekkalar — «Нет», masshtab — 100%.
 
-O'zimiz bosadigan shtrix bazada saqlanmaydi — tovar kodidan hisoblanadi
-(`Mahsulot.etiketka_kodi`), ya'ni ikki joyda turib bir-biriga zid bo'lib
-qolmaydi. Tuzilishi — 13 raqamli EAN-13:
+Etiketka sahifasiga uch yo'l bilan kelinadi:
+
+| Qachon | Qayerdan | Nechta nusxa |
+|---|---|---|
+| Yangi tovar qo'shilganda | saqlangach o'zi ochiladi | kelgan soni (20 dona — 20 ta, 3 rulon — 3 ta) |
+| Mol kelganda | kirim oynasidagi **«Qo'shish va etiketka»** | kirim miqdori |
+| Istalgan payt | ombor ro'yxatidagi printer tugmasi | 1 (o'zgartirsa bo'ladi) |
+
+Metr, kg, litr bilan o'lchanadigan tovarga (yoki juda ko'piga — 5000 g'isht) bitta
+etiketka taklif qilinadi.
+
+Nusxalar soni `Mahsulot.etiketka_soni()` da; bir yo'la ko'pi bilan 500 ta.
+
+### Tarozi kodi
+
+Tarozi o'z etiketkasini **EAN-13** da bosadi — ichida og'irlik ham bor
+(`ichki_shtrix`). Tuzilishi:
 
 ```
 2 | 000027 | 01250 | 4
@@ -281,6 +323,159 @@ Birinchi ustunda kod turadi: yirik 4 raqam (kassada uriladigani) va ostida to'li
 kod. Qidiruv maydoni nom bilan ham, kod bilan ham ishlaydi. Skanerlansa o'sha
 zahoti **kirim oynasi** ochiladi — mol tushirayotganda qo'l band bo'ladi,
 ro'yxatdan izlab o'tirishga vaqt yo'q.
+
+## Rang (kolerovka) — Soruda mashinasi
+
+Do'konda bo'yoqqa rang qo'shadigan mashina bor — **Soruda SO-T800**
+(Jiangxi Suoruida, dasturi «Soruda tinting system», mashina kompyuteriga
+o'rnatilgan). Uning dasturida rang **palitra kodi** bilan tanlanadi. Yon menyudagi
+**Rang** bo'limi shu mashina yonida ishlaydi:
+
+1. **Katalog varag'i** (`/rang/varaq/`) — mashina oldiga qo'yiladi. Har bir
+   rangning namunasi, kodi, nomi va ostida **shtrix**. Shtrix — Soruda
+   kodining **o'zi**: skaner uni Soruda'ning kod maydoniga xuddi odam
+   yozgandek tushiradi, do'kon sahifasida esa rangni topadi.
+2. Mijoz rangni ko'rsatadi, sotuvchi skanerlaydi — Soruda rangni tayyorlaydi.
+3. **Stansiya** (`/rang/`, shu kompyuter brauzerida) — rang shtrixi,
+   bankadagi do'kon etiketkasi (baza bo'yoq) skanerlanadi, kolerovka narxi
+   yoziladi → **«Chek chiqarish»** (Enter). Maxsus chek chop etiladi.
+4. Mijoz chekni kassaga olib boradi. Kassir skanerlaydi: baza bo'yoq
+   chekdagi miqdori bilan **o'zi tushadi** (ombordan shu yerda ayriladi),
+   kassirga «To'lanadi: 210 000 so'm» xabari chiqadi, chek qatorida rang kodi
+   (`RAL 3020`) turadi. Summa boshqa joydagidek «Jami» ga qo'lda yoziladi.
+
+```
+   ULUG'BEK XOZMAG
+ RANG (KOLEROVKA) CHEKI
+ № 4       23.09.2026 22:20
+ RAL 3020  Yo'l qizil
+ Emulsiya baza oq 10 kg
+ 1 dona × 185 000   185 000 so'm
+ Kolerovka           25 000 so'm
+ TO'LANADI       210 000 so'm
+  ║▌║│▌║║│║▌│║▌║│║▌║▌│   <- kassada skanerlanadi
+   77 000000004 8
+```
+
+### Chek bir marta ishlaydi
+
+Kassa chekni hujjatga bog'laydi (`rang/kassa.py`), stansiyaning o'ng
+panelida holati ko'rinadi:
+
+| Holat | Qachon |
+|---|---|
+| To'lanmagan | chek chiqdi, kassadan o'tmadi. Oldingi kunlardagisi qizil — bo'yoq pulsiz ketgan bo'lishi mumkin |
+| Kassada | ochiq chekka qo'shildi |
+| To'landi / Qarzga yozildi | sotuv yoki qarz hujjati yakunlandi |
+| Bekor qilingan | mijoz fikridan qaytdi (chek sahifasidagi tugma; to'langanini bekor qilib bo'lmaydi) |
+
+Ikkinchi marta skanerlansa qabul qilinmaydi («allaqachon chek #12 ga
+qo'shilgan») — bo'yoq ombordan ikki marta ayrilmaydi. Kassada qator
+o'chirilsa yoki sotuv bekor qilinsa chek yana bo'shaydi. Qarz ekranida ham
+xuddi shunday ishlaydi.
+
+Chek kodi — 12 raqam: `77` + chek raqami (9 raqam) + nazorat raqami
+(`ombor/kod.py`). Tovar kodi (10) va tarozi (13) bilan uzunligi farq qiladi.
+Stansiyada chek skanerlansa o'sha chek ochiladi (qayta chop etish).
+
+### Ranglar katalogi
+
+**Ranglar** sahifasi (`/rang/ranglar/`): qo'shish, tahrirlash, yashirish va
+**yuklash** — Soruda'dan yoki Excel'dan ro'yxat bir yo'la qo'yiladi:
+
+    RAL 3020;Yo'l qizil;#CC0605
+
+Kod — Soruda dasturiga **qanday yozilsa aynan shunday** (bo'shlig'i bilan).
+Faqat lotin harflari, raqamlar va belgilar: kirill harfni skaner Soruda'ga
+to'g'ri yoza olmaydi. Qo'lda izlaganda katta-kichik harf va bo'shliq farq
+qilmaydi, kodning oxiri ham yetadi (`3020` → `RAL 3020`). Raqamli rang kodi
+tovarning 4 raqami bilan adashmaydi: stansiyada avval katalog qaraladi.
+
+Shtrix — Code 128 (`rang/shtrix.py`): harfli qismi B to'plamida, raqamlari
+C da (qisqaroq). Varaqda modul 0,254 mm — 600 dpi printerda aniq 6 nuqta.
+Chrome'da A4 PDF qilib, 300 dpi rasmga aylantirib, 213 ta shtrixning
+hammasi qaytadan o'qib tekshirilgan (4 va 5 ustunli, bo'sh katakli variant).
+
+Namuna uchun **RAL Classic** (213 rang, `rang/namuna.py`) bir tugma bilan
+yuklanadi. Haqiqiy Soruda palitrasi kelgach «To'plamni o'chirish» bilan
+olib tashlanadi (chek chiqqan ranglar o'chmaydi, yashiriladi).
+
+Printer rangni aniq bermaydi — varaqda **«Bo'sh katak»** tanlansa rang
+o'rnida bo'sh joy qoladi, unga rang kartasidan haqiqiy namuna yopishtiriladi.
+
+### Chop etish
+
+Brauzerning o'z oynasi, printer Windows'da o'rnatilgan bo'lsa bas:
+
+- **Chek** — 80 yoki 58 mm (tanlov shu kompyuterda eslab qolinadi). Sahifa
+  balandligi chekning o'z uzunligicha (`static/js/rang_chek.js`), shtrix
+  moduli 0,375 mm — 203 dpi termoprinterda aniq 3 nuqta. «Chek chiqarish»
+  dan keyin chek o'zi chop etiladi va stansiyaga qaytadi.
+- **Varaq** — A4, 3/4/5 ustun, har bir to'plam yangi sahifadan.
+
+Mashina yonidagi kompyuterda brauzerni `--kiosk-printing` bilan ochsa
+chop etish oynasi ham chiqmaydi — chek darrov printerga ketadi:
+
+    msedge.exe --kiosk-printing http://<server>:8000/rang/
+
+### Narx
+
+**Kolerovka narxi** stansiyada qo'lda yoziladi (so'mda). Baza bo'yoq narxi
+ombordagi tovar narxidan olinadi. Chekdagi «To'lanadi» = baza × miqdor +
+kolerovka; dollarlik baza so'mga qo'shilmaydi («25 $ va 15 000 so'm»).
+Kassada summa baribir kassir yozadi — savdolashuv qoidasi o'zgarmaydi.
+
+### Ichki tarmoq (Wi-Fi) — chek bazaga tarmoq orqali boradi
+
+Rang mashinasi o'z kompyuteriga ega (Windows, Soruda dasturi shunga
+o'rnatilgan). Kassa esa boshqa kompyuterda. Ikkalasi do'kondagi **bitta
+Wi-Fi routerga** ulanadi, Xozmag serveri shu ichki tarmoqda turadi —
+**internet shart emas**:
+
+```
+ [Soruda kompyuteri] --Wi-Fi--> [router] <--Wi-Fi/kabel-- [server = kassa kompyuteri]
+   stansiya (brauzer)                                        Xozmag + baza
+   chek yaratiladi  ------------ tarmoq orqali ----------->  bazaga yoziladi
+                                                             kassada skanerlanadi
+```
+
+- **Server** Wi-Fi'ga ochiq: o'rnatilgan dastur `0.0.0.0` da tinglaydi
+  (`ishga_tushir.py`), `SERVERXOZMAG.bat` ham. Kichik oynada (va bat
+  oynasida) boshqa kompyuterlar uchun manzil yoziladi:
+  `http://192.168.1.5:8000/` va kompyuter nomi bilan. Stansiya
+  sarlavhasida ham yashil «Wi-Fi: …/rang/» turadi. Manzillarni
+  `config/tarmoq.py` topadi.
+- Birinchi ochilganda Windows **«Разрешить доступ / Ruxsat berish»** so'raydi —
+  ikkala belgini qo'yib ruxsat bering. Bekor qilinsa boshqa kompyuterlar
+  ulana olmaydi (Brandmauer → «Разрешение взаимодействия с приложением» dan
+  Xozmag'ga belgi qo'yiladi). Tarmoq turi **Частная (Private)** bo'lsin.
+- IP o'zgarib qolmasligi uchun routerda server kompyuteriga doimiy IP
+  (DHCP reservation) bering yoki kompyuter nomi bilan ulaning.
+- Sayt baribir login va parol so'raydi — Wi-Fi'ga ulangan begona odam
+  kira olmaydi. Wi-Fi'ning o'ziga ham parol qo'ying.
+
+### Soruda kompyuteri uchun papka
+
+`soruda_kompyuter/` — fleshkaga ko'chirilib, rang mashinasi kompyuterida
+ochiladi (`OQING.txt`):
+
+| Fayl | Nima qiladi |
+|---|---|
+| `1-STANSIYA-YORLIGI.bat` | ish stolida «Rang stansiyasi» yorlig'i: Edge alohida oynada (`--app`), chek so'ramasdan printerga (`--kiosk-printing`), alohida profil — login eslab qolinadi. Server manzilini so'raydi va ulanishni tekshiradi |
+| `2-SORUDA-MALUMOTI.bat` | Soruda qayerga o'rnatilganini o'zi topadi (ochiq oyna, yorliqlar, papka nomlari) va uning ma'lumot fayllarini (rang kodlari, palitra, formulalar, yozuvlar), fayllar ro'yxatini, oxirgi soatlarda o'zgargan fayllarni, printerlar va tarmoqni zip qiladi. Soruda ma'lumotni SQL Server'da saqlasa jadvallar shu yerda CSV ga o'qiladi (faqat `SELECT`). Soruda fayllari **faqat o'qiladi**. Boshqa dasturlarning fayllari zipga tushmaydi — faqat ro'yxatda; brauzer oynalari (sarlavhasida «Soruda» bo'lsa ham) Soruda deb olinmaydi |
+
+Soruda dasturining **o'z rang kodlari va palitrasi** bor — katalog RAL
+namunasi o'rniga shu bilan to'ldiriladi. Zip kelgach: palitra katalogga
+avtomatik yuklanadi, Soruda'da tayyorlangan bo'yoq yozuvi esa (qaysi faylga
+tushishi ko'rilgach) Wi-Fi orqali bazaga **o'zi** yuboriladigan qilinadi —
+stansiyada qayta skanerlash kerak bo'lmaydi.
+
+### Hali aniq emas
+
+- Soruda'ning palitra va yozuvlari qaysi faylda, qanday formatda —
+  `2-SORUDA-MALUMOTI.bat` zipi kelsa aniqlanadi;
+- mashina yonidagi chek printeri modeli (zipda printerlar ro'yxati bor);
+- kolerovka narxi rangga/hajmga qarab o'zi hisoblansinmi (narx guruhlari).
 
 ## So'm va dollar — ikkita alohida hisob
 
@@ -461,10 +656,12 @@ Kodi: `static/js/bildirishnoma.js`, uslubi `.xabarlar` / `.xabar`.
 
 Bosh sahifadagi **Sotuv** — do'kondagi savdo cheki:
 
-1. Sahifa ochilganda kursor **«Kod»** da turadi (sichqoncha rejimida): yorliqdagi
-   raqam urib Enter → miqdor → Enter. Tovar qo'shilgach kursor yana «Kod» ga
-   qaytadi, ya'ni butun chek klaviaturadan teriladi. Skaner va «Yangi tovar»
-   (F2) ham avvalgidek.
+1. **Skanerlang** — tovar darrov chekka tushadi (1 dona; bir xili qayta
+   skanerlansa miqdori oshadi). Tovar kassaga keltirilmasa (og'ir) yoki
+   etiketkasi o'qilmasa: kursor **«Kod»** da turadi (sichqoncha rejimida),
+   etiketkadagi yirik 4 raqam urib Enter → miqdor → Enter. Tovar
+   qo'shilgach kursor yana «Kod» ga qaytadi, ya'ni butun chek klaviaturadan
+   teriladi. «Yangi tovar» (F2) ham avvalgidek.
 2. Tovar qo'shilishi bilan ombordan ayriladi; qatorni o'chirsa qaytadi.
 3. Pastdagi **Jami** ga chekning kelishilgan summasi yoziladi (so'm va dollar
    alohida). Pul yetmasa — «Qarzga» (yuqoridagi bo'lim).
@@ -598,14 +795,24 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - `qarz/` — Hudud, Qarzdor, Qarz, QarzQator, Tolov; `Tolov.qarz` — oldindan
   to'lov qaysi hujjatga tegishli, `Qarz.sotuv` — chekdan qolgan qarz
 - `sotuv/` — Sotuv, SotuvQator (naqd savdo)
-- `ombor/` — Mahsulot, ShtrixKod, OmborHarakati; `ombor/xizmat.py` — qoldiqni
+- `rang/` — Rang (katalog), Buyurtma (rang cheki); `rang/kassa.py` — chekni
+  kassa hujjatiga bog'lash, `rang/shtrix.py` — harfli Code 128,
+  `rang/yuklash.py` — ro'yxatni matndan yuklash; uslubi `static/css/rang.css`
+- `config/tarmoq.py` — ichki tarmoq (Wi-Fi) manzillari: oynada, bat'da va
+  stansiyada ko'rsatiladi
+- `soruda_kompyuter/` — rang mashinasi kompyuteri uchun: stansiya yorlig'i va
+  Soruda ma'lumotlarini yig'uvchi
+- `ombor/` — Mahsulot, OmborHarakati; `ombor/xizmat.py` — qoldiqni
   o'zgartiruvchi yagona joy (qarz ham, sotuv ham shuni chaqiradi);
-  `ombor/kod.py` — kod/shtrix/tarozi kodi bo'yicha tovar topadigan yagona joy.
+  `ombor/kod.py` — kod/shtrix/tarozi kodi bo'yicha tovar topadigan yagona joy;
+  `ombor/shtrix.py` — etiketkadagi Code 128 shtrixni chizadi.
   Birlik o'tkazish: `Mahsulot.sotuvga_aylantir()` — boshqa hech qayerda ko'paytirilmaydi
 - `templates/`, `static/css/uslub.css`, `static/js/` — interfeys
 - `templates/ikonlar.html` — SVG ikonlar to'plami (`<use href="#i-...">`)
 - `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
 - `static/js/skaner.js` — skanerni klaviaturadan ajratadi va `/ombor/kod/` ga so'raydi
+- `templates/ombor/etiketka.html`, `static/js/etiketka.js` — etiketka chop etish
+  (o'lcham, nusxalar soni, `@page`)
 - `static/js/sotuv_qarz.js`, `templates/sotuv/qarz_oyna.html` — «Jami» ni
   to'langan va qarz qismga bo'lish (autosplit) va yangi qarzdor oynachasi
 - `static/js/forma.js` — pul maydonlarida raqamlarni guruhlash, `data-tasdiq`,
@@ -621,6 +828,6 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - 13 ta hududning haqiqiy nomlarini qo'yish (`qarz/management/commands/boshlangich.py`)
 - Foydalanuvchi (receptionist) hisobi va parol bilan kirish
 - Chek chop etish, hisobotlar
-- Etiketka chop etish (`Mahsulot.etiketka_kodi` tayyor — printer modeliga qarab
-  TSPL yoki ZPL buyrug'i `win32print` orqali yuboriladi)
+- Etiketkani bir bosishda, oynasiz chop etish — printer modeli ma'lum bo'lgach
+  TSPL yoki ZPL buyrug'i `win32print` orqali (hozir brauzerning chop etish oynasi)
 - Tarozining PLU ro'yxatini bazadan eksport qilish

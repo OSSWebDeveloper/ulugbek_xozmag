@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load statik_versiya xozmag rang %}
+
+{% comment %}
+Rang mashinasi (Soruda) yonidagi ekran — sotuvchi shu yerda maxsus chek chiqaradi.
+
+1. Rang: katalog varag'idagi shtrix skanerlanadi (yoki kodi yoziladi).
+2. Baza bo'yoq: bankadagi do'kon etiketkasi skanerlanadi (yoki ro'yxatdan).
+3. Miqdor va kolerovka narxi -> «Chek chiqarish».
+
+Skaner fokusga qaramaydi (js/skaner.js): qaysi shtrix o'qilganini server aytadi
+(`/rang/kod/`) — rangmi, bazami yoki chekmi. O'ngda bugungi cheklar va
+to'lanmay qolganlari.
+{% endcomment %}
+
+{% block sarlavha %}Rang — Soruda{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/rang.css' %}">{% endblock %}
+
+{% block tana %}
+<div class="kassa rang-stansiya" id="rang-stansiya" data-kod-manzil="{% url 'rang:kod_qidir' %}">
+  <div>
+    <form method="post" class="chek rang-buyurtma" id="rang-forma" data-bir-marta>
+      {% csrf_token %}
+      <input type="hidden" name="rang" id="rang-id" value="{{ tanlov.rang.pk|default:'' }}">
+      <input type="hidden" name="baza" id="baza-id" value="{{ tanlov.baza.pk|default:'' }}">
+
+      <div class="chek-bosh">
+        <div>
+          <div class="mijoz">Rang mashinasi</div>
+          <div class="kichkina">
+            Soruda &middot; rang, baza bo'yoq va narx &rarr; kassa uchun chek
+            {% if tarmoq %}
+              <span class="rang-tarmoq" title="Rang mashinasi kompyuterida (Wi-Fi) shu manzilni oching">
+                &middot; Wi-Fi: {{ tarmoq.0 }}rang/
+              </span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="chek-bosh-tugmalar">
+          <a class="tugma tinch kichik" href="{% url 'rang:ranglar' %}" title="Katalogdagi ranglar">
+            <svg class="ikon"><use href="#i-palitra"></use></svg> Ranglar
+          </a>
+          <a class="tugma tinch kichik" href="{% url 'rang:varaq' %}" title="Mashina oldiga qo'yiladigan varaq">
+            <svg class="ikon"><use href="#i-shtrix"></use></svg> Katalog varag'i
+          </a>
+        </div>
+      </div>
+
+      <div class="rang-tana">
+        {# ---- 1. Rang ---- #}
+        <section class="rang-qadam rang-qadam-asosiy">
+          <div class="qadam-bosh"><span class="qadam-raqam">1</span> Rang</div>
+
+          <div class="rang-tanlov" id="rang-tanlov"
+               {% if tanlov.rang %}data-id="{{ tanlov.rang.pk }}" data-kod="{{ tanlov.rang.kod }}"
+               data-nom="{{ tanlov.rang.nom }}" data-hex="{{ tanlov.rang.hex }}"
+               data-yozuv="{{ tanlov.rang.yozuv_rangi }}" data-toplam="{{ tanlov.rang.toplam }}"{% endif %}>
+            <div class="rang-namuna katta" id="rang-namuna">
+              <svg class="ikon"><use href="#i-shtrix"></use></svg>
+            </div>
+            <div class="rang-malumot">
+              <div class="rang-kodi" id="rang-kodi">Rang tanlanmagan</div>
+              <div class="rang-nomi" id="rang-nomi">
+                {% if ranglar_soni %}
+                  Katalogdagi shtrixni skanerlang yoki kodini yozing
+                {% else %}
+                  Katalog bo'sh — avval <a href="{% url 'rang:yuklash' %}">ranglarni yuklang</a>
+                {% endif %}
+              </div>
+
+              <div class="kiritish-maydon kod-maydon rang-kod-maydon" data-maydon="kod">
+                <span class="nomi">Kod</span>
+                <input type="text" class="qiymat" id="kod-kirish" autocomplete="off" spellcheck="false"
+                       placeholder="RAL 3020 yoki 3020">
+                <button type="button" class="tugma tinch kichik kod-tugma" id="kod-topish"
+                        title="Kod bo'yicha topish (Enter)">
+                  <svg class="ikon"><use href="#i-qidir"></use></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="rang-qator">
+          {# ---- 2. Baza bo'yoq ---- #}
+          <section class="rang-qadam">
+            <div class="qadam-bosh"><span class="qadam-raqam">2</span> Baza bo'yoq</div>
+            <div class="tanlangan-tovar" id="baza-tanlangan"
+                 {% if tanlov.baza %}data-id="{{ tanlov.baza.pk }}" data-nom="{{ tanlov.baza.nom }}"
+                 data-qisqa="{{ tanlov.baza.qisqa_kod }}" data-birlik="{{ tanlov.baza.birlik }}"
+                 data-qoldiq="{{ tanlov.baza.qoldiq|tekis }}" data-narx="{{ tanlov.baza.narx_son }}"
+                 data-valyuta="{{ tanlov.baza.valyuta_belgisi }}"{% endif %}>
+              <div class="nom bosh-yozuv" id="baza-nomi">Bankadagi etiketkani skanerlang</div>
+              <div class="pastki">
+                <span id="baza-qoldiq">yoki ro'yxatdan tanlang</span>
+                <span class="tovar-kodi" id="baza-kodi"></span>
+              </div>
+            </div>
+            <button type="button" class="tugma tinch keng" id="baza-tanla">
+              <svg class="ikon"><use href="#i-quti"></use></svg> Ro'yxatdan tanlash
+              <span class="yorliq-tugma faqat-sichqoncha">F2</span>
+            </button>
+          </section>
+
+          {# ---- 3. Miqdor va narx ---- #}
+          <section class="rang-qadam">
+            <div class="qadam-bosh"><span class="qadam-raqam">3</span> Miqdor va narx</div>
+            <div class="kiritish-maydon" data-maydon="miqdor">
+              <span class="nomi">Miqdor</span>
+              <input type="text" class="qiymat raqam-maydon" name="miqdor" id="miqdor"
+                     inputmode="decimal" autocomplete="off" value="{{ tanlov.miqdor|default:'1' }}">
+              <span class="birlik" id="miqdor-birlik">{{ tanlov.baza.birlik|default:"dona" }}</span>
+            </div>
+            <div class="kiritish-maydon" data-maydon="narx">
+              <span class="nomi">Kolerovka</span>
+              <input type="text" class="qiymat raqam-maydon pul-maydon" data-kasr="0" name="rang_narxi"
+                     id="rang-narxi" inputmode="numeric" autocomplete="off" placeholder="0"
+                     value="{{ tanlov.narx }}">
+              <span class="birlik">so'm</span>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="jami-satr">
+        <div class="rang-hisob-ustun">
+          <span class="yorliq">To'lanadi</span>
+          <span class="rang-hisob" id="rang-hisob">Baza bo'yoq + kolerovka</span>
+        </div>
+        <span class="qiymat" id="rang-jami">0<small>so'm</small></span>
+      </div>
+    </form>
+
+    <div class="chek-tugmalar">
+      <button type="submit" form="rang-forma" class="tugma yashil keng rang-chek-tugma" id="chek-tugma" disabled>
+        <svg class="ikon"><use href="#i-printer"></use></svg> Chek chiqarish
+        <span class="yorliq-tugma faqat-sichqoncha">Enter</span>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <div class="ong-panel rang-ong">
+      {# Sensorli rejimda: miqdor va narx shu tugmalar bilan yoziladi #}
+      <div class="raqamlar rang-raqamlar" id="raqamlar">
+        <button type="button" class="tugma" data-raqam="7">7</button>
+        <button type="button" class="tugma" data-raqam="8">8</button>
+        <button type="button" class="tugma" data-raqam="9">9</button>
+        <button type="button" class="tugma" data-raqam="4">4</button>
+        <button type="button" class="tugma" data-raqam="5">5</button>
+        <button type="button" class="tugma" data-raqam="6">6</button>
+        <button type="button" class="tugma" data-raqam="1">1</button>
+        <button type="button" class="tugma" data-raqam="2">2</button>
+        <button type="button" class="tugma" data-raqam="3">3</button>
+        <button type="button" class="tugma" data-raqam="0">0</button>
+        <button type="button" class="tugma amal" data-raqam="000">000</button>
+        <button type="button" class="tugma amal" data-amal="ochir">&#9003;</button>
+      </div>
+
+      <div class="rang-cheklar-bosh">
+        <b>Bugungi cheklar</b>
+        <span class="sust">{{ bugungi|length }} ta</span>
+      </div>
+      <div class="rang-cheklar">
+        {# Oldingi kunlarda chiqib, kassadan o'tmagan bo'yoq — ko'zdan qochmasin #}
+        {% if eskilar %}
+          <div class="rang-cheklar-guruh xato-guruh">
+            <svg class="ikon"><use href="#i-ogoh"></use></svg>
+            Oldingi kunlardan to'lanmagan &middot; {{ eskilar|length }} ta
+          </div>
+          {% for b in eskilar %}
+            {% include "rang/_chek_qator.html" with eski=1 %}
+          {% endfor %}
+          <div class="rang-cheklar-guruh">Bugun</div>
+        {% endif %}
+        {% for b in bugungi %}
+          {% include "rang/_chek_qator.html" %}
+        {% empty %}
+          <div class="bosh-holat">
+            <svg class="ikon"><use href="#i-chek"></use></svg>
+            <b>Bugun chek chiqmadi</b>
+            Chiqarilgan cheklar shu yerda turadi: to'langani, kassadagisi
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "kassa_tovar_oyna.html" %}
+{% endblock %}
+
+{% block skript %}
+<script src="{% statik 'js/skaner.js' %}"></script>
+<script src="{% statik 'js/rang.js' %}"></script>
+{% endblock %}

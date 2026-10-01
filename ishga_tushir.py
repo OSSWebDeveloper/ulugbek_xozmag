@@ -6,6 +6,11 @@ Dastur ochilganda:
   2. bo'sh port topiladi va Django serveri fonda ishga tushadi;
   3. brauzer ochiladi, ekranda esa kichkina boshqaruv oynasi qoladi.
 
+Server do'konning ichki tarmog'iga (Wi-Fi) ham ochiq: rang mashinasi yonidagi
+kompyuter va boshqalar oynada yozilgan manzil bilan ulanadi. Internet shart
+emas. Birinchi ochilganda Windows «ruxsat berilsinmi» deb so'raydi — ruxsat
+berilmasa boshqa kompyuterlar ulana olmaydi.
+
 Oyna yopilsa server ham to'xtaydi.
 """
 import ctypes
@@ -78,7 +83,9 @@ def serverni_boshla(port: int) -> None:
     from django.core.servers.basehttp import WSGIServer, run
 
     # DEBUG o'chiq bo'lgani uchun css/js ni shu qobiq uzatadi.
-    run("127.0.0.1", port, StaticFilesHandler(WSGIHandler()),
+    # 0.0.0.0 — shu kompyuterdan ham, Wi-Fi'dagi boshqa kompyuterlardan ham
+    # (rang mashinasi). Sayt baribir login va parol so'raydi.
+    run("0.0.0.0", port, StaticFilesHandler(WSGIHandler()),
         ipv6=False, threading=True, server_cls=WSGIServer)
 
 
@@ -95,7 +102,7 @@ def xato_oyna(matn: str) -> None:
         print(matn)
 
 
-def oyna(manzil: str) -> None:
+def oyna(manzil: str, tarmoq: list) -> None:
     import tkinter as tk
     from tkinter import font as tkfont
 
@@ -103,7 +110,7 @@ def oyna(manzil: str) -> None:
     t.title(NOM)
     t.configure(bg="#111827")
     t.resizable(False, False)
-    eni, boyi = 420, 230
+    eni, boyi = 420, 230 + (48 + 20 * len(tarmoq) if tarmoq else 0)
     x = (t.winfo_screenwidth() - eni) // 2
     y = (t.winfo_screenheight() - boyi) // 3
     t.geometry(f"{eni}x{boyi}+{x}+{y}")
@@ -121,6 +128,14 @@ def oyna(manzil: str) -> None:
     tk.Label(t, text="Dastur ishlab turibdi", bg="#111827", fg="#9ca3af",
              font=oddiy).pack()
     tk.Label(t, text=manzil, bg="#111827", fg="#60a5fa", font=oddiy).pack(pady=(6, 16))
+    if tarmoq:
+        # Rang mashinasi kompyuteri (va boshqalar) Wi-Fi orqali shu manzil bilan ulanadi
+        tk.Label(t, text="Wi-Fi tarmog'idagi kompyuterlar uchun:", bg="#111827",
+                 fg="#9ca3af", font=oddiy).pack()
+        for boshqa in tarmoq:
+            tk.Label(t, text=boshqa, bg="#111827", fg="#34d399",
+                     font=tkfont.Font(family="Segoe UI", size=11, weight="bold")).pack()
+        tk.Label(t, text="", bg="#111827").pack(pady=2)
 
     tk.Button(t, text="Saytni ochish", font=oddiy, width=26, relief="flat",
               bg="#2563eb", fg="#ffffff", activebackground="#1d4ed8",
@@ -141,12 +156,14 @@ def main() -> int:
         xato_oyna("Dastur allaqachon ochiq. Ekranning pastidagi oynani qarang.")
         return 0
     try:
+        from config.tarmoq import manzillar
+
         bazani_tayyorla()
         port = bosh_port()
         manzil = f"http://127.0.0.1:{port}/"
         threading.Thread(target=serverni_boshla, args=(port,), daemon=True).start()
         webbrowser.open(manzil)
-        oyna(manzil)
+        oyna(manzil, manzillar(port))
     except Exception:
         xato_oyna("Dastur ochilmadi:\n\n" + traceback.format_exc(limit=4))
         return 1

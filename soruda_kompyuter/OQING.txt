@@ -1,0 +1,36 @@
+RANG MASHINASI (SORUDA) KOMPYUTERI UCHUN
+========================================
+
+Bu papkani fleshkaga ko'chiring va rang mashinasi yonidagi kompyuterda oching.
+
+
+1-STANSIYA-YORLIGI.bat
+    Ish stolida "Rang stansiyasi" yorlig'ini yaratadi.
+    Server manzilini so'raydi - u Xozmag server kompyuteridagi kichik oynada
+    yozilgan (masalan 192.168.1.5:8000).
+    Yorliq stansiyani alohida oynada ochadi, chek so'ramasdan printerga ketadi.
+    Chek Wi-Fi orqali to'g'ridan-to'g'ri serverdagi bazaga yoziladi - kassir
+    uni o'sha zahoti skanerlay oladi.
+
+    Oldin: bu kompyuter va server bitta Wi-Fi'ga ulangan bo'lsin, serverda
+    Xozmag ochiq tursin.
+
+
+2-SORUDA-MALUMOTI.bat
+    Soruda tinting system qayerda o'rnatilganini o'zi topadi va uning
+    ma'lumotlarini (rang kodlari, palitra, formulalar, tayyorlangan bo'yoq
+    yozuvlari, printerlar) zip qilib shu papkaga yig'adi.
+    Soruda'ning hech bir fayli o'zgartirilmaydi va o'chirilmaydi.
+
+    Oldin: Soruda dasturi OCHIQ tursin va unda bitta bo'yoq tayyorlang
+    (yoki sinov) - shunda chek qaysi faylga yozilishi ham ko'rinadi.
+
+    Natija: soruda_<kompyuter>_<sana>.zip - shuni dasturchiga bering.
+    Undan Xozmag katalogi Soruda'ning o'z rang kodlari va palitrasi bilan
+    to'ldiriladi.
+
+
+Yana telefon bilan suratga oling:
+    - Soruda'da rang kodi yoziladigan ekran ("Stand" bo'limi);
+    - "Record" bo'limi (tayyorlangan bo'yoqlar ro'yxati);
+    - Soruda chek chiqaradigan bo'lsa - chekning o'zi.

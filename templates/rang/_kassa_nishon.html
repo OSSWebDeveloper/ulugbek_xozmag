@@ -1,0 +1,5 @@
+{% load rang %}{% comment %}
+Kassa qatori yonida: bu baza bo'yoq rang mashinasida tayyorlangan (rang cheki
+skanerlangan). Chaqirilishi: {% include "rang/_kassa_nishon.html" with hujjat=sotuv %}
+{% endcomment %}{% qator_rang_cheklari hujjat qator as cheklar %}{% for b in cheklar %}
+<span class="nishon kok" title="Rang cheki #{{ b.pk }} — rang mashinasida tayyorlangan">{{ b.rang_kodi }}</span>{% endfor %}

@@ -1,0 +1,318 @@
+/* Rang (kolerovka) bo'limi — faqat /rang/ sahifalarida yuklanadi.
+   Umumiy qismlar (tugma, quti, kassa setkasi, jadval) uslub.css dan keladi,
+   bu yerda faqat rang mashinasiga xoslari: stansiya, katalog, chek va varaq. */
+
+/* ================= Stansiya ================= */
+.rang-buyurtma { margin: 0; }
+.rang-tana {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rang-qadam {
+  border: 1px solid var(--chegara);
+  border-radius: var(--radius-s);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.qadam-bosh {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--matn-3);
+}
+.qadam-raqam {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--urgu-fon); color: var(--urgu-matn);
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+}
+.rang-qator { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rang-qator .rang-qadam { justify-content: flex-start; }
+.rang-qator .tanlangan-tovar { min-height: 64px; }
+
+/* Tanlangan rang: katta namuna + kod */
+.rang-tanlov { display: flex; gap: 16px; align-items: stretch; }
+.rang-namuna {
+  flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--radius-s);
+  background: var(--rang, transparent);
+  border: 2px dashed var(--chegara-2);
+  color: var(--matn-3);
+}
+.rang-namuna.katta { width: 150px; height: 128px; }
+.rang-namuna .ikon { width: 40px; height: 40px; opacity: .45; }
+.rang-tanlov.tanlangan .rang-namuna { border: 1px solid rgba(255, 255, 255, .22); }
+.rang-tanlov.tanlangan .rang-namuna.bosh {
+  border: 2px dashed var(--chegara-2);
+  background: repeating-linear-gradient(45deg, transparent 0 8px, var(--panel-2) 8px 16px);
+}
+.rang-malumot { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.rang-kodi {
+  font-size: 34px; font-weight: 750; letter-spacing: -.02em; line-height: 1.1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--matn-3);
+}
+.rang-tanlov.tanlangan .rang-kodi { color: var(--matn-rang); }
+.rang-nomi { color: var(--matn-2); min-height: 21px; }
+.rang-nomi a { color: var(--urgu-matn); }
+.rang-kod-maydon { margin-top: auto; }
+.rang-kod-maydon .qiymat { text-align: left; }
+
+.rang-tarmoq { color: var(--tasdiq); font-weight: 600; white-space: nowrap; }
+.rang-hisob-ustun { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rang-hisob { font-size: 13px; color: var(--matn-2); }
+.rang-chek-tugma { min-height: 62px; font-size: var(--katta-matn); }
+
+/* O'ng panel: raqamlar (sensorli rejimda) va cheklar ro'yxati */
+.rang-ong { padding: 0; gap: 0; }
+.rang-raqamlar { flex: none; height: 230px; min-height: 0; padding: 12px 12px 0; }
+.rang-cheklar-bosh {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 12px 14px 8px; flex: none;
+}
+.rang-cheklar-bosh .sust { color: var(--matn-3); font-size: 12px; }
+.rang-cheklar { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--chegara); }
+.rang-cheklar .bosh-holat { padding: 30px 16px; font-size: 13px; }
+.rang-cheklar-guruh {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; background: var(--panel-2);
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--matn-3); border-bottom: 1px solid var(--chegara);
+}
+.rang-cheklar-guruh .ikon { width: 14px; height: 14px; }
+.rang-cheklar-guruh.xato-guruh { background: var(--xato-fon); color: var(--xato); }
+
+.rang-chek-qator {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--chegara);
+  color: inherit;
+  text-decoration: none;
+}
+.rang-chek-qator:hover { background: var(--panel-2); }
+.rang-chek-qator.eski { box-shadow: inset 3px 0 0 var(--xato); }
+.rang-chek-qator.holat-bekor { opacity: .5; }
+.rang-chek-qator.holat-bekor .rcq-bosh b { text-decoration: line-through; }
+.rcq-asosiy { display: flex; flex-direction: column; min-width: 0; }
+.rcq-bosh { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcq-bosh .sust { color: var(--matn-3); font-size: 12px; }
+.rcq-baza {
+  font-size: 12px; color: var(--matn-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rcq-ong { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.rcq-summa { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 14px; }
+.rcq-holat { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--matn-3); }
+.rcq-holat .nishon { font-size: 10px; padding: 1px 7px; }
+
+/* Kichik rang namunasi — ro'yxatlarda */
+.rang-chip {
+  display: inline-block; flex: none;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--rang, transparent);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.rang-chip.katta { width: 46px; height: 30px; vertical-align: middle; }
+.rang-chip.bosh {
+  border: 1px dashed var(--chegara-2);
+  background: repeating-linear-gradient(45deg, transparent 0 4px, var(--panel-2) 4px 8px);
+}
+body.kunduzgi .rang-chip:not(.bosh),
+body.kunduzgi .rang-tanlov.tanlangan .rang-namuna:not(.bosh) { border-color: rgba(0, 0, 0, .2); }
+
+/* Tor ekranda qadamlar ustma-ust */
+@media (max-width: 1150px) {
+  .rang-qator { grid-template-columns: 1fr; }
+}
+
+/* ================= Katalog ================= */
+.toplam-tugmalar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+table.jadval tr.yashirin td { opacity: .55; }
+.rang-kod-yozuv { font-variant-numeric: tabular-nums; letter-spacing: .02em; white-space: nowrap; }
+
+.rang-tanlagich { display: flex; gap: 8px; }
+.rang-tanlagich input[type="color"] {
+  flex: none; width: 58px; min-height: var(--tugma-balandlik);
+  padding: 4px; cursor: pointer;
+  background: var(--panel-2);
+  border: 1px solid var(--chegara-2);
+  border-radius: var(--radius-s);
+}
+
+/* Formadagi ko'rinish: varaqdagidek oq fonda — shtrixni skanerlab ko'rsa bo'ladi */
+.rang-korinish {
+  display: flex; align-items: center; gap: 18px;
+  padding: 12px 16px; background: #fff; color: #000;
+  border-radius: var(--radius-s);
+}
+.rang-korinish .rang-namuna {
+  width: 130px; height: 76px; border-style: solid; border-width: 1px; border-color: #c9c9c9;
+  font-weight: 800; font-size: 17px;
+}
+.rang-korinish .rang-namuna.bosh { border: 1px dashed #999; color: #666; }
+.rang-korinish-shtrix svg { display: block; width: calc(.33mm * var(--modullar)); height: 14mm; }
+.rang-korinish .maydon-izoh { color: #555; }
+
+.yuklash-setka { display: grid; grid-template-columns: 1.35fr 1fr; gap: var(--oraliq); align-items: start; }
+.yuklash-matn {
+  font-family: Consolas, "Courier New", monospace; font-size: 14px;
+  min-height: 250px; resize: vertical; line-height: 1.45;
+}
+.yuklash-tugma-joy { display: flex; align-items: flex-end; }
+.yuklash-fayl-qator { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.format-namuna {
+  font-family: Consolas, "Courier New", monospace;
+  padding: 8px 12px; margin-bottom: 10px;
+  background: var(--panel-2); border-radius: 8px;
+}
+.yuklash-qoidalar { padding-left: 18px; color: var(--matn-2); font-size: 13px; display: grid; gap: 6px; }
+.yuklash-qoidalar code { font-family: Consolas, monospace; color: var(--matn-rang); }
+@media (max-width: 900px) { .yuklash-setka { grid-template-columns: 1fr; } }
+
+/* ================= Chop etish sahifalari (chek, varaq) ================= */
+/* Boshqaruv joyida turadi, faqat ko'rinish siljiydi (saytning scrollsiz qoidasi) */
+.sahifa:has(.varaq-sahifa) { overflow: hidden; }
+.varaq-sahifa { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.chop-sozlama { display: flex; align-items: flex-end; gap: var(--oraliq); flex-wrap: wrap; }
+.chop-sozlama .maydon { margin: 0; width: 175px; }
+.chop-sozlama .maydon-izoh.keng { flex-basis: 100%; margin-top: 0; }
+.rang-chek-holat { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; flex-wrap: wrap; }
+.rang-chek-holat .sust { color: var(--matn-3); }
+.chop-boshqaruv .quti > .maydon-izoh { margin-top: 10px; }
+
+/* ---- Rang cheki: oq-qora, mm da (termoprinter) ---- */
+.rang-chek {
+  --eni: 80mm; --ichki: 4mm; --modul: .375mm;
+  width: var(--eni);
+  padding: 3mm var(--ichki) 5mm;
+  background: #fff; color: #000;
+  font-family: Arial, "Segoe UI", sans-serif;
+  font-size: 9.5pt; line-height: 1.25;
+}
+.rang-cheklar-joy[data-eni="58"] .rang-chek { --eni: 58mm; --ichki: 5mm; font-size: 8.5pt; }
+.rc-dokon { text-align: center; font-weight: 800; font-size: 12pt; letter-spacing: .04em; }
+.rc-tur { text-align: center; font-size: 8pt; text-transform: uppercase; letter-spacing: .08em; }
+.rc-chiziq { border-top: .3mm dashed #000; margin: 2mm 0; }
+.rc-satr { display: flex; justify-content: space-between; gap: 2mm; }
+.rc-satr span:last-child { text-align: right; white-space: nowrap; }
+.rc-yorliq { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .1em; }
+.rc-rang { font-size: 20pt; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+.rang-cheklar-joy[data-eni="58"] .rc-rang { font-size: 16pt; }
+.rc-rang-nomi { font-size: 10pt; }
+.rc-baza { font-weight: 700; }
+.rc-jami { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; }
+.rc-jami span { font-weight: 700; font-size: 9pt; }
+.rc-jami b { font-size: 15pt; font-weight: 800; text-align: right; }
+.rang-cheklar-joy[data-eni="58"] .rc-jami b { font-size: 13pt; }
+.rc-shtrix { display: flex; justify-content: center; margin-top: 1mm; }
+/* 12 raqam = 121 modul: 0,375 mm da 45 mm — 58 mm li qog'ozga ham sig'adi.
+   0,375 mm = 203 dpi printerda aniq 3 nuqta, chiziqlar buzilmaydi. */
+.rc-shtrix svg { display: block; width: calc(var(--modul) * var(--modullar)); height: 13mm; }
+.rc-kod { text-align: center; font-family: Consolas, "Courier New", monospace; font-size: 10pt; letter-spacing: .06em; }
+.rc-izoh { text-align: center; font-size: 7.5pt; margin-top: 1.5mm; }
+
+/* ---- Katalog varag'i: A4, rangli printer ---- */
+.varaq {
+  --ustun: 4;
+  width: 194mm;              /* A4 (210 mm) − ikki chekka 8 mm */
+  background: #fff; color: #000;
+  font-family: Arial, "Segoe UI", sans-serif;
+}
+.varaq-bosh {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 4mm;
+  border-bottom: .4mm solid #000; padding-bottom: 1.5mm; margin-bottom: 3mm;
+}
+.vb-dokon { font-size: 11pt; }
+.vb-izoh { font-size: 8pt; text-align: right; }
+.varaq-setka { display: grid; grid-template-columns: repeat(var(--ustun), minmax(0, 1fr)); gap: 2.5mm; }
+.katak {
+  border: .25mm solid #9a9a9a; border-radius: 1.5mm;
+  padding: 1.5mm;
+  display: flex; flex-direction: column; align-items: center; gap: .8mm;
+  break-inside: avoid;
+}
+.katak-rang {
+  align-self: stretch; height: 18mm; border-radius: 1mm;
+  background: var(--rang, #fff);
+  border: .2mm solid rgba(0, 0, 0, .25);
+  /* Chop etishda fon ranglari tashlab ketilmasin — namuna aynan fon */
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.katak-rang.bosh { background: #fff; border: .3mm dashed #8a8a8a; }
+.katak-kod { font-size: 10.5pt; font-weight: 800; letter-spacing: .02em; text-align: center; line-height: 1.1; }
+.katak-nom {
+  align-self: stretch; text-align: center;
+  font-size: 7.5pt; color: #333; line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Modul 0,254 mm (1/100 dyuym) — 600 dpi printerda aniq 6 nuqta. Tor katakda
+   shtrix o'zi kichrayadi (max-width), chiziqlar nisbati o'zgarmaydi. */
+.katak-matn {
+  align-self: stretch; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: .8mm;
+}
+.katak-shtrix { align-self: stretch; display: flex; justify-content: center; }
+.katak-shtrix svg { display: block; width: calc(.254mm * var(--modullar)); max-width: 100%; height: 9mm; }
+
+/* Qatorda 2 ta — oz rangli varaq (10–20 rang): namuna chapda katta, yonida kod
+   va shtrix. Modul 0,338 mm — 600 dpi da 8, 300 dpi da 4 nuqta, kattaroq shtrix
+   uzoqroqdan ham o'qiladi. 5 qator A4 ga sig'adi. */
+.varaq[data-ustun="2"] .varaq-setka { gap: 3mm; }
+.varaq[data-ustun="2"] .katak {
+  flex-direction: row; align-items: stretch; gap: 3.5mm; padding: 2.5mm;
+}
+.varaq[data-ustun="2"] .katak-rang { flex: none; width: 36mm; height: auto; min-height: 44mm; }
+.varaq[data-ustun="2"] .katak-matn { justify-content: center; gap: 1.5mm; }
+.varaq[data-ustun="2"] .katak-kod { font-size: 18pt; }
+.varaq[data-ustun="2"] .katak-nom { font-size: 11pt; white-space: normal; }
+.varaq[data-ustun="2"] .katak-shtrix svg { width: calc(.338mm * var(--modullar)); height: 13mm; }
+.varaq[data-ustun="3"] .katak-rang { height: 24mm; }
+.varaq[data-ustun="3"] .katak-kod { font-size: 12.5pt; }
+.varaq[data-ustun="3"] .katak-nom { font-size: 8.5pt; }
+
+/* ---- Ekranda: oq qog'oz ko'rinishi ---- */
+@media screen {
+  .chek-korinish {
+    background: #e9ecef; border-radius: var(--radius); padding: 18px;
+    overflow: auto; display: flex; justify-content: center;
+    max-height: calc(100vh / var(--kolam) - 300px);
+  }
+  .rang-cheklar-joy { display: flex; gap: 6mm; align-items: flex-start; zoom: 1.45; }
+  .rang-chek { box-shadow: 0 0 0 .2mm #b6c0cd, 0 2mm 5mm rgba(0, 0, 0, .15); }
+
+  .varaq-korinish {
+    flex: 1; min-height: 0; overflow: auto;
+    background: #e9ecef; border-radius: var(--radius); padding: 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  .varaq { padding: 8mm; min-height: 297mm; width: 210mm; box-shadow: 0 2mm 6mm rgba(0, 0, 0, .18); }
+  .varaq-korinish .bosh-holat { background: var(--panel); border-radius: var(--radius); width: 100%; }
+}
+
+/* ---- Chop etishda faqat chek yoki varaq qoladi ---- */
+@media print {
+  /* Sayt quyuq mavzuda (base.html dagi color-scheme: dark) — qog'oz chekkalari
+     quyuq kulrang bo'lib chiqardi, printer ularni siyoh bilan to'ldirardi */
+  :root { color-scheme: light !important; }
+  html { background: #fff !important; }
+  .chop-boshqaruv { display: none !important; }
+  .rang-chek-sahifa, .chek-korinish, .varaq-sahifa, .varaq-korinish {
+    display: block !important; padding: 0 !important; margin: 0 !important;
+    height: auto !important; max-height: none !important; overflow: visible !important;
+    background: #fff !important; border-radius: 0 !important;
+  }
+  .rang-cheklar-joy { display: block; zoom: 1; }
+  .rang-chek:not(:last-child) { break-after: page; }
+  .varaq + .varaq { break-before: page; }
+}

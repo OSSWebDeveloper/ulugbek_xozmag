@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <title>{% block sarlavha %}Ulug'bek Xozmag{% endblock %}</title>
   <link rel="stylesheet" href="{% statik 'css/uslub.css' %}">
+  {% block uslub %}{% endblock %}
 </head>
 <body>
 {% include "ikonlar.html" %}
@@ -31,6 +32,10 @@
     <a class="menyu-tugma {% if ilova == 'ombor' %}faol{% endif %}"
        href="{% url 'ombor:royxat' %}">
       <svg class="ikon"><use href="#i-quti"></use></svg> Ombor
+    </a>
+    <a class="menyu-tugma {% if ilova == 'rang' %}faol{% endif %}"
+       href="{% url 'rang:stansiya' %}" title="Rang mashinasi (kolerovka)">
+      <svg class="ikon"><use href="#i-rang"></use></svg> Rang
     </a>
 
     <div class="menyu-pastki">

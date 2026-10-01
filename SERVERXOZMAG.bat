@@ -50,6 +50,11 @@ if not errorlevel 1 (
     exit /b 1
 )
 
+rem --- Yangi versiyada bazaga jadval qo'shilgan bo'lsa (masalan rang bo'limi)
+rem     sayt ochilishidan oldin qo'shiladi; bazadagi ma'lumotga tegmaydi.
+echo Baza tekshirilmoqda...
+py manage.py migrate --noinput
+
 echo Django ishga tushmoqda...
 start "Xozmag - Django" cmd /k py manage.py runserver 0.0.0.0:%PORT%
 timeout /t 4 /nobreak >nul
@@ -65,6 +70,9 @@ echo.
 echo ====================================================
 echo  Sayt tayyor:  https://%DOMEN%
 echo  Shu kompyuterda: http://127.0.0.1:%PORT%
+echo.
+echo  Do'kon Wi-Fi tarmog'idagi kompyuterlar uchun (rang mashinasi):
+py -c "from config.tarmoq import manzillar; print(chr(10).join('    ' + m for m in manzillar(%PORT%)) or '    tarmoq topilmadi - Wi-Fi ulanganini tekshiring')"
 echo.
 echo  Birinchi kirishda ngrok ogohlantirish sahifasi chiqsa,
 echo  "Visit Site" tugmasini bosing.

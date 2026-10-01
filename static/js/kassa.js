@@ -6,12 +6,13 @@
 
    Tovar uch yo'l bilan tanlanadi va uchalasi ham tovarTanla() ga boradi:
    ro'yxatdan bosib, «Kod» maydoniga oxirgi 4 raqamni urib, yoki skanerlab.
+   Skanerlangani tanlanibgina qolmaydi — darrov chekka qo'shiladi.
    Kodni tovarga aylantirish serverda (ombor/kod.py) — bu yerda takrorlanmaydi. */
 (function () {
   "use strict";
 
   var oyna, qidiruv, miqdorEl, mahsulotId, tanlanganEl, qoshTugma, forma;
-  var kodEl, kodiEl, kodSora;
+  var kodEl, kodiEl, kodSora, rangChekEl;
   var faolMaydon = "miqdor";
 
   // Pul maydonlarida son guruhlangan turadi («200 000») — js/forma.js o'qiydi
@@ -62,6 +63,7 @@
 
   function tozalaHammasi() {
     mahsulotId.value = "";
+    if (rangChekEl) rangChekEl.value = "";
     miqdorEl.value = "";
     if (kodEl) kodEl.value = "";
     if (kodiEl) kodiEl.textContent = "";
@@ -75,10 +77,13 @@
   }
 
   /* `miqdor` faqat kodning o'zi miqdorni aytganda beriladi: tarozi
-     etiketkasidagi og'irlik yoki quti shtrixidagi soni. Qolgan hollarda
-     bo'sh qoladi — kassir o'zi yozadi. */
+     etiketkasidagi og'irlik. Qolgan hollarda bo'sh qoladi — kassir o'zi
+     yozadi. */
   function tovarTanla(karta, miqdor) {
     mahsulotId.value = karta.dataset.id;
+    // Rang cheki faqat o'zi skanerlanganda bog'lanadi (rangChekQoy) — ro'yxatdan
+    // tanlangan tovarga oldingi chek yopishib qolmasin
+    if (rangChekEl) rangChekEl.value = "";
     miqdorEl.value = miqdor || "";
     if (kodEl) kodEl.value = "";
     if (kodiEl) kodiEl.textContent = karta.dataset.qisqa || "";
@@ -219,8 +224,11 @@
   // ---------- Kod, shtrix va tarozi etiketkasi ----------
   /* Server tovarni topib berdi — kartasini ro'yxatdan olib tanlaymiz.
      Karta topilmasligi mumkin: tovar yashirilgan (faol emas) bo'lsa
-     ro'yxatga umuman chiqmaydi. */
-  function kodTopildi(javob) {
+     ro'yxatga umuman chiqmaydi.
+
+     Skanerlangan tovar darrov chekka tushadi (skanerdanQosh). «Kod»
+     maydoniga qo'lda urilgani esa faqat tanlanadi — miqdorni kassir yozadi. */
+  function kodTopildi(javob, skanerdan) {
     var karta = document.querySelector('.tovar-karta[data-id="' + javob.id + '"]');
     if (!karta) {
       return window.xabarBer(javob.nom + " ro'yxatda yo'q — ombordan faollashtiring.",
@@ -229,11 +237,40 @@
     if (karta.classList.contains("yoq")) {
       return window.xabarBer(javob.nom + " omborda tugagan.", "error");
     }
+    if (skanerdan) return skanerdanQosh(karta, javob);
+
     tovarTanla(karta, javob.miqdor);
+    rangChekQoy(javob);
     if (javob.miqdor) {
       // Miqdorni kod o'zi aytdi (tarozi yoki quti) — kassir ko'rib tursin.
       window.xabarBer(javob.nom + ": " + javob.miqdor_matni + " " + javob.birlik);
     }
+  }
+
+  /* Skanerlangan tovar Qo'shish bosilmasdan chekka qo'shiladi. Miqdor:
+       1) kodning o'zi aytgani — tarozi etiketkasidagi og'irlik;
+       2) tovar tanlanmasdan oldin «Miqdor» ga yozilgan son — 20 yozib sement
+          qopini skanerlasa 20 qop tushadi;
+       3) bo'lmasa 1.
+     Bir xil tovar qayta skanerlansa server yangi qator ochmaydi, mavjudining
+     miqdorini oshiradi (ombor/xizmat.py, hujjatga_qosh). */
+  function skanerdanQosh(karta, javob) {
+    if (forma.hasAttribute("data-yuborildi")) {
+      // Oldingi tovar hali yozilyapti (sahifa yangilanmoqda) — bu skaner yo'qolmasin
+      return window.xabarBer("Oldingi tovar qo'shilyapti — " + javob.nom +
+                             " ni qayta skanerlang.", "warning");
+    }
+    var oldindan = !mahsulotId.value && son(miqdorEl.value) > 0 ? miqdorEl.value : "";
+    tovarTanla(karta, javob.miqdor || oldindan || "1");
+    rangChekQoy(javob);
+    forma.requestSubmit(qoshTugma);
+  }
+
+  /* Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi, chek
+     raqami forma bilan ketadi — server uni shu hujjatga bog'laydi va ikkinchi
+     marta qabul qilmaydi (rang/kassa.py). */
+  function rangChekQoy(javob) {
+    if (rangChekEl) rangChekEl.value = javob.rang_chek || "";
   }
 
   function kodniUlash() {
@@ -271,6 +308,7 @@
     qidiruv = document.getElementById("tovar-qidiruv");
     miqdorEl = document.getElementById("miqdor");
     mahsulotId = document.getElementById("mahsulot-id");
+    rangChekEl = document.getElementById("rang-chek");
     tanlanganEl = document.getElementById("tanlangan");
     qoshTugma = document.getElementById("qosh-tugma");
 
@@ -361,6 +399,9 @@
     if (jamiForma) jamiForma.addEventListener("submit", yakunTekshir);
 
     tozalaHammasi();
+    // Hozirgina qo'shilgan qator ko'rinsin — uzun chekda u pastda qolib ketadi
+    var yangi = document.querySelector(".chek-royxat tr.yangi");
+    if (yangi) yangi.scrollIntoView({ block: "nearest" });
     // Sichqoncha rejimida kursor darrov «Kod» da turadi: keyingi tovarning
     // raqami urilib, Enter bilan qo'shilaveradi (sahifa har qo'shishda yangilanadi)
     if (!sensorMi() && kodEl) kodEl.focus();

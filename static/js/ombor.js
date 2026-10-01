@@ -260,21 +260,11 @@
 
     // Skaner yoki kod: tovar topilsa o'sha zahoti kirim oynasi ochiladi.
     // Mol tushirayotganda qo'l band — ro'yxatdan izlab o'tirishga vaqt yo'q.
+    // Topilmasa skaner.js o'zi xabar chiqaradi.
     if (window.Skaner && jadval.dataset.kodManzil) {
       window.Skaner.ulash({
         manzil: jadval.dataset.kodManzil,
         topilganda: function (javob) { och(javob.kirim, javob.nom); },
-        topilmaganda: function (javob) {
-          // Notanish zavod shtrixi — demak yangi mol. Kartochka kod bilan
-          // ochiladi, ya'ni tovar va kodi bir yo'la kiritiladi.
-          var yangi = jadval.dataset.yangiManzil;
-          if (javob.qanday === "shtrix" && yangi &&
-              confirm(javob.xato + " Shu kod bilan yangi tovar qo'shilsinmi?")) {
-            window.location = yangi + "?shtrix=" + encodeURIComponent(javob.kod);
-            return;
-          }
-          window.xabarBer(javob.xato, "error");
-        },
       });
     }
 

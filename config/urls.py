@@ -10,5 +10,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("ombor/", include("ombor.urls")),
     path("sotuv/", include("sotuv.urls")),
+    path("rang/", include("rang.urls")),
     path("", include("qarz.urls")),
 ]

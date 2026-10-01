@@ -1,0 +1,21 @@
+{% load xozmag rang %}
+{% comment %}
+Stansiyaning o'ng panelidagi bitta chek. Bosilsa chek ochiladi (qayta chop
+etish, bekor qilish). `eski` — oldingi kunlardan to'lanmay qolgani.
+{% endcomment %}
+<a class="rang-chek-qator holat-{{ b.holat }}{% if eski %} eski{% endif %}"
+   href="{% url 'rang:chek' b.pk %}" title="Chekni ochish — qayta chop etish yoki bekor qilish">
+  <span class="rang-chip{% if not b.rang_hex %} bosh{% endif %}"
+        style="--rang: {{ b.rang_hex|default:'transparent' }}"></span>
+  <span class="rcq-asosiy">
+    <span class="rcq-bosh"><b>{{ b.rang_kodi }}</b> <span class="sust">#{{ b.pk }}</span></span>
+    <span class="rcq-baza">{{ b.baza_nomi }} &times; {{ b.miqdor|tekis }}</span>
+  </span>
+  <span class="rcq-ong">
+    <span class="rcq-summa">{{ b|tolov_matni }}</span>
+    <span class="rcq-holat">
+      <span class="nishon {% if b.holat == 'tolandi' %}yashil{% elif b.holat == 'kassada' %}kok{% elif b.holat == 'kutilmoqda' %}{% if eski %}xato-nishon{% else %}ogoh{% endif %}{% endif %}">{{ b.holat_matni }}</span>
+      <span class="sust">{% if eski %}{{ b.sana|date:"d.m" }}{% else %}{{ b.sana|date:"H:i" }}{% endif %}</span>
+    </span>
+  </span>
+</a>

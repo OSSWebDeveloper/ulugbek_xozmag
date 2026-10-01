@@ -10,7 +10,7 @@
    holatiga qaytariladi, ya'ni qidiruv maydoniga kod tushib qolmaydi.
 
    Kodni tovarga aylantirish bu yerda emas, serverda (`ombor/kod.py`) —
-   qisqa kod, zavod shtrixi va tarozi etiketkasi qoidalari bitta joyda. */
+   etiketka shtrixi, qisqa kod va tarozi etiketkasi qoidalari bitta joyda. */
 (function () {
   "use strict";
 
@@ -18,18 +18,21 @@
   var ENG_QISQA = 4;    // skaner o'qigan kod shuncha belgidan qisqa bo'lmaydi
   var TUGASH = 3;       // Enter oxirgi belgidan TEZLIK*TUGASH ichida kelishi kerak
 
-  /* Kodni serverga yuboradi va javobni sahifaga uzatadi. */
+  /* Kodni serverga yuboradi va javobni sahifaga uzatadi.
+     `skanerdan` — kod skanerdan keldimi: kassa skanerlangan tovarni darrov
+     chekka qo'shadi, qo'lda urilganini esa faqat tanlaydi. */
   function sorovchi(manzil, topilganda, topilmaganda) {
-    return function (kod) {
+    return function (kod, skanerdan) {
       if (!kod) return;
+      skanerdan = !!skanerdan;
       fetch(manzil + "?k=" + encodeURIComponent(kod), { credentials: "same-origin" })
         .then(function (javob) {
           if (!javob.ok) throw new Error(javob.status);
           return javob.json();
         })
         .then(function (javob) {
-          if (javob.topildi) return topilganda(javob);
-          if (topilmaganda) return topilmaganda(javob);
+          if (javob.topildi) return topilganda(javob, skanerdan);
+          if (topilmaganda) return topilmaganda(javob, skanerdan);
           window.xabarBer(javob.xato, "error");
         })
         .catch(function () {
@@ -65,7 +68,7 @@
         maydonniTikla();
         bufer = "";
         maydon = null;
-        sora(kod);
+        sora(kod, true);
         return;
       }
 
@@ -82,9 +85,9 @@
   }
 
   /* Sahifa shu funksiyani chaqiradi.
-     sozlama: {manzil, topilganda(javob), topilmaganda(javob)}
+     sozlama: {manzil, topilganda(javob, skanerdan), topilmaganda(javob, skanerdan)}
      Qaytadigan `sora(kod)` ni sahifa o'zi ham chaqira oladi — kod maydoni
-     uchun (skanersiz, qo'lda uriladigan yo'l). */
+     uchun (skanersiz, qo'lda uriladigan yo'l); u holda `skanerdan` false. */
   window.Skaner = {
     ulash: function (sozlama) {
       var sora = sorovchi(sozlama.manzil, sozlama.topilganda, sozlama.topilmaganda);

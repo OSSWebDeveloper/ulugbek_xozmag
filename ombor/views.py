@@ -7,8 +7,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .forms import KirimForm, MahsulotForm
-from .kod import topish, tozala
-from .models import (HarakatTuri, Mahsulot, OmborHarakati, tekis_matn, tekis_son)
+from .kod import topish
+from .models import (ETIKETKA_KOPI, HarakatTuri, Mahsulot, OmborHarakati, tekis_matn,
+                     tekis_son)
+from .shtrix import chiziqlar
 
 
 def royxat(request):
@@ -41,10 +43,7 @@ def kod_qidir(request):
     kiritilgan = request.GET.get("k", "")
     natija = topish(kiritilgan)
     if natija.mahsulot is None:
-        # `qanday` sahifaga kerak: notanish **shtrix** bo'lsa ombor «yangi tovar»
-        # taklif qiladi, notanish qisqa kod esa shunchaki xato.
-        return JsonResponse({"topildi": False, "xato": natija.xato,
-                             "qanday": natija.qanday, "kod": tozala(kiritilgan)})
+        return JsonResponse({"topildi": False, "xato": natija.xato})
 
     m = natija.mahsulot
     return JsonResponse({
@@ -59,13 +58,16 @@ def kod_qidir(request):
         "valyuta": m.valyuta_belgisi,
         "faol": m.faol,
         "bormi": m.qoldiq > 0,
-        # Miqdor faqat kodning o'zi aytganda to'ladi (tarozi yoki quti shtrixi).
+        # Miqdor faqat kodning o'zi aytganda to'ladi (tarozi etiketkasidagi og'irlik).
         # `miqdor` maydonga yoziladi, `miqdor_matni` ekranda ko'rinadi — do'konda
         # kasr vergul bilan o'qiladi (1,25), maydonda esa nuqta qoladi.
         "miqdor": tekis_son(natija.miqdor) if natija.miqdor is not None else "",
         "miqdor_matni": tekis_matn(natija.miqdor) if natija.miqdor is not None else "",
         "qanday": natija.qanday,
         "kirim": reverse("ombor:kirim", args=[m.pk]) + "?oyna=1",
+        # Rang cheki bo'lsa — kassa uni hujjatga bog'laydi (rang/kassa.py):
+        # bitta chek ikki marta ishlatilmaydi
+        "rang_chek": natija.rang_cheki.pk if natija.rang_cheki else "",
     })
 
 
@@ -94,12 +96,14 @@ def mahsulot_yangi(request):
             if mahsulot.qoldiq:
                 xabar += f" — {mahsulot.qoldiq_toliq}"
             messages.success(request, xabar + ".")
-            return redirect("ombor:royxat")
+            # Kod tayyor: endi etiketkasini chop etib tovarlarga yopishtirish qoladi.
+            # Nusxalar soni — kelgan qadoqlar (3 rulon) yoki donalar (20 ta).
+            qadoq = form.cleaned_data.get("qadoq_soni")
+            soni = (mahsulot.etiketka_soni(qadoq, mahsulot.olish_birligi)
+                    if mahsulot.ikki_birlikmi and qadoq else mahsulot.etiketka_soni())
+            return redirect(reverse("ombor:etiketka", args=[mahsulot.pk]) + f"?soni={soni}")
     else:
-        # Omborda notanish shtrix skanerlansa shu sahifa kod bilan ochiladi —
-        # yangi mol tushirilayotganda tovar va kodi bir yo'la kiritiladi.
-        form = MahsulotForm(yangi=True,
-                            initial={"shtrix": request.GET.get("shtrix", "").strip()})
+        form = MahsulotForm(yangi=True)
     return render(request, "ombor/mahsulot_form.html", {"form": form, "yangi": True})
 
 
@@ -151,6 +155,10 @@ def kirim(request, pk):
             if kiritilgan_birlik != mahsulot.birlik:
                 xabar += f" ({tekis_matn(kiritilgan)} {kiritilgan_birlik})"
             messages.success(request, xabar)
+            if request.POST.get("etiketka"):
+                # «Qo'shish va etiketka» — kelgan mol soniga qarab nusxalar
+                soni = mahsulot.etiketka_soni(kiritilgan, kiritilgan_birlik)
+                return redirect(reverse("ombor:etiketka", args=[mahsulot.pk]) + f"?soni={soni}")
             return redirect("ombor:royxat")
     else:
         form = KirimForm(mahsulot=mahsulot)
@@ -159,6 +167,28 @@ def kirim(request, pk):
     shablon = "ombor/kirim_forma.html" if request.GET.get("oyna") else "ombor/kirim.html"
     return render(request, shablon, {
         "form": form, "mahsulot": mahsulot, "oynada": bool(request.GET.get("oyna")),
+    })
+
+
+def etiketka(request, pk):
+    """Tovar etiketkasi: nomi, shtrixi va kodi — etiketka printerida chop etiladi.
+
+    Brauzerning o'z chop etish oynasi ishlatiladi: printer Windows'da
+    o'rnatilgan bo'lsa bas, modeli muhim emas. Etiketka o'lchami sahifada
+    tanlanadi va brauzerda eslab qolinadi (`static/js/etiketka.js`).
+    `?soni=` — nechta nusxa: tovar qo'shilganda va kirimda o'zi qo'yiladi.
+    """
+    mahsulot = get_object_or_404(Mahsulot, pk=pk)
+    try:
+        soni = int(request.GET.get("soni", 1))
+    except ValueError:
+        soni = 1
+    return render(request, "ombor/etiketka.html", {
+        "mahsulot": mahsulot,
+        "soni": min(max(soni, 1), ETIKETKA_KOPI),
+        "eng_kop": ETIKETKA_KOPI,
+        # Shtrix eni modulda — etiketkada mm ga aylanadi (o'lchamga qarab)
+        "modullar": chiziqlar(mahsulot.kod)[1],
     })
 
 

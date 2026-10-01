@@ -80,6 +80,7 @@ def dasturni_yig() -> Path:
         "--collect-submodules", "ombor",
         "--collect-submodules", "qarz",
         "--collect-submodules", "sotuv",
+        "--collect-submodules", "rang",
         "--hidden-import", "config.kontekst",
         str(ILDIZ / "ishga_tushir.py"),
     ]

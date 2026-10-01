@@ -179,6 +179,25 @@ def ayir(mahsulot_id, miqdor, izoh):
 
 
 @transaction.atomic
+def hujjatga_qosh(qatorlar, mahsulot, miqdor, izoh):
+    """Tovarni chek yoki qarz hujjatiga qo'shadi va ombordan ayiradi.
+
+    Bir xil tovar ikkinchi qator bo'lib tushmaydi — mavjud qatorning miqdori
+    oshadi: skaner bilan uchta rozetka o'qilsa chekda «Rozetka 3 dona» turadi.
+    `qatorlar` — hujjatning qatorlar menejeri (`sotuv.qatorlar`,
+    `qarz.qatorlar`). Qoldiq yetmasa OmborXatosi — hech narsa yozilmaydi.
+    Qo'shilgan (yoki kattalashgan) qatorni qaytaradi.
+    """
+    ayir(mahsulot.pk, miqdor, izoh)
+    qator = qatorlar.filter(mahsulot=mahsulot).first()
+    if qator is None:
+        return qatorlar.create(mahsulot=mahsulot, miqdor=miqdor)
+    qator.miqdor += miqdor
+    qator.save(update_fields=["miqdor"])
+    return qator
+
+
+@transaction.atomic
 def qaytar(mahsulot_id, miqdor, izoh, tur=HarakatTuri.KIRIM):
     """Tovarni omborga qaytaradi.
 

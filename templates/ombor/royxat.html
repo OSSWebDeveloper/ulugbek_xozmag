@@ -28,8 +28,7 @@
   </div>
 
   {# Skaner yoki kod: to'g'ridan-to'g'ri o'sha tovarning kirim oynasini ochadi #}
-  <div class="jadval-quti" id="ombor-jadval" data-kod-manzil="{% url 'ombor:kod_qidir' %}"
-       data-yangi-manzil="{% url 'ombor:mahsulot_yangi' %}">
+  <div class="jadval-quti" id="ombor-jadval" data-kod-manzil="{% url 'ombor:kod_qidir' %}">
     <table class="jadval">
       <thead>
         <tr>
@@ -77,6 +76,10 @@
             <td style="white-space:nowrap">
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
                 <svg class="ikon"><use href="#i-kirim"></use></svg> Kirim
+              </a>
+              <a class="tugma tinch kichik" data-kirimsiz title="Etiketka chop etish"
+                 href="{% url 'ombor:etiketka' m.pk %}">
+                <svg class="ikon"><use href="#i-printer"></use></svg>
               </a>
               <a class="tugma tinch kichik" data-kirimsiz title="Tahrirlash"
                  href="{% url 'ombor:mahsulot_tahrir' m.pk %}">

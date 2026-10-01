@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "ombor",
     "qarz",
     "sotuv",
+    "rang",
 ]
 
 MIDDLEWARE = [

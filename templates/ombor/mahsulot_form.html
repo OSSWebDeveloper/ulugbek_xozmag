@@ -26,23 +26,10 @@
       </div>
     {% endif %}
 
-    <div class="maydon">
+    <div class="maydon keng">
       <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
       {{ form.nom }}
       {% if form.nom.errors %}<div class="xato-yozuv">{{ form.nom.errors|striptags }}</div>{% endif %}
-    </div>
-
-    {% comment %}Kursor shu maydonda turganda skanerlansa kod o'zi tushadi —
-    skaner klaviatura bo'lib ishlaydi, har bir skan alohida qatorga tushadi.
-    {% endcomment %}
-    <div class="maydon">
-      <label for="{{ form.shtrix.id_for_label }}" title="{{ form.shtrix.help_text }}">
-        {{ form.shtrix.label }}
-      </label>
-      {{ form.shtrix }}
-      {% if form.shtrix.errors %}
-        <div class="xato-yozuv">{{ form.shtrix.errors|striptags }}</div>
-      {% endif %}
     </div>
 
     {# ---- Qaysi pulda keladi va narxi — ikkovi bir qatorda turadi ---- #}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load statik_versiya %}
+
+{% block sarlavha %}Ranglarni yuklash{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/rang.css' %}">{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng" style="max-width:1100px">
+  <div class="sarlavha">
+    Ranglarni yuklash
+    <span class="kichik">Soruda'dagi palitra ro'yxati — bir yo'la</span>
+  </div>
+
+  <div class="yuklash-setka">
+    <form method="post" class="quti" id="yuklash-forma" data-bir-marta>
+      {% csrf_token %}
+      <div class="maydon">
+        <label for="yuklash-matn">Ro'yxat — har qatorda bitta rang</label>
+        <textarea name="matn" id="yuklash-matn" class="kirish yuklash-matn" rows="12" spellcheck="false"
+                  placeholder="RAL 1015;Och fil suyagi;#E6D690&#10;RAL 3020;Yo'l qizil;#CC0605&#10;RAL 5015;Osmon ko'k;#2271B3">{{ matn }}</textarea>
+        <div class="maydon-izoh yuklash-fayl-qator">
+          <span>Excel'dan ustunlarni nusxalab qo'ysa ham bo'ladi. Fayl (.csv, .txt) ham shu yerga tushadi:</span>
+          <label class="tugma tinch kichik">
+            <svg class="ikon"><use href="#i-yuklash"></use></svg> Fayl tanlash
+            <input type="file" id="yuklash-fayl" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden>
+          </label>
+        </div>
+      </div>
+      <div class="qator">
+        <div class="maydon" style="flex:1">
+          <label for="yuklash-toplam">To'plam</label>
+          <input type="text" name="toplam" id="yuklash-toplam" class="kirish" list="toplamlar"
+                 value="{{ toplam }}" autocomplete="off" placeholder="Masalan: Soruda">
+          <datalist id="toplamlar">
+            {% for t in toplamlar %}{% if t %}<option value="{{ t }}">{% endif %}{% endfor %}
+          </datalist>
+        </div>
+        <div class="maydon yuklash-tugma-joy" style="flex:1">
+          <button type="submit" class="tugma yashil keng">
+            <svg class="ikon"><use href="#i-yuklash"></use></svg> Yuklash
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div>
+      <div class="quti">
+        <h2>Format</h2>
+        <div class="format-namuna">kod ; nomi ; #rang</div>
+        <ul class="yuklash-qoidalar">
+          <li><b>Kod</b> — birinchi ustun, Soruda'ga qanday yozilsa aynan shunday. Faqat lotin
+              harflari, raqamlar va belgilar.</li>
+          <li><b>Nomi</b> va <b>rang</b> (#RRGGBB) — ixtiyoriy. Rangi yo'q bo'lsa varaqda bo'sh
+              katak chiqadi, unga rang kartasidan namuna yopishtiriladi.</li>
+          <li>Ajratuvchi: <code>;</code>, <code>,</code> yoki tabulyatsiya (Excel).</li>
+          <li>Bor kod qayta yuklansa <b>yangilanadi</b>, ikkinchi nusxa paydo bo'lmaydi.</li>
+        </ul>
+      </div>
+
+      <div class="quti">
+        <h2>Namuna palitra</h2>
+        <p class="maydon-izoh" style="margin:0 0 12px">
+          Haqiqiy ro'yxat kelguncha sinab ko'rish uchun: RAL Classic, 213 ta rang, «RAL» to'plami.
+          Keyin «Ranglar» sahifasidan butun to'plamni o'chirish mumkin.
+        </p>
+        <form method="post" data-bir-marta>
+          {% csrf_token %}
+          <input type="hidden" name="namuna" value="ral">
+          <button type="submit" class="tugma keng">
+            <svg class="ikon"><use href="#i-palitra"></use></svg> RAL ranglarini yuklash
+          </button>
+        </form>
+      </div>
+
+      {% if toplamlar %}
+        <div class="quti">
+          <h2>To'plamni o'chirish</h2>
+          <form method="post" action="{% url 'rang:toplam_ochirish' %}" class="qator" data-bir-marta
+                data-tasdiq="Tanlangan to'plamdagi hamma ranglar o'chirilsinmi? Chek chiqqanlari yashiriladi.">
+            {% csrf_token %}
+            <select name="toplam" class="kirish" style="flex:2">
+              {% for t in toplamlar %}<option value="{{ t }}">{{ t|default:"To'plamsiz" }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="tugma xato" style="flex:1">
+              <svg class="ikon"><use href="#i-chiqar"></use></svg> O'chirish
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block skript %}<script src="{% statik 'js/rang_katalog.js' %}"></script>{% endblock %}

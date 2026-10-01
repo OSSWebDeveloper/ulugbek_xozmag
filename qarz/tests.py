@@ -47,6 +47,19 @@ class QarzOqimiTest(KirganTest):
             OmborHarakati.objects.filter(mahsulot=self.mahsulot, tur=HarakatTuri.CHIQIM).exists()
         )
 
+    def test_bir_xil_tovar_bitta_qatorga_yigiladi(self):
+        """Qarz ekranida ham skanerlangan tovar qayta o'qilsa miqdori qo'shiladi."""
+        manzil = reverse("qarz:qator_qoshish", args=[self.qarz.pk])
+        self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "4"})
+        javob = self.client.post(manzil, {"mahsulot": self.mahsulot.pk, "miqdor": "6"})
+        qator = self.qarz.qatorlar.get()
+        self.assertEqual(qator.miqdor, Decimal("10.000"))
+        self.mahsulot.refresh_from_db()
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("90.000"))
+        self.assertRedirects(javob, reverse("qarz:qarz_tahrir", args=[self.qarz.pk]),
+                             fetch_redirect_response=False)
+        self.assertContains(self.client.get(javob["Location"]), 'class="yangi"')
+
     def test_omborda_yetmasa_qator_qoshilmaydi(self):
         javob = self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
             "mahsulot": self.mahsulot.pk, "miqdor": "500",

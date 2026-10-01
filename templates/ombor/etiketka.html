@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load statik_versiya %}
+
+{% comment %}
+Tovar etiketkasi — etiketka printerida chop etiladi va tovarga yopishtiriladi.
+
+Etiketkada: nomi, shtrix (tovar kodining o'zi, Code 128 — ombor/shtrix.py)
+va ostida kod, oxirgi 4 raqami yirik. Skaner shtrixni o'qisa kassaga to'liq
+kod tushadi, kassir esa yirik 4 raqamni uradi — ikkalasi bitta tovarni topadi.
+
+Ekranda sozlash va ko'rinish, chop etishda faqat etiketkalar qoladi: har biri
+alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
+{% endcomment %}
+
+{% block sarlavha %}Etiketka — {{ mahsulot.nom }}{% endblock %}
+
+{% block tana %}
+<div class="sahifa-keng etiketka-sahifa">
+  <div class="sarlavha etiketka-boshqaruv">
+    Etiketka
+    <span class="kichik">{{ mahsulot.nom }} &middot; kod {{ mahsulot.kod }}</span>
+  </div>
+
+  <div class="quti etiketka-boshqaruv">
+    <div class="etiketka-sozlama">
+      <div class="maydon">
+        <label for="etiketka-soni">Nechta</label>
+        <input type="number" id="etiketka-soni" class="kirish raqam-maydon"
+               min="1" max="{{ eng_kop }}" value="{{ soni }}" autocomplete="off">
+      </div>
+      <div class="maydon">
+        <label for="etiketka-olcham">Etiketka o'lchami</label>
+        <select id="etiketka-olcham" class="kirish">
+          <option value="40x30">40 × 30 mm</option>
+          <option value="58x40">58 × 40 mm</option>
+          <option value="50x30">50 × 30 mm</option>
+          <option value="30x20">30 × 20 mm</option>
+        </select>
+      </div>
+      <button type="button" class="tugma yashil" id="chop-et">
+        <svg class="ikon"><use href="#i-printer"></use></svg> Chop etish
+      </button>
+      <a class="tugma tinch" href="{% url 'ombor:royxat' %}">
+        <svg class="ikon"><use href="#i-chap"></use></svg> Omborga qaytish
+      </a>
+    </div>
+    <div class="maydon-izoh">
+      Chop etish oynasida: printer — <b>etiketka printeri</b>, qog'oz o'lchami — etiketka
+      o'lchami, chekkalar — <b>«Нет / Yo'q»</b>, masshtab — <b>100%</b>. O'lcham bu
+      kompyuterda eslab qolinadi.
+    </div>
+  </div>
+
+  {# Bitta etiketka namunasi — nechta kerak bo'lsa shuncha nusxasi chiziladi #}
+  <template id="etiketka-namuna">
+    <div class="etiketka">
+      <div class="e-nom">{{ mahsulot.nom }}</div>
+      <div class="e-shtrix" style="--modullar: {{ modullar }}">{{ mahsulot.etiketka_svg|safe }}</div>
+      <div class="e-kod"><span>{{ mahsulot.kod|slice:":-4" }}</span><b>{{ mahsulot.qisqa_kod }}</b></div>
+    </div>
+  </template>
+
+  <div class="etiketka-korinish">
+    <div class="etiketkalar" id="etiketkalar" data-olcham="40x30"></div>
+  </div>
+</div>
+<style id="etiketka-sahifa-uslubi">@page { size: 40mm 30mm; margin: 0; }</style>
+{% endblock %}
+
+{% block skript %}<script src="{% statik 'js/etiketka.js' %}"></script>{% endblock %}
