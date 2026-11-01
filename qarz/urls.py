@@ -20,5 +20,6 @@ urlpatterns = [
     path("qarz/<int:pk>/qator/", views.qator_qoshish, name="qator_qoshish"),
     path("qarz/<int:pk>/yakun/", views.qarz_yakunlash, name="qarz_yakunlash"),
     path("qator/<int:pk>/ochirish/", views.qator_ochirish, name="qator_ochirish"),
+    path("qator/<int:pk>/miqdor/", views.qator_miqdor, name="qator_miqdor"),
     path("qator/<int:pk>/qaytarish/", views.qator_qaytarish, name="qator_qaytarish"),
 ]

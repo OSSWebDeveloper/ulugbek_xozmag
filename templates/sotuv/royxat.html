@@ -4,6 +4,7 @@
 {% block sarlavha %}Sotuvlar{% endblock %}
 
 {% block tana %}
+<div class="qator" style="margin-bottom:14px"><a class="tugma" href="{% url 'sotuv:chek_izla' %}">Chekni skanerlab qaytarish</a></div>
 <div class="sahifa-keng sahifa-toliq">
   <div class="sarlavha">
     Sotuvlar
@@ -61,6 +62,13 @@
           <tr>
             <th>
               {{ s.sana|date:"H:i" }} &middot; chek #{{ s.pk }}
+              {% if s.yakunlangan and not s.bekor_qilingan %}<a class="tugma tinch kichik" href="{% url 'sotuv:chek' s.pk %}">Chek</a>{% endif %}
+              {% if s.yakunlangan and not s.bekor_qilingan %}
+              <form method="post" action="{% url 'sotuv:chek_chop' s.pk %}" data-bir-marta style="display:inline-block">
+                {% csrf_token %}<input type="hidden" name="royxatga" value="ha">
+                <button type="submit" class="tugma tinch kichik">Chekni qayta chiqarish</button>
+              </form>
+              {% endif %}
               {% if s.bekor_qilingan %}<span class="nishon xato-nishon">Bekor qilingan</span>{% endif %}
               {% if s.qaytarilganmi %}<span class="nishon ogoh">Qaytarish bo'lgan</span>{% endif %}
               {% if qarz %}

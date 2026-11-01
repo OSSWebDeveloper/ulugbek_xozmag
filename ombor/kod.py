@@ -42,7 +42,7 @@ Prefiks `2` — GS1 da do'kon o'zi bosadigan kodlar uchun ajratilgan
 from collections import namedtuple
 from decimal import Decimal
 
-from .models import KOD_MAX, Mahsulot, kod_yasa
+from .models import KOD_MAX, KOD_UZUNLIK, Mahsulot, kod_yasa
 
 PREFIKS = "2"          # do'konning o'z kodlari uchun ajratilgan boshlanish
 PLU_UZUNLIK = 6        # shtrix ichidagi tovar raqami
@@ -141,7 +141,7 @@ def _kod_bilan(qism):
     raqam = int(qism)
     if not 1 <= raqam <= KOD_MAX:
         return None, f"{qism} kodli tovar topilmadi."
-    mahsulot = Mahsulot.objects.filter(kod=kod_yasa(raqam)).first()
+    mahsulot = Mahsulot.objects.filter(kod__in={kod_yasa(raqam), f'{raqam:05d}'}).first()
     if mahsulot is None:
         return None, f"{kod_yasa(raqam)} kodli tovar topilmadi."
     return mahsulot, None
@@ -161,7 +161,15 @@ def topish(kiritilgan):
     # 1. Tarozi etiketkasi (og'irlik bilan)
     plu, miqdor = shtrixni_ochish(matn)
     if plu:
-        mahsulot, xato = _kod_bilan(plu)
+        # Visible PLU order can change; printed weight labels keep their stable
+        # barcode identity. Never resolve an old barcode to a newly reused code.
+        mahsulot = Mahsulot.objects.filter(tarozi_kodi=plu).first()
+        xato = None
+        if mahsulot is None:
+            mahsulot, xato = _kod_bilan(plu)
+            if mahsulot and mahsulot.tarozi_kodi and mahsulot.tarozi_kodi != plu:
+                mahsulot = None
+                xato = 'Tarozi shtrix kodi ro‘yxatda yo‘q. Etiketkani tekshiring.'
         return Natija(mahsulot, miqdor, "tarozi", xato)
 
     # 2. Tovar kodi: kassir kodni uradi (boshidagi nollarsiz ham) yoki skaner
@@ -169,7 +177,7 @@ def topish(kiritilgan):
     #    etiketkalar (0000000027) ham o'qilsin.
     if matn.isdigit() and len(matn) <= 10:
         mahsulot, xato = _kod_bilan(matn)
-        qanday = "qisqa" if len(matn) < 5 else "toliq"
+        qanday = "qisqa" if len(matn) < KOD_UZUNLIK else "toliq"
         return Natija(mahsulot, None, qanday, xato)
 
     # 3. Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi.

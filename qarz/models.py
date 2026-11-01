@@ -2,6 +2,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.conf import settings
 from django.db.models import F, Sum
 
 from ombor.models import Mahsulot, Valyuta
@@ -102,6 +103,8 @@ class Qarz(models.Model):
     qatorlari bo'lmaydi — tovarlar chekda turadi).
     """
 
+    kassir = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='qarz_hujjatlari')
     qarzdor = models.ForeignKey(Qarzdor, on_delete=models.CASCADE, related_name="qarzlar")
     sotuv = models.OneToOneField(
         "sotuv.Sotuv", on_delete=models.SET_NULL, null=True, blank=True,
@@ -180,6 +183,8 @@ class QarzQator(models.Model):
     mahsulot_nomi = models.CharField("Tovar nomi", max_length=120)
     birlik = models.CharField("Birlik", max_length=10, blank=True)
     miqdor = models.DecimalField("Miqdor", max_digits=12, decimal_places=3)
+    narx = models.DecimalField("Sotish narxi", max_digits=16, decimal_places=4, null=True, blank=True)
+    valyuta = models.CharField("Narx valyutasi", max_length=10, default='som')
     qaytarilgan = models.DecimalField("Qaytarilgan miqdor", max_digits=12, decimal_places=3,
                                       default=0)
 
@@ -197,6 +202,9 @@ class QarzQator(models.Model):
         return self.miqdor - self.qaytarilgan
 
     def save(self, *args, **kwargs):
+        if self._state.adding and self.narx is None:
+            self.narx = self.mahsulot.narx if self.mahsulot.narx > 0 else None
+            self.valyuta = self.mahsulot.valyuta
         if not self.mahsulot_nomi:
             self.mahsulot_nomi = self.mahsulot.nom
         if not self.birlik:

@@ -1,0 +1,33 @@
+<dialog id="miqdor-dialog" class="miqdor-dialog" aria-labelledby="miqdor-sarlavha">
+  <form method="post" id="miqdor-almashtir-forma">
+    {% csrf_token %}
+    <input type="hidden" name="eski_miqdor" id="miqdor-eski">
+    <input type="hidden" name="amal" value="kopaytirish">
+    <h2 id="miqdor-sarlavha">Miqdorni ko‘paytirish</h2>
+    <p id="miqdor-tovar-nomi"></p>
+    <label for="miqdor-katta-kirish">Necha baravar ko‘paytirilsin?</label>
+    <input id="miqdor-katta-kirish" name="miqdor" class="kirish raqam-maydon"
+           inputmode="decimal" autocomplete="off" required aria-describedby="miqdor-natija miqdor-katta-xato">
+    <p id="miqdor-natija" aria-live="polite"></p>
+    <p id="miqdor-katta-xato" class="xato-yozuv" role="alert" hidden></p>
+    <div class="miqdor-katta-raqamlar" aria-label="Raqamli klaviatura">
+      <button type="button" class="tugma" data-miqdor-raqam="7">7</button>
+      <button type="button" class="tugma" data-miqdor-raqam="8">8</button>
+      <button type="button" class="tugma" data-miqdor-raqam="9">9</button>
+      <button type="button" class="tugma" data-miqdor-raqam="4">4</button>
+      <button type="button" class="tugma" data-miqdor-raqam="5">5</button>
+      <button type="button" class="tugma" data-miqdor-raqam="6">6</button>
+      <button type="button" class="tugma" data-miqdor-raqam="1">1</button>
+      <button type="button" class="tugma" data-miqdor-raqam="2">2</button>
+      <button type="button" class="tugma" data-miqdor-raqam="3">3</button>
+      <button type="button" class="tugma" data-miqdor-raqam="0">0</button>
+      <button type="button" class="tugma" data-miqdor-raqam=",">,</button>
+      <button type="button" class="tugma" data-miqdor-orqaga aria-label="Oxirgi raqamni o‘chirish">⌫</button>
+    </div>
+    <div class="qator">
+      <button type="button" class="tugma tinch" data-miqdor-tozala>C</button>
+      <button type="button" class="tugma tinch" data-miqdor-yop>Bekor qilish</button>
+      <button type="submit" class="tugma yashil" id="miqdor-katta-saqlash">Ko‘paytirish</button>
+    </div>
+  </form>
+</dialog>

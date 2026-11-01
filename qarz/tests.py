@@ -23,7 +23,7 @@ class QarzOqimiTest(KirganTest):
         self.mahsulot = Mahsulot.objects.create(
             nom="Sement 50 kg", birlik=Birlik.QOP, qoldiq=Decimal("100"),
         )
-        self.qarz = Qarz.objects.create(qarzdor=self.qarzdor)
+        self.qarz = Qarz.objects.create(qarzdor=self.qarzdor, kassir=get_user_model().objects.get(username=self.LOGIN))
 
     def test_yangi_qarzdor_yaratilgach_qarz_sahifasiga_otadi(self):
         javob = self.client.post(reverse("qarz:yangi_qarzdor"), {
@@ -36,14 +36,14 @@ class QarzOqimiTest(KirganTest):
             target_status_code=302,
         )
 
-    def test_qator_qoshilsa_ombordan_ayriladi(self):
+    def test_savat_qatori_omborni_ozgartirmaydi(self):
         self.client.post(reverse("qarz:qator_qoshish", args=[self.qarz.pk]), {
             "mahsulot": self.mahsulot.pk, "miqdor": "10",
         })
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("90.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
         self.assertEqual(self.qarz.qatorlar.count(), 1)
-        self.assertTrue(
+        self.assertFalse(
             OmborHarakati.objects.filter(mahsulot=self.mahsulot, tur=HarakatTuri.CHIQIM).exists()
         )
 
@@ -55,7 +55,7 @@ class QarzOqimiTest(KirganTest):
         qator = self.qarz.qatorlar.get()
         self.assertEqual(qator.miqdor, Decimal("10.000"))
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("90.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
         self.assertRedirects(javob, reverse("qarz:qarz_tahrir", args=[self.qarz.pk]),
                              fetch_redirect_response=False)
         self.assertContains(self.client.get(javob["Location"]), 'class="yangi"')

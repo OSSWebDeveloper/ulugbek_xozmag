@@ -1,0 +1,24 @@
+BizaroPOS ikkinchi kassa (Windows 64-bit)
+
+1. Serverni asosiy kompyuterda oching.
+2. Ikkinchi kassadan serverning Wi-Fi manziliga kiring va shu kassaning
+   akkaunti bilan tizimga kiring.
+3. Qurilmalar bo'limidan USB kassa yordamchisini yuklab oling.
+4. ZIP faylni alohida papkaga to'liq oching, ORNATISH.bat ni bosing.
+   Python ichiga qo'shilgan; internet yoki administrator huquqi kerak emas.
+5. Windows'da kassaning chek printerini standart (default) printer qiling.
+   Zarur bo'lsa %LOCALAPPDATA%/BizaroPOS-Kassa/kassa.json faylidagi
+   printer maydoniga printer nomini aynan yozing va yordamchini qayta oching.
+6. USB skaner o'qiyotgan brauzerda shu akkaunt bilan ishlang. Yordamchi
+   faqat paket yuklab olingan akkauntning cheklarini chiqaradi.
+
+Har ish kuni BizaroPOS Kassa yarligini bosing. Yordamchi server ochmaydi;
+faqat o'z kompyuterining USB printeri va qurilmalariga xizmat qiladi.
+Tarozi asosiy serverga Ethernet orqali ulanganicha qoladi.
+
+Yordamchi internet/LAN uchun hech qanday mahalliy port ochmaydi.
+Paket shaxsiy ulanish kalitini saqlaydi; boshqa kassaga bermang.
+Paketni qayta yuklash eski yordamchi kalitini bekor qiladi.
+Savdoni takror yakunlash avtomatik ikkinchi chek chiqarmaydi.
+Printer xatosida yoki chop holati noma'lum bo'lsa savdo saqlanadi:
+qog'ozni tekshiring, keyin Sotuvlar > Chek > qayta chiqarishdan foydalaning.

@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from . import excel
 from .excel_views import filtrlar
-from .forms import KirimForm, MahsulotForm
+from .forms import KirimForm, MahsulotForm, QoldiqTuzatishForm
 from .kod import topish
 from .xizmat import QIDIRUV_SONI, karta_malumoti
 from .models import (ETIKETKA_KOPI, HarakatTuri, Mahsulot, OmborHarakati, OmborYangilanish,
@@ -48,6 +48,13 @@ def kod_qidir(request):
     qoidalari `ombor/kod.py` da — JS ularni takrorlamaydi.
     """
     kiritilgan = request.GET.get("k", "")
+    from sotuv.chek import och as chekni_och
+    from sotuv.models import Sotuv
+    chek_id = chekni_och(kiritilgan)
+    if chek_id is not None:
+        if Sotuv.objects.filter(pk=chek_id, yakunlangan=True, bekor_qilingan=False).exists():
+            return JsonResponse({'topildi': False, 'qaytarish_manzili': reverse('sotuv:chek_qaytarish', args=[chek_id])})
+        return JsonResponse({'topildi': False, 'xato': 'Savdo cheki topilmadi yoki bekor qilingan.'})
     natija = topish(kiritilgan)
     if natija.mahsulot is None:
         return JsonResponse({"topildi": False, "xato": natija.xato})
@@ -191,6 +198,35 @@ def kirim(request, pk):
     return render(request, shablon, {
         "form": form, "mahsulot": mahsulot, "oynada": bool(request.GET.get("oyna")),
     })
+
+
+@transaction.atomic
+def qoldiq_tuzatish(request, pk):
+    """Sinish, yaroqsizlik yoki sanoq sababli qoldiqni tarix bilan tuzatish."""
+    mahsulot = get_object_or_404(Mahsulot, pk=pk)
+    form = QoldiqTuzatishForm(
+        request.POST if request.method == 'POST' else None,
+        initial={'eski_qoldiq': mahsulot.qoldiq, 'qoldiq': mahsulot.qoldiq_son},
+    )
+    if request.method == 'POST' and form.is_valid():
+        old = form.cleaned_data['eski_qoldiq']
+        new = form.cleaned_data['qoldiq']
+        # Kirim/sotuv shu orada qoldiqni o'zgartirgan bo'lsa uni bosib ketmaymiz.
+        updated = Mahsulot.objects.filter(pk=pk, qoldiq=old).update(qoldiq=new)
+        if not updated:
+            form.add_error(None, "Qoldiq bu orada o‘zgardi. Sahifani yangilab, qayta kiriting.")
+        else:
+            izoh = f"Qoldiq: {tekis_matn(old)} → {tekis_matn(new)} {mahsulot.birlik}"
+            if form.cleaned_data['sabab']:
+                izoh += '. ' + form.cleaned_data['sabab']
+            OmborHarakati.objects.create(
+                mahsulot=mahsulot, tur=HarakatTuri.TUZATISH,
+                miqdor=new-old, kiritilgan_miqdor=new-old,
+                kiritilgan_birlik=mahsulot.birlik, izoh=izoh,
+            )
+            messages.success(request, f"{mahsulot.nom}: qoldiq {tekis_matn(new)} {mahsulot.birlik} bo‘ldi.")
+            return redirect('ombor:royxat')
+    return render(request, 'ombor/qoldiq_tuzatish.html', {'mahsulot': mahsulot, 'form': form})
 
 
 def etiketka(request, pk):

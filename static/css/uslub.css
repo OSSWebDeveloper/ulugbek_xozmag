@@ -1473,24 +1473,30 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 .etiketka-boshqaruv .maydon-izoh { margin-top: 10px; }
 
 .etiketka {
-  --modul: .25mm; --shtrix-boy: 12mm; --nom: 8.5pt; --kod: 14pt;
+  --modul: .375mm; --shtrix-boy: 10mm; --nom: 8pt; --kod: 15pt;
   width: 40mm; height: 30mm; padding: 1.5mm 2mm;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   overflow: hidden; background: #fff; color: #000;
   font-family: Arial, "Segoe UI", sans-serif;
 }
 .etiketkalar[data-olcham="58x40"] .etiketka {
-  --modul: .375mm; --shtrix-boy: 16mm; --nom: 10.5pt; --kod: 18pt;
+  --modul: .5mm; --shtrix-boy: 14mm; --nom: 11pt; --kod: 22pt;
   width: 58mm; height: 40mm; padding: 2mm 3mm;
 }
 .etiketkalar[data-olcham="50x30"] .etiketka {
-  --modul: .375mm; --shtrix-boy: 11mm; --nom: 9pt; --kod: 15pt;
+  --modul: .5mm; --shtrix-boy: 9mm; --nom: 8.5pt; --kod: 16pt;
   width: 50mm; height: 30mm;
 }
 .etiketkalar[data-olcham="30x20"] .etiketka {
-  --modul: .25mm; --shtrix-boy: 7.5mm; --nom: 6.5pt; --kod: 10pt;
+  --modul: .25mm; --shtrix-boy: 6mm; --nom: 6.5pt; --kod: 11pt;
   width: 30mm; height: 20mm; padding: 1mm 1mm;
 }
+.etiketka .e-brend {
+  align-self: stretch; text-align: center; font-size: 5.5pt; font-weight: 700;
+  letter-spacing: .16em; line-height: 1.15; padding-bottom: .7mm; border-bottom: .2mm solid #000;
+}
+.etiketkalar[data-olcham="58x40"] .etiketka .e-brend { font-size: 7pt; }
+.etiketkalar[data-olcham="30x20"] .etiketka .e-brend { display: none; }
 .etiketka .e-nom {
   align-self: stretch; text-align: center;
   font-size: var(--nom); font-weight: 700; line-height: 1.1;
@@ -1500,10 +1506,12 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 .etiketka .e-shtrix svg {
   display: block;
   width: calc(var(--modul) * var(--modullar)); height: var(--shtrix-boy);
+  max-width: 100%;
 }
+.etiketka .e-shtrix { max-width: 100%; flex-shrink: 0; }
 /* Kod: boshi mayda, oxirgi 4 raqami yirik — kassir aynan shuni uradi */
 .etiketka .e-kod { font-family: Consolas, "Courier New", monospace; line-height: 1; white-space: nowrap; }
-.etiketka .e-kod span { font-size: calc(var(--kod) * .55); letter-spacing: .04em; }
+.etiketka .e-kod span { font-family: Arial, sans-serif; font-size: 5pt; letter-spacing: .12em; margin-right: 1mm; }
 .etiketka .e-kod b { font-size: var(--kod); letter-spacing: .06em; margin-left: .6mm; }
 
 /* Ekranda: oq qog'oz ustida kattalashtirilgan ko'rinish */

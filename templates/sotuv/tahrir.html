@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load xozmag %}
 {% load statik_versiya %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/kassa_miqdor.css' %}">{% endblock %}
 
 {% block sarlavha %}Sotuv — chek #{{ sotuv.pk }}{% endblock %}
 
@@ -51,7 +52,11 @@
                     {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
                     {% include "rang/_kassa_nishon.html" with hujjat=sotuv %}
                   </td>
-                  <td class="son">{{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span></td>
+                  <td class="son">
+                    {% url 'sotuv:qator_miqdor' qator.pk as miqdor_amali %}
+                    {% include 'kassa_miqdor_tugma.html' with amal=miqdor_amali %}
+                    {{ qator.miqdor|tekis }} <span class="sust">{{ qator.birlik }}</span>
+                  </td>
                   <td>
                     <form method="post" action="{% url 'sotuv:qator_ochirish' qator.pk %}" data-bir-marta>
                       {% csrf_token %}
@@ -85,6 +90,7 @@
 </div>
 
 {% include "kassa_tovar_oyna.html" %}
+{% include "kassa_miqdor_oyna.html" %}
 {% include "sotuv/qarz_oyna.html" %}
 {% endblock %}
 
@@ -92,5 +98,6 @@
 <script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/tovar_oyna.js' %}"></script>
 <script src="{% statik 'js/kassa.js' %}"></script>
+<script src="{% statik 'js/kassa_miqdor.js' %}"></script>
 <script src="{% statik 'js/sotuv_qarz.js' %}"></script>
 {% endblock %}

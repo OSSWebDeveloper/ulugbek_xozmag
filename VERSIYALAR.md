@@ -1,5 +1,17 @@
 # Versiyalar tarixi
 
+## 3.9.8 — 2026-11-01
+
+- Ikki kassa uchun umumiy ombor, alohida savatlar va USB chek printeri yordamchisi.
+- BizaroPOS lokal serveri, tray menyusi va GitHub orqali yangilanishni tekshirish.
+- Rongta RLS1100C bilan Ethernet aloqasi va kg mahsulotlarini taroziga yuborish.
+- Kelish narxlari, birliklar konvertatsiyasi, qoldiqni tuzatish va 4 xonali mahsulot kodlari.
+- Miqdorni ko‘paytirish oynasi, avtomatik jami va savdo yakunida ombordan ayirish.
+- Shtrix kodli xarid cheki, chekni qayta chiqarish va chek orqali qaytarish.
+- Printer tanlanadigan mahsulot yorliqlari va 56×40 mm o‘lcham.
+
+Tekshiruv: 334 ta test o‘tdi; yangi migratsiyalar model holatiga mos.
+
 ## 3.0.0 — 2026-10-01
 
 Ombor: Excel orqali yangilash va bekor qilish, 5 xonali joy kodi, kam qolganlar birinchi

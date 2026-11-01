@@ -12,6 +12,7 @@
     <div class="korsatkich" style="max-width:320px">
       <div class="nomi">Hozirgi qoldiq</div>
       <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
+      <a class="tugma tinch kichik" href="{% url 'ombor:qoldiq_tuzatish' mahsulot.pk %}" style="margin-top:10px">Qoldiqni tuzatish</a>
       {% if mahsulot.ikki_birlikmi %}
         <div class="qiymat-izoh">
           {{ mahsulot.qadoq_matni }} &middot; {{ mahsulot.birlik_qoidasi }}

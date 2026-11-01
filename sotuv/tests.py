@@ -3,6 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.test import TestCase
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from config.sinov import KirganTest
@@ -20,17 +21,16 @@ class SotuvTest(KirganTest):
         self.mahsulot = Mahsulot.objects.create(
             nom="Sement 50 kg", birlik=Birlik.QOP, qoldiq=Decimal("100"),
         )
-        self.sotuv = Sotuv.objects.create()
+        self.sotuv = Sotuv.objects.create(kassir=get_user_model().objects.get(username=self.LOGIN))
 
-    def test_sotuv_qatori_ombordan_ayiradi(self):
+    def test_savat_qatori_omborni_ozgartirmaydi(self):
         self.client.post(reverse("sotuv:qator_qoshish", args=[self.sotuv.pk]), {
             "mahsulot": self.mahsulot.pk, "miqdor": "3",
         })
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("97.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
         self.assertEqual(self.sotuv.qatorlar.count(), 1)
-        harakat = OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).first()
-        self.assertIn(f"Sotuv #{self.sotuv.pk}", harakat.izoh)
+        self.assertFalse(OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).exists())
 
     def test_bir_xil_tovar_bitta_qatorga_yigiladi(self):
         """Skaner bilan bir xil tovar qayta o'qilsa yangi qator ochilmaydi."""
@@ -40,8 +40,8 @@ class SotuvTest(KirganTest):
         qator = self.sotuv.qatorlar.get()
         self.assertEqual(qator.miqdor, Decimal("3.000"))
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("97.000"))
-        self.assertEqual(OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).count(), 2)
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
+        self.assertEqual(OmborHarakati.objects.filter(tur=HarakatTuri.CHIQIM).count(), 0)
         # Qo'shilgan qator ekranda belgilanadi (bir marta — keyingi ochilishda emas)
         self.assertRedirects(javob, reverse("sotuv:tahrir", args=[self.sotuv.pk]),
                              fetch_redirect_response=False)
@@ -65,7 +65,7 @@ class SotuvTest(KirganTest):
         self.assertContains(javob, "Omborda yetarli emas")
         self.assertEqual(self.sotuv.qatorlar.get().miqdor, Decimal("60.000"))
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("40.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
 
     def test_omborda_yetmasa_qoshilmaydi(self):
         javob = self.client.post(reverse("sotuv:qator_qoshish", args=[self.sotuv.pk]), {
@@ -316,7 +316,7 @@ class QismanQarzTest(KirganTest):
         qarz = Qarz.objects.get(sotuv=self.sotuv)
         self.assertEqual(qarz.qatorlar_soni, 0)
         self.mahsulot.refresh_from_db()
-        self.assertEqual(self.mahsulot.qoldiq, Decimal("100.000"))
+        self.assertEqual(self.mahsulot.qoldiq, Decimal("90.000"))
 
     def test_chekka_faqat_naqd_pul_yoziladi(self):
         """Kunlik tushum kassadagi pulni ko'rsatadi, qarzga qolgani alohida."""

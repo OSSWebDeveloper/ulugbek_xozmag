@@ -20,7 +20,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
-from django.db.models import OuterRef, ProtectedError, Q, Subquery
+from django.db.models import Case, IntegerField, OuterRef, ProtectedError, Q, Subquery, Value, When
 from django.utils import timezone
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -134,7 +134,7 @@ def _kod(qiymat):
         qiymat = int(qiymat)
     s = str(qiymat).strip()
     if not s.isdigit() or not 1 <= int(s) <= KOD_MAX:
-        raise ValueError(f"kod «{s}» noto'g'ri — 00001 dan 99999 gacha bo'lishi kerak")
+        raise ValueError(f"kod «{s}» noto'g'ri — 0001 dan 9999 gacha bo'lishi kerak")
     return kod_yasa(s)
 
 
@@ -294,7 +294,7 @@ def tahlil_qil(yangilanish, xom_qatorlar):
             kod = holat.get("kod", "")
             if xato:
                 if otish == 2:
-                    natija[idx] = Qator(amal=Qator.XATO, excel_qator=excel_qator, kod=kod[:5],
+                    natija[idx] = Qator(amal=Qator.XATO, excel_qator=excel_qator, kod=kod[:4],
                                         yangi=holat, xato=xato[:300], ogohlantirish=ogoh[:300])
                 continue
             if otish == 1:
@@ -328,7 +328,7 @@ def tahlil_qil(yangilanish, xom_qatorlar):
                     yangi["kod"] = kodlar.ber()
                     if not yangi["kod"]:
                         natija[idx] = Qator(amal=Qator.XATO, excel_qator=excel_qator, yangi=holat,
-                                            xato="bo'sh kod qolmadi (99999 to'lgan)")
+                                            xato="bo'sh kod qolmadi (9999 to'lgan)")
                         continue
                 natija[idx] = Qator(amal=Qator.YANGI, excel_qator=excel_qator,
                                     kod=yangi["kod"], yangi=yangi, ogohlantirish=ogoh[:300])
@@ -611,7 +611,11 @@ def tovarlar(q="", valyuta="", kam_birinchi=False, tugagan=False, yashirilgan=Fa
     if tugagan:
         qs = qs.filter(qoldiq__lte=0)
     # «Kam qolganlar birinchi»: omborda qolgan hajmiga teskari tartib
-    return qs.order_by("qoldiq", "kod") if kam_birinchi else qs.order_by("kod")
+    qs = qs.annotate(kg_tartibi=Case(
+        When(birlik=Birlik.KG, then=Value(0)), default=Value(1), output_field=IntegerField(),
+    ))
+    return (qs.order_by("kg_tartibi", "qoldiq", "kod") if kam_birinchi
+            else qs.order_by("kg_tartibi", "kod"))
 
 
 def _harf(i):
@@ -663,7 +667,7 @@ def _yoriqnoma(wb):
     ws.append(["Ombor shabloni", ""])
     ws["A1"].font = Font(bold=True, size=14)
     for a, b in [
-        ("Kod", "5 xonali: 00001 … 99999 — tovar turgan joyi. Bo'sh qolsa navbatdagi bo'sh "
+        ("Kod", "4 xonali: 0001 … 9999 — tovar turgan joyi. Bo'sh qolsa navbatdagi bo'sh "
                 "kod beriladi. Tovar avval kod bo'yicha topiladi."),
         ("Tovar nomi", "Kod bo'lmasa tovar nomi bo'yicha topiladi (harfma-harf bir xil)."),
         ("Birlik", ", ".join(b.value for b in Birlik) + " — bo'sh bo'lsa dona."),

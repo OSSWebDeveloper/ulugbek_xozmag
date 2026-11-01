@@ -29,7 +29,7 @@
     <div class="maydon">
       <label for="{{ form.kod.id_for_label }}">{{ form.kod.label }} (turgan joyi)</label>
       {{ form.kod }}
-      <div class="maydon-izoh">00001 … 99999{% if not mahsulot %} · bo'sh bo'lsa navbatdagisi beriladi{% else %} · o'zgarsa etiketkani qayta chop eting{% endif %}</div>
+      <div class="maydon-izoh">0001 … 9999{% if not mahsulot %} · bo'sh bo'lsa navbatdagisi beriladi{% else %} · o'zgarsa etiketkani qayta chop eting{% endif %}</div>
       {% if form.kod.errors %}<div class="xato-yozuv">{{ form.kod.errors|striptags }}</div>{% endif %}
     </div>
     <div class="maydon"></div>

@@ -1,0 +1,26 @@
+#etiketka-printer-dialog, #etiketka-tarozi-dialog {
+  position: fixed; inset: auto; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  margin: 0; width: min(92vw, 590px); max-height: 90vh; overflow: auto;
+  padding: 24px; border: 1px solid var(--chegara); border-radius: var(--radius);
+  background: var(--panel); color: var(--matn-rang); box-shadow: var(--soya-2);
+}
+#etiketka-printer-dialog::backdrop, #etiketka-tarozi-dialog::backdrop { background: #000b; }
+#etiketka-printer-dialog h2, #etiketka-tarozi-dialog h2 { margin-bottom: 18px; }
+.etiketka-printer-tanlov { display: flex; align-items: center; gap: 10px; padding: 15px 10px; border: 1px solid var(--chegara); border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+.etiketka-printer-tanlov:has(input:checked) { border-color: #54cfa1; }
+#etiketka-printer-izoh { min-height: 44px; margin: 14px 0; }
+#etiketka-tarozi-dialog p { margin: 14px 0; }
+#etiketka-tarozi-dialog ol { padding-left: 24px; line-height: 1.8; }
+.etiketkalar[data-olcham="56x40"] .etiketka {
+  width: 56mm; height: 40mm; --modul: .5mm; --shtrix-boy: 10mm; --nom: 10pt; --kod: 17pt;
+}
+.e-narx { width: 100%; text-align: center; white-space: nowrap; font-size: 12pt; line-height: 1.1; }
+.e-narx span { font-size: 8pt; }
+.etiketkalar[data-olcham="40x30"] .e-narx { font-size: 10pt; }
+.etiketkalar[data-olcham="40x30"] .etiketka { --shtrix-boy: 7mm; --kod: 12pt; }
+.etiketkalar[data-olcham="50x30"] .etiketka { --shtrix-boy: 7mm; --kod: 12pt; }
+.etiketkalar[data-olcham="30x20"] .e-narx { font-size: 8pt; }
+.etiketkalar[data-olcham="30x20"] .e-narx span { font-size: 5pt; }
+.etiketkalar[data-olcham="30x20"] .etiketka { --shtrix-boy: 4mm; --kod: 8pt; }
+.etiketkalar[data-olcham="56x40"] .etiketka .e-brend { font-size: 7pt; }
+@media print { #etiketka-printer-dialog, #etiketka-tarozi-dialog { display: none !important; } }

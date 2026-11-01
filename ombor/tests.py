@@ -408,7 +408,7 @@ class DollarKursiTest(KirganTest):
 
 
 class KodTest(KirganTest):
-    """Tovar kodi — turgan joyi: 5 xonali, 00001 … 99999 (v3.0.0)."""
+    """Tovar kodi — turgan joyi: 5 xonali, 0001 … 99999 (v3.0.0)."""
 
     def setUp(self):
         super().setUp()
@@ -416,9 +416,9 @@ class KodTest(KirganTest):
                                              qoldiq=Decimal("5000"))
 
     def test_kod_bosh_bolsa_navbatdagisi_beriladi(self):
-        self.assertEqual(len(self.gisht.kod), 5)
-        Mahsulot.objects.create(nom="Kran", kod="00040")
-        self.assertEqual(Mahsulot.objects.create(nom="Sement").kod, "00041")
+        self.assertEqual(len(self.gisht.kod), 4)
+        Mahsulot.objects.create(nom="Kran", kod="0040")
+        self.assertEqual(Mahsulot.objects.create(nom="Sement").kod, "0041")
 
     def test_qisqa_kod_kodning_ozi(self):
         self.assertEqual(self.gisht.qisqa_kod, self.gisht.kod)
@@ -440,7 +440,7 @@ class KodTest(KirganTest):
             "olish_miqdori": "1", "narx": "0", "qoldiq": "5000", "faol": "on"})
         self.assertEqual(javob.status_code, 302)
         self.gisht.refresh_from_db()
-        self.assertEqual(self.gisht.kod, "00125")
+        self.assertEqual(self.gisht.kod, "0125")
 
 
 class KodQidirishTest(KirganTest):
@@ -494,7 +494,7 @@ class KodQidirishTest(KirganTest):
     def test_etiketka_kodi_tovar_kodining_ozi(self):
         """Shtrix — kod oldida bitta 0 (Code 128-C juft raqam talab qiladi)."""
         kod = self.gisht.etiketka_kodi
-        self.assertEqual(kod, "0" + self.gisht.kod)
+        self.assertEqual(kod, self.gisht.kod.rjust(6, '0'))
         self.assertEqual(int(kod), int(self.gisht.qisqa_kod))
 
     def test_etiketka_skanerlansa_ham_qolda_urilsa_ham_bitta_tovar(self):

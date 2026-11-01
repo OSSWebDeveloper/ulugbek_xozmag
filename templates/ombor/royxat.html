@@ -64,7 +64,8 @@
           <th class="son" style="width:1%">Kod</th>
           <th>Tovar</th>
           <th>Birlik</th>
-          <th class="son">Narxi</th>
+          <th class="son">Kelish narxi</th>
+          <th class="son">Sotish narxi</th>
           <th class="son">Qoldiq</th>
           <th style="width:1%"></th>
         </tr>
@@ -91,6 +92,11 @@
                 </div>
               {% endif %}
             </td>
+            <td class="son sust">
+              {% if m.kelish_narxi != None %}
+                {{ m.kelish_narxi|tekis }} {% if m.kelish_valyutasi == 'dollar' %}${% elif m.kelish_valyutasi == 'som' %}so'm{% endif %}
+              {% else %}—{% endif %}
+            </td>
             <td class="son sust">{{ m|narxi|default:"—" }}</td>
             <td class="son">
               {% if m.qoldiq > 0 %}
@@ -101,6 +107,10 @@
               {% else %}
                 <span class="nishon ogoh">Tugagan</span>
               {% endif %}
+              <div style="margin-top:6px">
+                <a class="tugma tinch kichik" data-kirimsiz
+                   href="{% url 'ombor:qoldiq_tuzatish' m.pk %}" title="{{ m.nom }} — qoldiqni tuzatish">Tuzatish</a>
+              </div>
             </td>
             <td style="white-space:nowrap">
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
@@ -122,7 +132,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="6">
+            <td colspan="7">
               <div class="bosh-holat">
                 <svg class="ikon"><use href="#i-quti"></use></svg>
                 <b>Sklad bo'sh</b>

@@ -81,7 +81,7 @@ class MahsulotForm(forms.ModelForm):
         if not kod:
             return self.instance.kod if self.instance.pk else ""
         if not kod.isdigit() or not 1 <= int(kod) <= KOD_MAX:
-            raise forms.ValidationError("Kod 00001 dan 99999 gacha bo'lishi kerak.")
+            raise forms.ValidationError("Kod 0001 dan 9999 gacha bo'lishi kerak.")
         return kod_yasa(kod)
 
     def __init__(self, *args, yangi=False, **kwargs):
@@ -212,6 +212,25 @@ class KirimForm(forms.Form):
 
 
 # ---------- Excel orqali yangilash ----------
+
+class QoldiqTuzatishForm(forms.Form):
+    eski_qoldiq = forms.DecimalField(max_digits=12, decimal_places=3, widget=forms.HiddenInput)
+    qoldiq = VergulliDecimal(
+        label="Yangi qoldiq", max_digits=12, decimal_places=3, min_value=0,
+        widget=forms.TextInput(attrs={"class": "kirish raqam-maydon", "inputmode": "decimal",
+                                      "autocomplete": "off", "autofocus": True}),
+    )
+    sabab = forms.CharField(
+        label="Sabab (ixtiyoriy)", required=False, max_length=120,
+        widget=forms.TextInput(attrs={"class": "kirish", "placeholder": "Masalan: singan, yaroqsiz yoki sanoq tuzatildi"}),
+    )
+
+    def clean(self):
+        data = super().clean()
+        if 'qoldiq' in data and data.get('eski_qoldiq') == data['qoldiq']:
+            raise forms.ValidationError("Qoldiq o‘zgarmadi. Yangi qoldiqni kiriting.")
+        return data
+
 
 class ExcelYuklashForm(forms.Form):
     fayl = forms.FileField(label="Excel fayl (.xlsx)",

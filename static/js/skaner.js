@@ -31,6 +31,7 @@
           return javob.json();
         })
         .then(function (javob) {
+          if (javob.qaytarish_manzili) { window.location.assign(javob.qaytarish_manzili); return; }
           if (javob.topildi) return topilganda(javob, skanerdan);
           if (topilmaganda) return topilmaganda(javob, skanerdan);
           window.xabarBer(javob.xato, "error");
@@ -53,6 +54,11 @@
     }
 
     document.addEventListener("keydown", function (e) {
+      if (document.querySelector('#miqdor-dialog[open]')) {
+        bufer = "";
+        maydon = null;
+        return;
+      }
       if (e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
       var hozir = Date.now();
 

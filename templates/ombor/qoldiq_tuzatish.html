@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load xozmag %}
+{% block sarlavha %}Qoldiqni tuzatish — {{ mahsulot.nom }}{% endblock %}
+{% block tana %}
+<div class="sahifa-keng" style="max-width:680px">
+  <div class="sarlavha">Qoldiqni tuzatish</div>
+  <div class="quti">
+    <h2 style="margin:0 0 16px">{{ mahsulot.nom }}</h2>
+    <div class="korsatkich" style="margin-bottom:var(--oraliq)">
+      <div class="nomi">Hozirgi qoldiq</div>
+      <div class="qiymati">{{ mahsulot.qoldiq|tekis }} {{ mahsulot.birlik }}</div>
+      {% if mahsulot.ikki_birlikmi %}<div class="qiymat-izoh">{{ mahsulot.qadoq_matni }} · {{ mahsulot.birlik_qoidasi }}</div>{% endif %}
+    </div>
+    <p class="sust">Qolgan yaroqli mahsulot miqdorini {{ mahsulot.birlik }} hisobida kiriting. Masalan, 10 tadan 2 tasi singan bo‘lsa, yangi qoldiq 8 bo‘ladi.</p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.eski_qoldiq }}
+      {% if form.non_field_errors %}<div class="xato-yozuv" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% if form.eski_qoldiq.errors %}<div class="xato-yozuv">Sahifani yangilab qayta kiriting.</div>{% endif %}
+      <div class="maydon">
+        <label for="{{ form.qoldiq.id_for_label }}">{{ form.qoldiq.label }} ({{ mahsulot.birlik }})</label>
+        {{ form.qoldiq }}
+        {% if form.qoldiq.errors %}<div class="xato-yozuv">{{ form.qoldiq.errors|striptags }}</div>{% endif %}
+      </div>
+      <div class="maydon">
+        <label for="{{ form.sabab.id_for_label }}">{{ form.sabab.label }}</label>
+        {{ form.sabab }}
+        {% if form.sabab.errors %}<div class="xato-yozuv">{{ form.sabab.errors|striptags }}</div>{% endif %}
+      </div>
+      <p class="sust">Sababni bo‘sh qoldirish mumkin. Oldingi va yangi qoldiq harakatlar tarixiga yoziladi.</p>
+      <div class="qator" style="margin-top:var(--oraliq)">
+        <a class="tugma tinch" href="{% url 'ombor:royxat' %}">Bekor qilish</a>
+        <button class="tugma yashil" type="submit">Qoldiqni saqlash</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

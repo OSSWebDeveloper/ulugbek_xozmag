@@ -20,6 +20,8 @@ from qarz.templatetags.xozmag import pul, tekis
 from rang import kassa as rang_kassa
 
 from .models import Sotuv, SotuvQator
+from config.kassa import hujjat
+from ombor.xizmat import hujjatni_ayir
 
 NOL = Decimal("0")
 
@@ -55,23 +57,27 @@ def yopiq_chek(request, sotuv):
     return redirect(kun_manzili(sotuv))
 
 
+@transaction.atomic
 def sotuv_boshlash(request):
     """Yangi (yoki tugallanmagan) sotuv chekini ochadi."""
-    sotuv = Sotuv.objects.filter(yakunlangan=False, bekor_qilingan=False).first()
+    sotuv = Sotuv.objects.filter(kassir=request.user, yakunlangan=False, bekor_qilingan=False).first()
     if sotuv is None:
-        sotuv = Sotuv.objects.create()
+        sotuv = Sotuv.objects.create(kassir=request.user)
     return redirect("sotuv:tahrir", pk=sotuv.pk)
 
 
 def tahrir(request, pk):
     """Sotuv ekrani (kassa ko'rinishi)."""
-    sotuv = get_object_or_404(Sotuv, pk=pk)
+    sotuv = hujjat(request, Sotuv, pk)
     yopiq = yopiq_chek(request, sotuv)
     if yopiq:
         return yopiq
+    from ombor.hisob import hisobla
+    qatorlar = list(sotuv.qatorlar.select_related('mahsulot'))
     return render(request, "sotuv/tahrir.html", {
         "sotuv": sotuv,
-        "qatorlar": sotuv.qatorlar.select_related("mahsulot"),
+        "qatorlar": qatorlar,
+        "auto_hisob": hisobla(qatorlar),
         "mahsulotlar": oyna_tovarlari(),
         "qator_manzili": reverse("sotuv:qator_qoshish", args=[sotuv.pk]),
         "yakun_manzili": reverse("sotuv:yakunlash", args=[sotuv.pk]),
@@ -83,9 +89,10 @@ def tahrir(request, pk):
     })
 
 
+@transaction.atomic
 def qator_qoshish(request, pk):
-    """Sotuvga tovar qo'shadi va ombordan ayiradi."""
-    sotuv = get_object_or_404(Sotuv, pk=pk)
+    """Kassirning savatiga tovar qo'shadi; ombor yakunlashgacha o'zgarmaydi."""
+    sotuv = hujjat(request, Sotuv, pk)
     if request.method != "POST":
         return redirect("sotuv:tahrir", pk=sotuv.pk)
     yopiq = yopiq_chek(request, sotuv)
@@ -119,18 +126,23 @@ def qator_qoshish(request, pk):
     return redirect("sotuv:tahrir", pk=sotuv.pk)
 
 
+def qator_miqdor(request, pk):
+    from ombor.qator_miqdor import yangila
+    return yangila(request, pk, SotuvQator, 'sotuv', 'sotuv:tahrir', yopiq_chek)
+
+
+@transaction.atomic
 def qator_ochirish(request, pk):
-    """Qatorni o'chiradi va tovarni omborga qaytaradi."""
+    """Ochiq savatdan qatorni omborga tegmasdan o'chiradi."""
     qator = get_object_or_404(SotuvQator.objects.select_related("sotuv"), pk=pk)
-    sotuv = qator.sotuv
+    sotuv = hujjat(request, Sotuv, qator.sotuv_id)
     if request.method == "POST":
         yopiq = yopiq_chek(request, sotuv)
         if yopiq:
             return yopiq
-        qaytar(qator.mahsulot_id, qator.miqdor, f"Sotuv #{sotuv.pk} dan qaytarildi")
         rang_kassa.ajratish(sotuv=sotuv, mahsulot_id=qator.mahsulot_id)
         qator.delete()
-        messages.success(request, "Qator o'chirildi, tovar omborga qaytdi.")
+        messages.success(request, "Qator savatdan o'chirildi.")
     return redirect("sotuv:tahrir", pk=sotuv.pk)
 
 
@@ -178,18 +190,17 @@ def qarzni_oqi(post, jami, jami_dollar):
 
 
 def yakunlash(request, pk):
-    """Sotuvni yopadi. Chek summasi qo'lda kiritiladi.
+    """Sotuvni yopadi va omborni bitta tranzaksiyada ayiradi.
 
-    Summa hisoblanmaydi: savdolashib narx o'zgaradi (183 000 -> 180 000),
-    shuning uchun kassir kalkulyatordagi sonni o'zi yozadi. So'mlik va
-    dollarlik qism alohida yoziladi, qo'shilmaydi.
+    Avtomatik hisoblangan summani kassir savdolashib o'zgartirishi mumkin.
+    So'mlik va dollarlik qism alohida yoziladi, qo'shilmaydi.
 
     «Jami» — chekning **to'liq** summasi. Mijozda pul yetmasa u ikkiga
     bo'linadi: chekka **naqd olingan pul** yoziladi (kunlik tushum shundan
     chiqadi), qolgani esa qarz hujjatiga o'tadi. Tovarlar chekda qolgani
     uchun qarz hujjatining qatorlari bo'lmaydi — ombor ikki marta kamaymaydi.
     """
-    sotuv = get_object_or_404(Sotuv, pk=pk)
+    sotuv = hujjat(request, Sotuv, pk)
     if request.method != "POST":
         return redirect("sotuv:tahrir", pk=sotuv.pk)
     yopiq = yopiq_chek(request, sotuv)
@@ -212,22 +223,27 @@ def yakunlash(request, pk):
         return redirect("sotuv:tahrir", pk=sotuv.pk)
 
     naqd, naqd_dollar = jami - qarz_jami, jami_dollar - qarz_jami_dollar
-    with transaction.atomic():
-        # Faqat ochiq chek yopiladi: ikkinchi so'rov (tugma ikki bosilsa)
-        # hech narsani o'zgartirmaydi va qarz ikkinchi marta yozilmaydi.
-        yopildi = Sotuv.objects.filter(pk=sotuv.pk, yakunlangan=False,
-                                       bekor_qilingan=False).update(
-            jami=naqd, jami_dollar=naqd_dollar, kurs=kurs,
-            yakunlangan=True, sana=timezone.now(),
-        )
-        if not yopildi:
-            messages.info(request, f"Chek #{sotuv.pk} allaqachon yopilgan.")
-            return redirect("sotuv:royxat")
-        if qarzdor:
-            Qarz.objects.create(
-                qarzdor=qarzdor, sotuv=sotuv, jami=qarz_jami, jami_dollar=qarz_jami_dollar,
-                kurs=kurs, izoh=f"Chek #{sotuv.pk} dan qolgan qarz", yakunlangan=True,
+    try:
+        with transaction.atomic():
+            # Faqat ochiq chek yopiladi: ikkinchi so'rov (tugma ikki bosilsa)
+            # hech narsani o'zgartirmaydi va qarz ikkinchi marta yozilmaydi.
+            yopildi = Sotuv.objects.filter(pk=sotuv.pk, yakunlangan=False,
+                                           bekor_qilingan=False).update(
+                jami=naqd, jami_dollar=naqd_dollar, kurs=kurs,
+                yakunlangan=True, sana=timezone.now(),
             )
+            if not yopildi:
+                messages.info(request, f"Chek #{sotuv.pk} allaqachon yopilgan.")
+                return redirect("sotuv:royxat")
+            hujjatni_ayir(sotuv)
+            if qarzdor:
+                Qarz.objects.create(
+                    kassir=request.user, qarzdor=qarzdor, sotuv=sotuv, jami=qarz_jami, jami_dollar=qarz_jami_dollar,
+                    kurs=kurs, izoh=f"Chek #{sotuv.pk} dan qolgan qarz", yakunlangan=True,
+                )
+    except OmborXatosi as exc:
+        messages.error(request, str(exc) + ' Savdo yakunlanmadi.')
+        return redirect('sotuv:tahrir', pk=sotuv.pk)
 
     if qarzdor is None:
         messages.success(request, f"Chek #{sotuv.pk} yakunlandi — {qarz_matn(jami, jami_dollar)}.")
@@ -236,17 +252,21 @@ def yakunlash(request, pk):
         messages.success(request, f"Chek #{sotuv.pk} yakunlandi. {qarz_matn(qarz_jami, qarz_jami_dollar)} "
                                   f"{qarzdor.toliq_ism} ning daftariga yozildi"
                                   + (f", naqd to'landi: {tolangani}." if tolangani else "."))
-    return redirect("sotuv:royxat")
+    from .chek import avtomatik
+    sotuv.refresh_from_db()
+    avtomatik(request, sotuv)
+    return redirect("sotuv:boshlash")
 
 
+@transaction.atomic
 def bekor(request, pk):
-    """Tugallanmagan sotuvni bekor qiladi, tovarlarni omborga qaytaradi.
+    """Tugallanmagan sotuvni omborga tegmasdan bekor qiladi.
 
     Chek o'chirilmaydi — bazada «bekor qilingan» bo'lib qoladi: keyin
     «o'sha kuni nima bo'lgan edi?» degan savolga javob beradigan yozuv kerak.
     Bo'sh chek (bironta tovar qo'shilmagani) esa yozuvga arzimaydi.
     """
-    sotuv = get_object_or_404(Sotuv, pk=pk)
+    sotuv = hujjat(request, Sotuv, pk)
     if request.method == "POST":
         yopiq = yopiq_chek(request, sotuv)
         if yopiq:
@@ -257,15 +277,12 @@ def bekor(request, pk):
             return redirect("qarz:boshlash")
 
         with transaction.atomic():
-            for qator in sotuv.qatorlar.all():
-                qaytar(qator.mahsulot_id, qator.qolgan_miqdor,
-                       f"Sotuv #{sotuv.pk} bekor qilindi")
             # Rang cheklari yana bo'sh: mijoz qaytib kelsa boshqa chekka o'tadi
             rang_kassa.ajratish(sotuv=sotuv)
             sotuv.bekor_qilingan = True
             sotuv.sana = timezone.now()
             sotuv.save(update_fields=["bekor_qilingan", "sana"])
-        messages.info(request, f"Chek #{sotuv.pk} bekor qilindi, tovarlar omborga qaytdi.")
+        messages.info(request, f"Chek #{sotuv.pk} bekor qilindi. Ombor o'zgarmadi.")
     return redirect("qarz:boshlash")
 
 
@@ -293,6 +310,7 @@ def qaytarishni_taqsimla(sotuv, summa, summa_dollar):
     return qarzdan, qarzdan_dollar, naqddan, naqddan_dollar, None
 
 
+@transaction.atomic
 def qaytarish(request, pk):
     """Sotilgan tovarni qaytarib olish — qisman ham bo'ladi.
 
@@ -301,8 +319,8 @@ def qaytarish(request, pk):
     chek summasidan ayriladi — chekda qarz bo'lsa avval qarzdan
     (`qaytarishni_taqsimla`). Chekning o'zi bazada turaveradi.
     """
-    qator = get_object_or_404(SotuvQator.objects.select_related("sotuv", "mahsulot"), pk=pk)
-    sotuv = qator.sotuv
+    qator = get_object_or_404(SotuvQator.objects.select_for_update().select_related("mahsulot"), pk=pk)
+    sotuv = Sotuv.objects.select_for_update().get(pk=qator.sotuv_id)
     qarz = sotuv.qarz_hujjati
 
     # Qarzdor kartasidan kelinsa o'sha yerga qaytiladi

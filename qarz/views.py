@@ -14,6 +14,9 @@ from rang import kassa as rang_kassa
 
 from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
+from config.kassa import hujjat
+from ombor.xizmat import hujjatni_ayir
+from django.db import transaction
 
 
 
@@ -161,26 +164,30 @@ def qarzdor_tahrir(request, pk):
                   {"form": form, "tahrir": True, "qarzdor": qarzdor})
 
 
+@transaction.atomic
 def qarz_boshlash(request, qarzdor_pk):
     """Qarzdor uchun yangi (yoki tugallanmagan) qarz hujjatini ochadi."""
     qarzdor = get_object_or_404(Qarzdor, pk=qarzdor_pk)
-    qarz = qarzdor.qarzlar.filter(yakunlangan=False).first()
+    qarz = qarzdor.qarzlar.filter(kassir=request.user, yakunlangan=False).first()
     if qarz is None:
-        qarz = Qarz.objects.create(qarzdor=qarzdor)
+        qarz = Qarz.objects.create(qarzdor=qarzdor, kassir=request.user)
     return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
 
 def qarz_tahrir(request, pk):
     """Qarz qo'shish sahifasi (kassa ko'rinishi)."""
-    qarz = get_object_or_404(Qarz.objects.select_related("qarzdor__hudud"), pk=pk)
+    qarz = hujjat(request, Qarz, pk)
     yopiq = yopiq_hujjat(request, qarz)
     if yopiq:
         return yopiq
     mahsulotlar = oyna_tovarlari()
+    from ombor.hisob import hisobla
+    qatorlar = list(qarz.qatorlar.select_related('mahsulot'))
     return render(request, "qarz/qarz_tahrir.html", {
         "qarz": qarz,
         "qarzdor": qarz.qarzdor,
-        "qatorlar": qarz.qatorlar.select_related("mahsulot"),
+        "qatorlar": qatorlar,
+        "auto_hisob": hisobla(qatorlar),
         "mahsulotlar": mahsulotlar,
         "qator_manzili": reverse("qarz:qator_qoshish", args=[qarz.pk]),
         "yakun_manzili": reverse("qarz:qarz_yakunlash", args=[qarz.pk]),
@@ -192,9 +199,10 @@ def qarz_tahrir(request, pk):
     })
 
 
+@transaction.atomic
 def qator_qoshish(request, pk):
-    """Qarzga tovar qatorini qo'shadi va ombordan ayiradi."""
-    qarz = get_object_or_404(Qarz, pk=pk)
+    """Qarz savatiga tovar qo'shadi; ombor yakunlashda ayiriladi."""
+    qarz = hujjat(request, Qarz, pk)
     if request.method != "POST":
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
     yopiq = yopiq_hujjat(request, qarz)
@@ -227,21 +235,28 @@ def qator_qoshish(request, pk):
     return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
 
+def qator_miqdor(request, pk):
+    from ombor.qator_miqdor import yangila
+    return yangila(request, pk, QarzQator, 'qarz', 'qarz:qarz_tahrir', yopiq_hujjat)
+
+
+@transaction.atomic
 def qator_ochirish(request, pk):
-    """Qatorni o'chiradi va tovarni omborga qaytaradi."""
+    """Ochiq savatdan qatorni omborga tegmasdan o'chiradi."""
     qator = get_object_or_404(QarzQator.objects.select_related("qarz"), pk=pk)
     qarz_pk = qator.qarz.pk
+    hujjat(request, Qarz, qarz_pk)
     if request.method == "POST":
         yopiq = yopiq_hujjat(request, qator.qarz)
         if yopiq:
             return yopiq
-        qaytar(qator.mahsulot_id, qator.miqdor, f"Qarz #{qarz_pk} dan qaytarildi")
         rang_kassa.ajratish(qarz=qator.qarz, mahsulot_id=qator.mahsulot_id)
         qator.delete()
-        messages.success(request, "Qator o'chirildi, tovar omborga qaytdi.")
+        messages.success(request, "Qator savatdan o'chirildi.")
     return redirect("qarz:qarz_tahrir", pk=qarz_pk)
 
 
+@transaction.atomic
 def qator_qaytarish(request, pk):
     """Qarzga olingan tovarni qaytarib berish — qisman ham bo'ladi.
 
@@ -251,6 +266,10 @@ def qator_qaytarish(request, pk):
     qator = get_object_or_404(QarzQator.objects.select_related("qarz__qarzdor", "mahsulot"),
                               pk=pk)
     qarz = qator.qarz
+
+    if not qarz.yakunlangan:
+        messages.error(request, 'Faqat yakunlangan hujjatdan tovar qaytariladi. Ochiq savatdagi qatorni o‘chiring.')
+        return redirect('qarz:qarz_tahrir', pk=qarz.pk)
 
     if request.method != "POST":
         return render(request, "qaytarish.html", {
@@ -336,7 +355,7 @@ def qarz_yakunlash(request, pk):
     kalkulyatorda hisoblanib, shu yerda yoziladi. So'mlik va dollarlik
     qism alohida: qarzdorning ikkita mustaqil hisobi bo'ladi.
     """
-    qarz = get_object_or_404(Qarz, pk=pk)
+    qarz = hujjat(request, Qarz, pk)
     if request.method == "POST":
         yopiq = yopiq_hujjat(request, qarz)
         if yopiq:
@@ -357,14 +376,18 @@ def qarz_yakunlash(request, pk):
             messages.error(request, xato)
             return redirect("qarz:qarz_tahrir", pk=qarz.pk)
 
-        qarz.jami = jami
-        qarz.jami_dollar = jami_dollar
-        qarz.kurs = kurs
-        qarz.izoh = request.POST.get("izoh", "")[:200]
-        qarz.yakunlangan = True
-        qarz.save(update_fields=["jami", "jami_dollar", "kurs", "izoh", "yakunlangan"])
-
-        tolandi = oldindan_yoz(qarz, oldindan, oldindan_dollar)
+        try:
+            with transaction.atomic():
+                yopildi = Qarz.objects.filter(pk=qarz.pk, yakunlangan=False).update(
+                    jami=jami, jami_dollar=jami_dollar, kurs=kurs,
+                    izoh=request.POST.get('izoh', '')[:200], yakunlangan=True)
+                if not yopildi:
+                    return redirect('qarz:qarzdor_karta', pk=qarz.qarzdor_id)
+                hujjatni_ayir(qarz)
+                tolandi = oldindan_yoz(qarz, oldindan, oldindan_dollar)
+        except OmborXatosi as exc:
+            messages.error(request, str(exc) + ' Hujjat yakunlanmadi.')
+            return redirect('qarz:qarz_tahrir', pk=qarz.pk)
         messages.success(request, "Qarz daftarga yozildi." +
                          (f" Oldindan to'langani: {tolandi}." if tolandi else ""))
     return redirect("qarz:qarzdor_karta", pk=qarz.qarzdor_id)

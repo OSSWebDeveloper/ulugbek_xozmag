@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load statik_versiya %}
+{% block sarlavha %}Yangi ulangan qurilmalar — Ulug'bek Xozmag{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/qurilmalar.css' %}">{% endblock %}
+{% block tana %}
+<div class="sahifa-keng" id="qurilmalar" data-url="{% url 'qurilmalar_royxat' %}">
+  <div class="sarlavha">Yangi ulangan qurilmalar</div>
+  <section class="quti qurilma-kirish">
+    <h2>Shu kassa · {{ request.user.username }}</h2>
+    <p>Har bir kassaning USB printeri va skaneri o‘z kompyuterida ishlaydi. Tarozi va mahsulot bazasi umumiy.</p>
+    {% if terminal %}<p>Kompyuter: {{ terminal.nom|default:'Hali ulanmagan' }} · Printer: {{ terminal.printer|default:'Tanlanmagan' }} · Oxirgi aloqa: {{ terminal.oxirgi_aloqa|default:'Yo‘q' }}</p>{% endif %}
+    <form method="post" action="{% url 'kassa_agent_yukla' %}">{% csrf_token %}
+      <button type="submit" class="tugma yashil">USB kassa yordamchisini yuklab olish</button>
+    </form>
+    <p class="sust">Shu akkauntga tegishli paketni ZIP’dan ochib, ORNATISH.bat ni ishga tushiring. Windows’da chek printerini standart printer qiling. Qayta yuklab olish eski yordamchining ulanish kalitini bekor qiladi.</p>
+  </section>
+  <section class="quti qurilma-kirish" id="rongta-panel"
+           data-status="{% url 'tarozi_status' %}" data-sync="{% url 'tarozi_sync' %}"
+           data-progress="{% url 'tarozi_progress' token='00000000-0000-0000-0000-000000000000' %}">
+    <h2>Rongta RLS1100C · Ethernet</h2>
+    <p id="rongta-holat" role="status" aria-live="polite">Aloqa tekshirilmoqda…</p>
+    <p id="rongta-hisob" class="sust"></p>
+    <div class="qator">
+      <button type="button" class="tugma" id="rongta-test">Aloqani tekshirish</button>
+      <button type="button" class="tugma yashil" id="rongta-yukla" disabled>Omborni taroziga yuborish</button>
+    </div>
+    <progress id="rongta-progress" max="100" value="0" hidden aria-label="Mahsulotlarni taroziga yuklash"></progress>
+    <form hidden id="rongta-csrf">{% csrf_token %}</form>
+    <p class="sust">Faqat sotish birligi kg bo‘lgan mahsulotlar yuboriladi. Kodlar ombordagidek. Sotish narxi yuboriladi, kelish narxi yuborilmaydi. Tarozidagi boshqa mahsulotlar yashiriladi. Yuborishdan oldin zaxira olinadi va tugagach ma’lumotlar qayta o‘qib tekshiriladi.</p>
+    <p class="sust">Tarozi nomi 32 belgigacha qisqartiriladi. Narxsiz, moslanmagan birlikdagi yoki 999 999,99 so‘mdan qimmat mahsulotlar o‘tkazib yuboriladi. Tarozi sotish narxida 2 kasr xonasi bilan sozlangan bo‘lishi kerak.</p>
+  </section>
+  <section class="quti qurilma-kirish">
+    <h2>Skaner va etiketkani sinash</h2>
+    <p>Maydonni bosing va do‘kon yoki tarozi etiketkasini skanerlang. Bu tekshiruv savdo yaratmaydi.</p>
+    <form id="skaner-test-form" data-url="{% url 'ombor:kod_qidir' %}" class="qator">
+      <input id="skaner-test-kod" class="kirish" type="text" autocomplete="off" placeholder="Etiketkani skanerlang yoki kod yozing" aria-label="Skaner sinov kodi">
+      <button class="tugma" type="submit">Tekshirish</button>
+    </form>
+    <p id="skaner-test-natija" role="status" aria-live="polite">Hali sinov qilinmadi.</p>
+  </section>
+  <div class="quti qurilma-kirish">
+    <p>Shu kassaga ulangan USB qurilmalar. Klaviatura va sichqoncha ko‘rsatilmaydi.</p>
+    <div class="qator">
+      <button type="button" class="tugma" id="qurilma-yangila">Yangilash</button>
+      <span class="sust" id="qurilma-vaqt">Ro‘yxat olinmoqda…</span>
+    </div>
+    <p class="sust">Har 10 soniyada tekshiriladi. Shu sahifa ochiq turganda yangi ulangan qurilma «Yangi» deb belgilanadi.</p>
+  </div>
+  <p id="qurilma-xato" role="alert" hidden></p>
+  <p id="qurilma-xabar" role="status" aria-live="polite"></p>
+  <div class="qurilma-royxat" id="qurilma-royxat" aria-busy="true"></div>
+  <div class="quti qurilma-izoh">
+    <strong>Skaner yoki tarozi ko‘rinmasa</strong>
+    <p>Windows’da oddiy klaviatura deb tanilgan skaner avtomatik ajratilmaydi. Uni USB-COM rejimiga o‘tkazish yoki ishlab chiqaruvchi drayverini o‘rnatish kerak bo‘lishi mumkin. Umumiy USB/COM nomidagi qurilmaning turi nomidan aniqlanmasa, u boshqa qurilma yoki port sifatida ko‘rinadi.</p>
+    <p>Quyidagi ro‘yxat qurilmaning Windows’da mavjudligini ko‘rsatadi. Ishlashini etiketka chiqarish va skanerlash bilan tekshiring. Ethernet tarozi yuqoridagi alohida panel orqali boshqariladi.</p>
+  </div>
+</div>
+{% endblock %}
+{% block skript %}<script src="{% statik 'js/qurilmalar.js' %}"></script><script src="{% statik 'js/rongta.js' %}"></script>{% endblock %}

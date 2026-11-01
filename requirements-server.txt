@@ -1,0 +1,4 @@
+Django>=5.2,<7
+waitress==3.0.2
+pystray==0.19.5
+Pillow>=12,<14

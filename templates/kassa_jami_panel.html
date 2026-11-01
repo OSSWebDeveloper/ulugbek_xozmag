@@ -6,7 +6,7 @@ ikki xil keladi, klientning asosiy sharti shu ikkisi aralashmasligi. Kurs
 dollarlik summa yozilgandagina so'raladi — keyin bu qarz qaysi kursda
 olingani kerak bo'ladi.
 
-«Jami» — hujjatning **to'liq** summasi (kelishilgan narx). Raqamlar yozilgan
+«Jami» — sotish narxi × miqdordan hisoblangan, qo'lda o'zgartiriladigan summa. Raqamlar yozilgan
 zahoti guruhlanadi: 200000 -> «200 000» (js/forma.js, `pul-maydon`).
 
 `qarzga` berilsa naqd sotuvdagi **«Qarzga»** tugmasi chiqadi: mijozda pul
@@ -28,7 +28,7 @@ Chaqirilishi:
     <span class="nomi">Jami</span>
     <input type="text" class="qiymat raqam-maydon pul-maydon" name="jami" id="jami"
            inputmode="decimal" autocomplete="off" placeholder="0" data-kasr="0"
-           value="{% if hujjat.jami %}{{ hujjat.jami|tekis }}{% endif %}">
+           value="{% if auto_hisob.toliq %}{{ auto_hisob.som|tekis }}{% elif hujjat.jami %}{{ hujjat.jami|tekis }}{% endif %}">
     <span class="birlik">so'm</span>
   </div>
 
@@ -37,7 +37,7 @@ Chaqirilishi:
     <span class="nomi">Jami</span>
     <input type="text" class="qiymat raqam-maydon pul-maydon" name="jami_dollar" id="jami-dollar"
            inputmode="decimal" autocomplete="off" placeholder="0"
-           value="{% if hujjat.jami_dollar %}{{ hujjat.jami_dollar|tekis }}{% endif %}">
+           value="{% if auto_hisob.toliq %}{{ auto_hisob.dollar|tekis }}{% elif hujjat.jami_dollar %}{{ hujjat.jami_dollar|tekis }}{% endif %}">
     <span class="birlik">$</span>
   </div>
 
@@ -89,4 +89,7 @@ Chaqirilishi:
   <button type="submit" class="tugma yashil" style="flex:1.6;min-width:180px">
     <svg class="ikon"><use href="#i-belgi"></use></svg> {{ tugma }}
   </button>
+  {% if auto_hisob.narxsiz %}
+    <div class="qoida-satri ogoh keng">{{ auto_hisob.narxsiz }} ta mahsulotning sotish narxi yo‘q. Jami summani qo‘lda kiriting.</div>
+  {% endif %}
 </form>

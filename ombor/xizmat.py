@@ -170,8 +170,10 @@ def ayir(mahsulot_id, miqdor, izoh):
             f"Omborda yetarli emas. {mahsulot.nom}: "
             f"{mahsulot.qoldiq_son} {mahsulot.birlik} qoldi."
         )
-    mahsulot.qoldiq -= miqdor
-    mahsulot.save(update_fields=["qoldiq"])
+    from django.db.models import F
+    if not Mahsulot.objects.filter(pk=mahsulot_id, qoldiq__gte=miqdor).update(qoldiq=F('qoldiq') - miqdor):
+        raise OmborXatosi(f'Omborda yetarli emas: {mahsulot.nom}. Sahifani yangilang.')
+    mahsulot.refresh_from_db()
     OmborHarakati.objects.create(
         mahsulot=mahsulot, tur=HarakatTuri.CHIQIM, miqdor=miqdor, izoh=izoh,
     )
@@ -180,7 +182,7 @@ def ayir(mahsulot_id, miqdor, izoh):
 
 @transaction.atomic
 def hujjatga_qosh(qatorlar, mahsulot, miqdor, izoh):
-    """Tovarni chek yoki qarz hujjatiga qo'shadi va ombordan ayiradi.
+    """Tovarni savatga qo'shadi. Ombor faqat yakunlashda kamayadi.
 
     Bir xil tovar ikkinchi qator bo'lib tushmaydi — mavjud qatorning miqdori
     oshadi: skaner bilan uchta rozetka o'qilsa chekda «Rozetka 3 dona» turadi.
@@ -188,8 +190,14 @@ def hujjatga_qosh(qatorlar, mahsulot, miqdor, izoh):
     `qarz.qatorlar`). Qoldiq yetmasa OmborXatosi — hech narsa yozilmaydi.
     Qo'shilgan (yoki kattalashgan) qatorni qaytaradi.
     """
-    ayir(mahsulot.pk, miqdor, izoh)
+    document = type(qatorlar.instance).objects.select_for_update().get(pk=qatorlar.instance.pk)
+    if document.yakunlangan or getattr(document, 'bekor_qilingan', False):
+        raise OmborXatosi('Hujjat allaqachon yopilgan.')
+    mahsulot.refresh_from_db()
     qator = qatorlar.filter(mahsulot=mahsulot).first()
+    yangi = miqdor + (qator.miqdor if qator else 0)
+    if yangi > mahsulot.qoldiq:
+        raise OmborXatosi(f'Omborda yetarli emas. {mahsulot.nom}: {mahsulot.qoldiq_son} {mahsulot.birlik} qoldi.')
     if qator is None:
         return qatorlar.create(mahsulot=mahsulot, miqdor=miqdor)
     qator.miqdor += miqdor
@@ -212,6 +220,31 @@ def qaytar(mahsulot_id, miqdor, izoh, tur=HarakatTuri.KIRIM):
         mahsulot=mahsulot, tur=tur, miqdor=miqdor, izoh=izoh,
     )
     return mahsulot
+
+
+@transaction.atomic
+def qator_miqdorini_qoy(qator, yangi, eski, izoh):
+    """Ochiq savat miqdori o'zgaradi; ombor o'zgarmaydi."""
+    relation = 'sotuv' if hasattr(qator, 'sotuv_id') else 'qarz'
+    document = getattr(qator, relation)
+    document = type(document).objects.select_for_update().get(pk=document.pk)
+    if document.yakunlangan or getattr(document, 'bekor_qilingan', False):
+        raise OmborXatosi('Hujjat allaqachon yopilgan.')
+    qator = type(qator).objects.select_for_update().get(pk=qator.pk)
+    if qator.miqdor != eski:
+        raise OmborXatosi("Qator miqdori o‘zgargan. Sahifani yangilab qayta kiriting.")
+    mahsulot = Mahsulot.objects.get(pk=qator.mahsulot_id)
+    if yangi > mahsulot.qoldiq:
+        raise OmborXatosi(f'Omborda yetarli emas: {mahsulot.nom}.')
+    qator.miqdor = yangi
+    qator.save(update_fields=['miqdor'])
+    return qator
+
+
+def hujjatni_ayir(hujjat):
+    """Yakunlash tranzaksiyasi ichida barcha qatorlarni birga ayiradi."""
+    for qator in hujjat.qatorlar.order_by('mahsulot_id', 'pk'):
+        ayir(qator.mahsulot_id, qator.miqdor, f'{hujjat._meta.verbose_name} #{hujjat.pk}: yakunlandi')
 
 
 # ---------- Kassadagi tovar tanlash oynasi ----------

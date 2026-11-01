@@ -43,11 +43,11 @@ class ExcelTest(KirganTest):
         self.assertEqual(Mahsulot.objects.count(), 0)          # qoralama omborga tegmaydi
         self.assertEqual(y.sanoq()["yangi"], 3)
         excel.qollash(y)
-        tog = self.m("00001")
+        tog = self.m("0001")
         self.assertEqual((tog.nom, tog.qoldiq, tog.narx, tog.valyuta),
                          ("Master tog'ora 25L", Decimal("68"), Decimal("2.06"), Valyuta.DOLLAR))
-        self.assertEqual((self.m("00002").valyuta, self.m("00002").qoldiq), (Valyuta.SOM, 0))
-        self.assertEqual(self.m("00003").narx, Decimal("3.5432"))    # 4 xonali kasr saqlanadi
+        self.assertEqual((self.m("0002").valyuta, self.m("0002").qoldiq), (Valyuta.SOM, 0))
+        self.assertEqual(self.m("0003").narx, Decimal("3.5432"))    # 4 xonali kasr saqlanadi
         # Boshlang'ich qoldiq tarixga kirim bo'lib yozildi
         self.assertEqual(OmborHarakati.objects.filter(tur=HarakatTuri.KIRIM).count(), 2)
 
@@ -57,29 +57,29 @@ class ExcelTest(KirganTest):
         s = y.sanoq()
         self.assertEqual((s["yangi"], s["ozgardi"], y.ozgarmagan), (1, 1, 1))
         excel.qollash(y)
-        a = self.m("00001")
+        a = self.m("0001")
         self.assertEqual(a.qoldiq, 3)
         tuzatish = OmborHarakati.objects.get(mahsulot=a, tur=HarakatTuri.TUZATISH)
         self.assertEqual(tuzatish.miqdor, -2)
-        self.assertEqual(self.m("00003").nom, "C")
+        self.assertEqual(self.m("0003").nom, "C")
 
     def test_faqat_kod_va_qoldiq_boshqasiga_tegmaydi(self):
-        excel.qollash(self.yukla([SHABLON, ["00007", "Kran", "dona", 4, 15, "USD"]]))
+        excel.qollash(self.yukla([SHABLON, ["0007", "Kran", "dona", 4, 15, "USD"]]))
         excel.qollash(self.yukla([["Kod", "Qoldiq"], [7, 9]]))
-        k = self.m("00007")
+        k = self.m("0007")
         self.assertEqual((k.nom, k.qoldiq, k.narx, k.valyuta),
                          ("Kran", 9, 15, Valyuta.DOLLAR))
 
     def test_bekor_qilish_hammasini_qaytaradi(self):
-        excel.qollash(self.yukla([SHABLON, ["00001", "A", "dona", 5, 10, "USD"],
-                                  ["00002", "B", "kg", 1, 3, "UZS"]]))
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 5, 10, "USD"],
+                                  ["0002", "B", "kg", 1, 3, "UZS"]]))
         oldin = {m.kod: (m.nom, m.qoldiq, m.narx, m.valyuta, m.faol)
                  for m in Mahsulot.objects.all()}
-        y = self.yukla([SHABLON, ["00001", "A2", "dona", 6, 11, "UZS"],
-                        ["00009", "Yangi", "dona", 1, 1, "UZS"]], yoqlarini_yashir=True)
+        y = self.yukla([SHABLON, ["0001", "A2", "dona", 6, 11, "UZS"],
+                        ["0009", "Yangi", "dona", 1, 1, "UZS"]], yoqlarini_yashir=True)
         self.assertEqual(y.sanoq()["yashirildi"], 1)               # B faylda yo'q
         excel.qollash(y)
-        self.assertFalse(self.m("00002").faol)                     # o'chmaydi — yashiriladi
+        self.assertFalse(self.m("0002").faol)                     # o'chmaydi — yashiriladi
         excel.bekor_qil(y)
         self.assertEqual({m.kod: (m.nom, m.qoldiq, m.narx, m.valyuta, m.faol)
                           for m in Mahsulot.objects.all()}, oldin)
@@ -87,9 +87,9 @@ class ExcelTest(KirganTest):
         self.assertEqual(y.holat, OmborYangilanish.BEKOR)
 
     def test_keyin_ozgargan_bolsa_bekor_qilinmaydi(self):
-        y1 = self.yukla([SHABLON, ["00001", "A", "dona", 5, 10, "USD"]])
+        y1 = self.yukla([SHABLON, ["0001", "A", "dona", 5, 10, "USD"]])
         excel.qollash(y1)
-        y2 = self.yukla([SHABLON, ["00001", "A", "dona", 4, 10, "USD"]])
+        y2 = self.yukla([SHABLON, ["0001", "A", "dona", 4, 10, "USD"]])
         excel.qollash(y2)
         self.assertEqual(excel.bekor_toqnashuvlari(y1)[0][2], y2)
         with self.assertRaises(excel.ExcelXatosi):
@@ -100,9 +100,9 @@ class ExcelTest(KirganTest):
 
     def test_qoralamadan_keyingi_sotuv_yoqolmaydi(self):
         """Qoralama tuzilgach sotilgan bo'lsa, qo'llash faqat fayldagi o'zgarishni yozadi."""
-        excel.qollash(self.yukla([SHABLON, ["00001", "A", "dona", 10, 5, "UZS"]]))
-        y = self.yukla([["Kod", "Narxi"], ["00001", 6]])
-        a = self.m("00001")
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 10, 5, "UZS"]]))
+        y = self.yukla([["Kod", "Narxi"], ["0001", 6]])
+        a = self.m("0001")
         a.qoldiq = 7                                               # oradagi sotuv
         a.save()
         excel.qollash(y)
@@ -110,26 +110,26 @@ class ExcelTest(KirganTest):
         self.assertEqual((a.qoldiq, a.narx), (7, 6))
 
     def test_kod_almashinuvi_va_kochirish(self):
-        excel.qollash(self.yukla([SHABLON, ["00001", "A", "dona", 1, 1, "UZS"],
-                                  ["00002", "B", "dona", 1, 1, "UZS"]]))
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 1, 1, "UZS"],
+                                  ["0002", "B", "dona", 1, 1, "UZS"]]))
         # Kod — joy: shu joydagi tovar nomlari almashadi
-        excel.qollash(self.yukla([SHABLON, ["00001", "B", "dona", 1, 1, "UZS"],
-                                  ["00002", "A", "dona", 1, 1, "UZS"]]))
-        self.assertEqual(self.m("00001").nom, "B")
+        excel.qollash(self.yukla([SHABLON, ["0001", "B", "dona", 1, 1, "UZS"],
+                                  ["0002", "A", "dona", 1, 1, "UZS"]]))
+        self.assertEqual(self.m("0001").nom, "B")
         # Nomi bo'yicha bo'sh kodga ko'chirish va qaytarish
-        y = self.yukla([SHABLON, ["00050", "B", "dona", 1, 1, "UZS"]])
+        y = self.yukla([SHABLON, ["0050", "B", "dona", 1, 1, "UZS"]])
         excel.qollash(y)
-        self.assertEqual(Mahsulot.objects.get(nom="B").kod, "00050")
+        self.assertEqual(Mahsulot.objects.get(nom="B").kod, "0050")
         excel.bekor_qil(y)
-        self.assertEqual(Mahsulot.objects.get(nom="B").kod, "00001")
+        self.assertEqual(Mahsulot.objects.get(nom="B").kod, "0001")
 
     def test_xatolar_va_qatorni_tuzatish(self):
         y = self.yukla([SHABLON, ["123456", "Katta kod", "dona", 1, 1, "UZS"],
-                        ["00003", "", "dona", 1, 1, "UZS"],
-                        ["00004", "Narx", "dona", 1, "abc", "UZS"],
-                        ["00005", "Valyuta", "dona", 1, 1, "EUR"],
-                        ["00006", "Yaxshi", "dona", 1, 1, "USD"],
-                        ["00006", "Takror", "dona", 1, 1, "USD"]])
+                        ["0003", "", "dona", 1, 1, "UZS"],
+                        ["0004", "Narx", "dona", 1, "abc", "UZS"],
+                        ["0005", "Valyuta", "dona", 1, 1, "EUR"],
+                        ["0006", "Yaxshi", "dona", 1, 1, "USD"],
+                        ["0006", "Takror", "dona", 1, 1, "USD"]])
         s = y.sanoq()
         self.assertEqual((s["yangi"], s["xato"]), (1, 5))
         q = y.qatorlar.get(excel_qator=2)
@@ -139,27 +139,27 @@ class ExcelTest(KirganTest):
         self.assertEqual(xato, "")
         self.assertIsNone(excel.qatorni_yangila(q, holat, ogoh))
         q.refresh_from_db()
-        self.assertEqual((q.amal, q.kod), (Qator.YANGI, "00012"))
-        holat["kod"] = "00006"                                     # band kod
-        self.assertIn("00006", excel.qatorni_yangila(q, holat))
+        self.assertEqual((q.amal, q.kod), (Qator.YANGI, "0012"))
+        holat["kod"] = "0006"                                     # band kod
+        self.assertIn("0006", excel.qatorni_yangila(q, holat))
         excel.qollash(y)                                           # xatolar qo'llanmaydi
-        self.assertEqual(set(Mahsulot.objects.values_list("kod", flat=True)), {"00006", "00012"})
+        self.assertEqual(set(Mahsulot.objects.values_list("kod", flat=True)), {"0006", "0012"})
 
     def test_eksport_kam_qolganlar_birinchi_va_qayta_import(self):
-        excel.qollash(self.yukla([SHABLON, ["00001", "A", "metr", 2.5, 3.5432, "USD"],
-                                  ["00002", "B", "dona", 0, 180726, "UZS"],
-                                  ["00003", "C", "dona", 10, 5, "UZS"]]))
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "metr", 2.5, 3.5432, "USD"],
+                                  ["0002", "B", "dona", 0, 180726, "UZS"],
+                                  ["0003", "C", "dona", 10, 5, "UZS"]]))
         baytlar = excel.excel_yoz(excel.tovarlar(kam_birinchi=True))
         ws = load_workbook(io.BytesIO(baytlar)).active
         self.assertEqual([r[0] for r in ws.iter_rows(min_row=2, max_row=4, values_only=True)],
-                         ["00002", "00001", "00003"])               # kam qolgani birinchi
+                         ["0002", "0001", "0003"])               # kam qolgani birinchi
         y = excel.fayldan_qoralama(SimpleUploadedFile("q.xlsx", baytlar))
         s = y.sanoq()
         self.assertEqual((s["ozgardi"], s["yangi"], y.ozgarmagan), (0, 0, 3))
 
     def test_sahifalar(self):
         javob = self.client.post(reverse("ombor:excel_yuklash"),
-                                 {"fayl": xlsx([SHABLON, ["00001", "A", "dona", 1, 2, "USD"]])})
+                                 {"fayl": xlsx([SHABLON, ["0001", "A", "dona", 1, 2, "USD"]])})
         y = OmborYangilanish.objects.get()
         self.assertRedirects(javob, reverse("ombor:yangilanish", args=[y.pk]))
         for nom in ("ombor:royxat", "ombor:yangilanishlar", "ombor:excel_yuklash"):
@@ -168,7 +168,7 @@ class ExcelTest(KirganTest):
         q = y.qatorlar.get()
         self.assertEqual(self.client.get(reverse("ombor:qator", args=[q.pk])).status_code, 200)
         self.client.post(reverse("ombor:yangilanish_amal", args=[y.pk]), {"amal": "qollash"})
-        self.assertEqual(Mahsulot.objects.get().kod, "00001")
+        self.assertEqual(Mahsulot.objects.get().kod, "0001")
         javob = self.client.get(reverse("ombor:royxat"), {"kam": "1"})
         self.assertContains(javob, "Kam qolganlar birinchi")
         javob = self.client.get(reverse("ombor:eksport"), {"kam": "1"})
@@ -181,8 +181,8 @@ class ExcelTest(KirganTest):
         Mahsulot.objects.bulk_create([Mahsulot(nom=f"T{i}", kod=f"{i:05d}") for i in range(1, 121)])
         javob = self.client.get(reverse("ombor:royxat"), {"page": "3"})
         self.assertContains(javob, "3 / 3")
-        self.assertContains(javob, "00101")
-        self.assertNotContains(javob, "00050")
+        self.assertContains(javob, "0101")
+        self.assertNotContains(javob, "0050")
 
 
 class TovarOynasiTest(KirganTest):
@@ -190,7 +190,7 @@ class TovarOynasiTest(KirganTest):
 
     def setUp(self):
         super().setUp()
-        Mahsulot.objects.bulk_create([Mahsulot(nom=f"Tovar {i:03d}", kod=f"{i:05d}",
+        Mahsulot.objects.bulk_create([Mahsulot(nom=f"Tovar {i:03d}", kod=f"{i:04d}",
                                                qoldiq=Decimal("5")) for i in range(1, 151)])
 
     def test_kassada_faqat_60_ta_karta(self):
@@ -204,7 +204,7 @@ class TovarOynasiTest(KirganTest):
         javob = self.client.get(url, {"q": "Tovar 14"}).json()     # so'zlar alohida izlanadi
         self.assertEqual(len(javob["tovarlar"]), 12)                 # 014, 114, 140-149
         self.assertEqual(javob["tovarlar"][0]["nom"], "Tovar 014")
-        self.assertEqual(self.client.get(url, {"q": "137"}).json()["tovarlar"][0]["kod"], "00137")
+        self.assertEqual(self.client.get(url, {"q": "137"}).json()["tovarlar"][0]["kod"], "0137")
         javob = self.client.get(url, {"q": "Tovar"}).json()
         self.assertEqual((len(javob["tovarlar"]), javob["yana"]), (30, True))
         self.assertEqual(self.client.get(url, {"q": ""}).json()["tovarlar"], [])

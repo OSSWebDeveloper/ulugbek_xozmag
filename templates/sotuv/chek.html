@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load statik_versiya %}
+{% block sarlavha %}Savdo cheki #{{ sotuv.pk }}{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/savdo_chek.css' %}">{% endblock %}
+{% block tana %}
+<div class="sahifa-keng savdo-chek-sahifa">
+  <div class="quti chek-boshqaruv qator">
+    <form method="post" action="{% url 'sotuv:chek_chop' sotuv.pk %}" data-bir-marta>{% csrf_token %}
+      {% if vazifa.holat == 'yuborildi' %}<label><input type="checkbox" name="chop_tasdiq" value="ha" required> Qog‘ozni tekshirdim; qayta chiqarilsin</label>{% endif %}
+      <button class="tugma yashil" type="submit">Kassa printeridan chiqarish</button>
+    </form>
+    <button class="tugma" type="button" id="savdo-chek-print">Brauzerdan chop etish</button>
+    <a class="tugma" href="{% url 'sotuv:chek_qaytarish' sotuv.pk %}">Mahsulot qaytarish</a>
+    <a class="tugma tinch" href="{% url 'sotuv:royxat' %}">Sotuvlarga qaytish</a>
+  </div>
+  {% if vazifa %}<p class="chek-boshqaruv">Chop holati: {{ vazifa.holat }}{% if vazifa.xato %} · {{ vazifa.xato }}{% endif %}</p>{% endif %}
+  <article class="savdo-chek">
+    <h1>{{ data.nom }}</h1>
+    {% for line in data.lines %}<div class="savdo-chek-satr">{{ line|default:' ' }}</div>{% endfor %}
+    <div class="savdo-chek-shtrix">{{ barcode_svg|safe }}</div>
+    <div class="savdo-chek-raqam">{{ data.barcode }}</div>
+    <p>Qaytarish uchun chekni saqlang.</p>
+  </article>
+</div>
+{% endblock %}
+{% block skript %}<script src="{% statik 'js/savdo_chek.js' %}"></script>{% endblock %}

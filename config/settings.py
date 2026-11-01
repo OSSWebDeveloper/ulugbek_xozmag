@@ -32,7 +32,7 @@ if not SECRET_KEY:
         _kalit_fayl.write_text(SECRET_KEY, encoding="utf-8")
 # O'rnatilgan dasturda xatolik sahifalari ko'rsatilmaydi (DEBUG = False),
 # ishlab chiqishda esa avvalgidek yoniq turadi.
-DEBUG = not MUQIM
+DEBUG = not MUQIM and os.environ.get('XOZMAG_SERVER') != '1'
 ALLOWED_HOSTS = ["*"]
 
 # ngrok orqali tashqaridan kirilganda POST so'rovlar (kirish, saqlash) CSRF
@@ -104,6 +104,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": MALUMOT_DIR / "db.sqlite3",
+        "OPTIONS": {"timeout": 30, "transaction_mode": "IMMEDIATE"},
     }
 }
 
@@ -121,6 +122,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "uz"
 TIME_ZONE = "Asia/Tashkent"
+RONGTA_IP = "192.168.1.110"
+CHEK_PRINTER = os.environ.get('XOZMAG_CHEK_PRINTER', 'Xprinter XP-80')
+CHEK_AUTO_PRINT = 'test' not in sys.argv
 USE_I18N = True
 USE_TZ = True
 

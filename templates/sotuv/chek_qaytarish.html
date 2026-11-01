@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load xozmag statik_versiya %}
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">Chek bo‘yicha qaytarish</div>
+  <form class="quti qator" method="get" action="{% url 'sotuv:chek_izla' %}">
+    <input class="kirish" type="text" name="k" autocomplete="off" autofocus required placeholder="Savdo chekining shtrix kodini skanerlang" aria-label="Savdo cheki shtrix kodi">
+    <button type="submit" class="tugma">Chekni topish</button>
+  </form>
+  {% if sotuv %}
+    <div class="quti">Chek #{{ sotuv.pk }} · {{ sotuv.sana|date:'d.m.Y H:i' }} <a class="tugma tinch kichik" href="{% url 'sotuv:chek' sotuv.pk %}">Chekni ko‘rish</a></div>
+    <div class="jadval-quti"><table class="jadval">
+      <thead><tr><th>Mahsulot</th><th class="son">Sotilgan</th><th class="son">Qaytarilgan</th><th></th></tr></thead>
+      <tbody>{% for q in qatorlar %}<tr>
+        <td>{{ q.mahsulot_nomi }}</td><td class="son">{{ q.miqdor|tekis }} {{ q.birlik }}</td>
+        <td class="son">{{ q.qaytarilgan|tekis }} {{ q.birlik }}</td>
+        <td>{% if q.qolgan_miqdor > 0 %}<a class="tugma" href="{% url 'sotuv:qaytarish' q.pk %}?keyin={{ request.path|urlencode }}">Qaytarish</a>{% else %}<span class="sust">To‘liq qaytarilgan</span>{% endif %}</td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="sust">Qaytarilayotgan mahsulotni tanlang. Miqdor va qaytariladigan pul keyingi oynada kiritiladi.</p>
+  {% else %}<p class="sust">Shtrix kod chekni topadi. Skanerlashning o‘zi pul yoki qoldiqni o‘zgartirmaydi.</p>{% endif %}
+</div>
+{% endblock %}
+{% block skript %}<script src="{% statik 'js/skaner.js' %}"></script><script src="{% statik 'js/chek_izla.js' %}"></script>{% endblock %}

@@ -280,7 +280,7 @@ class StansiyaTest(KirganTest):
         self.assertEqual(javob["narx"], "120000")
 
     def test_raqamli_rang_kodi_tovardan_oldin(self):
-        """«00001» rang kodi tovar kodi bilan adashmasin: qo'lda yozilsa — rang,
+        """«0001» rang kodi tovar kodi bilan adashmasin: qo'lda yozilsa — rang,
         etiketka skanerlansa (000001) — baza."""
         rang = Rang.objects.create(kod=self.baza.qisqa_kod)
         javob = self.kod(self.baza.qisqa_kod)
@@ -471,7 +471,7 @@ class KassaTest(KirganTest):
         self.assertEqual(self.chek.sotuv, self.sotuv)
         self.assertEqual(self.chek.holat, Holat.KASSADA)
         self.baza.refresh_from_db()
-        self.assertEqual(self.baza.qoldiq, Decimal("8"))       # kassada ayrildi
+        self.assertEqual(self.baza.qoldiq, Decimal("10"))      # savatda ombor o'zgarmaydi
 
     def test_kassa_qatorida_rang_kodi(self):
         """Kassir chek qatorida bu bo'yoq rang mashinasidan kelganini ko'radi."""
@@ -486,7 +486,7 @@ class KassaTest(KirganTest):
         javob = self.qosh()
         self.assertContains(javob, "allaqachon")
         self.baza.refresh_from_db()
-        self.assertEqual(self.baza.qoldiq, Decimal("8"))       # ikkinchi marta ayrilmadi
+        self.assertEqual(self.baza.qoldiq, Decimal("10"))      # yakunlashgacha ayrilmaydi
 
     def test_yakunlansa_tolandi(self):
         self.qosh()

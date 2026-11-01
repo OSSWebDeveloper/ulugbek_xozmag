@@ -1,6 +1,7 @@
 """Sotuv modellari: do'kondagi savdo cheki."""
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.conf import settings
 
 
 from ombor.models import Mahsulot
@@ -9,9 +10,9 @@ from ombor.models import Mahsulot
 class Sotuv(models.Model):
     """Bitta savdo cheki.
 
-    Narx qatorlarda saqlanmaydi — do'konda pul kalkulyatorda hisoblanadi.
-    Tizim qaysi tovar qancha chiqqanini yozadi, chek summasi esa yakunlashda
-    qo'lda kiritiladi.
+    Sotish narxi va valyuta qatorga tovar qo'shilganda saqlanadi. Kassa
+    narx × miqdordan jami hisoblaydi; savdolashilgan yakuniy summa qo'lda
+    o'zgartirilishi mumkin.
 
     So'm va dollar **qo'shilmaydi**: ikkita alohida summa yoziladi. `kurs`
     o'sha kundagi dollar kursi — yozib qo'yiladi, lekin summalar birlashtirilmaydi.
@@ -24,6 +25,8 @@ class Sotuv(models.Model):
     bugun yopilsa puli bugungi tushumga tushadi.
     """
 
+    kassir = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='sotuvlar')
     sana = models.DateTimeField("Sana", auto_now_add=True)
     jami = models.DecimalField("Jami so'm", max_digits=14, decimal_places=2, default=0)
     jami_dollar = models.DecimalField("Jami dollar", max_digits=12, decimal_places=2, default=0)
@@ -107,6 +110,8 @@ class SotuvQator(models.Model):
     mahsulot_nomi = models.CharField("Tovar nomi", max_length=120)
     birlik = models.CharField("Birlik", max_length=10, blank=True)
     miqdor = models.DecimalField("Miqdor", max_digits=12, decimal_places=3)
+    narx = models.DecimalField("Sotish narxi", max_digits=16, decimal_places=4, null=True, blank=True)
+    valyuta = models.CharField("Narx valyutasi", max_length=10, default='som')
     qaytarilgan = models.DecimalField("Qaytarilgan miqdor", max_digits=12, decimal_places=3,
                                       default=0)
 
@@ -124,8 +129,31 @@ class SotuvQator(models.Model):
         return self.miqdor - self.qaytarilgan
 
     def save(self, *args, **kwargs):
+        if self._state.adding and self.narx is None:
+            self.narx = self.mahsulot.narx if self.mahsulot.narx > 0 else None
+            self.valyuta = self.mahsulot.valyuta
         if not self.mahsulot_nomi:
             self.mahsulot_nomi = self.mahsulot.nom
         if not self.birlik:
             self.birlik = self.mahsulot.birlik
         super().save(*args, **kwargs)
+
+
+class KassaTerminal(models.Model):
+    kassir = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                  related_name='kassa_terminal')
+    kalit_hash = models.CharField(max_length=64, blank=True, default='')
+    nom = models.CharField(max_length=100, blank=True)
+    printer = models.CharField(max_length=200, blank=True)
+    qurilmalar = models.JSONField(default=list)
+    oxirgi_aloqa = models.DateTimeField(null=True, blank=True)
+
+
+class ChekVazifa(models.Model):
+    sotuv = models.OneToOneField(Sotuv, on_delete=models.CASCADE, related_name='chop_vazifa')
+    terminal = models.ForeignKey(KassaTerminal, on_delete=models.PROTECT, related_name='cheklar')
+    holat = models.CharField(max_length=12, default='kutilmoqda')
+    malumot = models.JSONField(default=dict)
+    claim = models.CharField(max_length=64, blank=True)
+    xato = models.CharField(max_length=300, blank=True)
+    yaratilgan = models.DateTimeField(auto_now_add=True)

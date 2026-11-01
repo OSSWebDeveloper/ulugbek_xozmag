@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load statik_versiya %}
+{% load statik_versiya xozmag %}
 
 {% comment %}
 Tovar etiketkasi — etiketka printerida chop etiladi va tovarga yopishtiriladi.
@@ -13,11 +13,12 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
 {% endcomment %}
 
 {% block sarlavha %}Etiketka — {{ mahsulot.nom }}{% endblock %}
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/etiketka_printer.css' %}">{% endblock %}
 
 {% block tana %}
 <div class="sahifa-keng etiketka-sahifa">
   <div class="sarlavha etiketka-boshqaruv">
-    Etiketka
+    Rasta uchun narx yorlig‘i
     <span class="kichik">{{ mahsulot.nom }} &middot; kod {{ mahsulot.kod }}</span>
   </div>
 
@@ -33,6 +34,7 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
         <select id="etiketka-olcham" class="kirish">
           <option value="40x30">40 × 30 mm</option>
           <option value="58x40">58 × 40 mm</option>
+          <option value="56x40">56 × 40 mm · tarozi</option>
           <option value="50x30">50 × 30 mm</option>
           <option value="30x20">30 × 20 mm</option>
         </select>
@@ -45,9 +47,7 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
       </a>
     </div>
     <div class="maydon-izoh">
-      Chop etish oynasida: printer — <b>etiketka printeri</b>, qog'oz o'lchami — etiketka
-      o'lchami, chekkalar — <b>«Нет / Yo'q»</b>, masshtab — <b>100%</b>. O'lcham bu
-      kompyuterda eslab qolinadi.
+      «Chop etish» bosilganda printerni tanlang. Etiketka o‘lchami bu kompyuterda eslab qolinadi.
     </div>
   </div>
 
@@ -55,8 +55,9 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
   <template id="etiketka-namuna">
     <div class="etiketka">
       <div class="e-nom">{{ mahsulot.nom }}</div>
+      <div class="e-narx">{% if mahsulot.narx > 0 %}<b>{{ mahsulot|narxi }}</b><span> / {{ mahsulot.birlik }}</span>{% else %}<span>Narx belgilanmagan</span>{% endif %}</div>
       <div class="e-shtrix" style="--modullar: {{ modullar }}">{{ mahsulot.etiketka_svg|safe }}</div>
-      <div class="e-kod"><b>{{ mahsulot.kod }}</b></div>
+      <div class="e-kod"><span>KOD</span><b>{{ mahsulot.kod }}</b></div>
     </div>
   </template>
 
@@ -64,6 +65,24 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
     <div class="etiketkalar" id="etiketkalar" data-olcham="40x30"></div>
   </div>
 </div>
+<dialog id="etiketka-printer-dialog" class="etiketka-boshqaruv" aria-labelledby="etiketka-printer-sarlavha">
+  <form id="etiketka-printer-forma" data-list="{% url 'etiketka_printerlar' %}"
+        data-print="{% url 'etiketka_chop' mahsulot.pk %}"
+        data-status="{% url 'etiketka_chop_holat' token='00000000-0000-0000-0000-000000000000' %}">
+    {% csrf_token %}
+    <h2 id="etiketka-printer-sarlavha">BizaroPOS · Yorliq chiqarish</h2>
+    <label for="etiketka-native-printer">Printer</label>
+    <select class="kirish" id="etiketka-native-printer" required></select>
+    <p id="etiketka-printer-summary"></p>
+    <p class="maydon-izoh">Nom, sotish narxi, kod va shtrix kod chiqariladi. Brauzerning sana va sahifa manzili qo‘shilmaydi. Xprinter chek qog‘oziga chiqaradi.</p>
+    <p class="maydon-izoh">RLS1100C ichki printeriga erkin rasta yorlig‘i yuborish hozircha ulanmagan.</p>
+    <p id="etiketka-printer-izoh" role="status" aria-live="polite"></p>
+    <div class="qator">
+      <button type="button" class="tugma tinch" id="etiketka-printer-bekor">Yopish</button>
+      <button type="submit" class="tugma yashil" id="etiketka-native-submit" disabled>Printerga yuborish</button>
+    </div>
+  </form>
+</dialog>
 <style id="etiketka-sahifa-uslubi">@page { size: 40mm 30mm; margin: 0; }</style>
 {% endblock %}
 

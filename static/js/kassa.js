@@ -1,6 +1,6 @@
 /* Kassa ekrani: tovar tanlash va miqdor kiritish.
-   Narx hech qayerda hisoblanmaydi — do'konda savdolashiladi, shuning uchun
-   chek/qarz summasi pastdagi «Jami» maydoniga qo'lda yoziladi.
+   «Jami» serverda qatorlarning sotish narxi × miqdori bo'yicha to'ldiriladi.
+   Savdolashilgan yakuniy summani pastdagi maydonda o'zgartirish mumkin.
    Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS hal qiladi),
    lekin sichqoncha rejimida maydonlarga klaviaturadan yozish har doim ishlaydi.
 
@@ -376,6 +376,7 @@
 
     // Klaviatura yorliqlari (sichqoncha rejimi uchun)
     document.addEventListener("keydown", function (e) {
+      if (document.querySelector('#miqdor-dialog[open]')) return;
       if (e.key === "Escape") return oynaYop();
       if (e.key === "F2") { e.preventDefault(); return oynaOch(); }
       if (oyna.classList.contains("ochiq")) return;

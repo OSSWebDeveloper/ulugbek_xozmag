@@ -5,19 +5,19 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
-KOD_UZUNLIK = 5       # tovar kodi — turgan joyi: 00001 … 99999
-KOD_MAX = 99999
+KOD_UZUNLIK = 4       # tovar kodi — turgan joyi: 0001 … 9999
+KOD_MAX = 9999
 QISQA_UZUNLIK = KOD_UZUNLIK   # kassada butun kod uriladi, boshidagi nollarsiz ham bo'ladi
 ETIKETKA_KOPI = 500   # bir yo'la chop etiladigan etiketkalar chegarasi
 
 
 def kod_yasa(raqam):
-    """Raqamdan kod yasaydi: 7 -> '00007'."""
+    """Raqamdan kod yasaydi: 7 -> '0007'."""
     return f"{int(raqam):0{KOD_UZUNLIK}d}"
 
 
 def keyingi_kod(band=None):
-    """Navbatdagi bo'sh kod: eng kattasidan keyingisi, 99999 to'lsa — bo'shliqlardan.
+    """Navbatdagi bo'sh kod: eng kattasidan keyingisi, 9999 to'lsa — bo'shliqlardan.
 
     `band` — qo'shimcha band kodlar (masalan hali saqlanmagan qoralama qatorlari).
     Bo'sh kod qolmagan bo'lsa None.
@@ -72,6 +72,8 @@ class Birlik(models.TextChoices):
     PACHKA = "pachka", "pachka"
     LIST = "list", "list"
     TONNA = "tonna", "tonna"
+    KVM = "kvm", "m²"
+    BLOK = "blok", "blok"
 
 
 class Mahsulot(models.Model):
@@ -82,8 +84,8 @@ class Mahsulot(models.Model):
     yoziladi (`Sotuv.jami`, `Qarz.jami`). Narx ma'lumot uchun — sotuvchi
     ko'rib turadi, keyinchalik elektron tarozi shu narxdan foydalanadi.
 
-    Har bir tovarga turgan joyiga qarab **5 xonali kod** beriladi (`00001` …
-    `99999`, v3.0.0 dan; oldin id bo'yicha 10 xonali edi). Bo'sh qoldirilsa
+    Har bir tovarga turgan joyiga qarab **4 xonali kod** beriladi (`0001` …
+    `9999`; oldingi 5 va 10 xonali etiketkalar ham son bo‘yicha o‘qiladi). Bo'sh qoldirilsa
     navbatdagi bo'sh kod beriladi. Kassada va tarozida shu kod uriladi
     (boshidagi nollarsiz ham: `27` = `00027`) — og'ir tovarni kassagacha
     ko'tarib kelish shart emas. Etiketkadagi shtrix
@@ -101,8 +103,10 @@ class Mahsulot(models.Model):
                            error_messages={"unique": "Bunday nomli tovar allaqachon bor."})
     kod = models.CharField(
         "Kod", max_length=KOD_UZUNLIK, unique=True, blank=True, db_index=True,
-        help_text="Tovar turgan joyi: 00001 … 99999. Bo'sh qoldirilsa navbatdagi bo'sh kod beriladi.",
+        help_text="Tovar turgan joyi: 0001 … 9999. Bo'sh qoldirilsa navbatdagi bo'sh kod beriladi.",
     )
+    tarozi_kodi = models.CharField('Tarozi shtrix identifikatori', max_length=6,
+                                   null=True, blank=True, unique=True, editable=False)
     birlik = models.CharField("Sotuv birligi", max_length=10, choices=Birlik,
                               default=Birlik.DONA)
     valyuta = models.CharField(
@@ -122,6 +126,11 @@ class Mahsulot(models.Model):
         help_text="1 sotuv birligi uchun, tovarning valyutasida. Kassada summa "
                   "baribir qo'lda yoziladi — bu narx ma'lumot uchun.",
     )
+    kelish_narxi = models.DecimalField("Kelish narxi", max_digits=16, decimal_places=4,
+                                      null=True, blank=True)
+    kelish_valyutasi = models.CharField("Kelish narxi valyutasi", max_length=10,
+                                       choices=Valyuta, blank=True, default="")
+    manba = models.JSONField("Import manbasi", default=dict, blank=True)
     qoldiq = models.DecimalField("Qoldiq", max_digits=12, decimal_places=3, default=0)
     faol = models.BooleanField("Faol", default=True)
     yaratilgan = models.DateTimeField(auto_now_add=True)
@@ -138,20 +147,13 @@ class Mahsulot(models.Model):
 
     @property
     def qisqa_kod(self):
-        """Kassada va tarozida uriladigan kod — 5 xonali kodning o'zi."""
+        """Kassada va tarozida uriladigan kod — 4 xonali kodning o'zi."""
         return self.kod or ""
 
     @property
     def etiketka_kodi(self):
-        """O'zimiz bosadigan etiketkadagi shtrix (Code 128-C): kod oldiga bitta `0`.
-
-        Code 128-C raqamlarni juftlab yozadi, 5 xonali kod esa toq — shuning
-        uchun `00027` shtrixda `000027` bo'ladi. Skaner o'qigani ham, kassir
-        urgani ham son sifatida o'qiladi va bitta tovarga olib boradi
-        (`ombor/kod.py`). Etiketkadagi yozuv — kodning o'zi (`00027`).
-        Tarozi esa o'z etiketkasini EAN-13 da bosadi — og'irlik bilan (`ichki_shtrix`).
-        """
-        return self.kod.rjust(KOD_UZUNLIK + 1, "0") if self.kod else ""
+        """Shtrix 6 raqam: rang kodidan ajraladi; odam ko'radigan kod 4 xonali."""
+        return self.kod.rjust(6, "0") if self.kod else ""
 
     @property
     def etiketka_svg(self):
@@ -293,6 +295,8 @@ class Mahsulot(models.Model):
             self.olish_miqdori = Decimal("1")
         if not self.kod:
             self.kod = keyingi_kod()
+        elif self.kod.isdigit() and 1 <= int(self.kod) <= KOD_MAX:
+            self.kod = kod_yasa(self.kod)
         super().save(*args, **kwargs)
 
 

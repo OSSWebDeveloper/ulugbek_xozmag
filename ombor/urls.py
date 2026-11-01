@@ -12,6 +12,7 @@ urlpatterns = [
     path("yangi/", views.mahsulot_yangi, name="mahsulot_yangi"),
     path("<int:pk>/tahrir/", views.mahsulot_tahrir, name="mahsulot_tahrir"),
     path("<int:pk>/kirim/", views.kirim, name="kirim"),
+    path("<int:pk>/qoldiq/", views.qoldiq_tuzatish, name="qoldiq_tuzatish"),
     path("<int:pk>/etiketka/", views.etiketka, name="etiketka"),
     path("<int:pk>/harakatlar/", views.harakatlar, name="harakatlar"),
 

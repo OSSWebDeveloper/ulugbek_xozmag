@@ -1,0 +1,15 @@
+.savdo-chek { width: 80mm; max-width: 100%; box-sizing: border-box; margin: 20px auto; padding: 5mm 4mm; background: white; color: black; font: 10pt Arial,sans-serif; }
+.savdo-chek h1 { font-size: 15pt; text-align: center; margin: 0 0 5mm; }
+.savdo-chek-satr { overflow-wrap: anywhere; margin: 1.2mm 0; line-height: 1.3; }
+.savdo-chek-shtrix { width: 64mm; max-width: 100%; margin: 6mm auto 1mm; }
+.savdo-chek-shtrix svg { width: 100%; height: 16mm; display: block; }
+.savdo-chek-raqam, .savdo-chek p { text-align: center; }
+.savdo-chek-raqam { font-family: monospace; letter-spacing: 1px; }
+@media print {
+ @page { size: 80mm auto; margin: 0; }
+ :root { zoom: 1 !important; }
+ body { background: white !important; display: block !important; height: auto !important; overflow: visible !important; }
+ .yon-menyu, .xabarlar, .chek-boshqaruv, .kb-panel { display: none !important; }
+ .ish, .sahifa, .savdo-chek-sahifa { padding: 0 !important; margin: 0 !important; display: block !important; height: auto !important; overflow: visible !important; }
+ .savdo-chek { margin: 0; }
+}
