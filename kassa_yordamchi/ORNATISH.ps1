@@ -1,8 +1,15 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $source = $PSScriptRoot
+$config = Get-Content -Raw -LiteralPath (Join-Path $source 'kassa.json') | ConvertFrom-Json
+if ($config.client_ip) {
+ & (Join-Path $source 'kassa_ip.ps1') -Address $config.client_ip
+}
 $target = Join-Path $env:LOCALAPPDATA 'BizaroPOS-Kassa'
 New-Item -ItemType Directory -Path $target -Force | Out-Null
-Copy-Item -Path (Join-Path $source '*') -Destination $target -Force
+$oldPython = Join-Path $target 'runtime\pythonw.exe'
+Get-CimInstance Win32_Process -Filter "Name='pythonw.exe'" | Where-Object { $_.ExecutablePath -eq $oldPython -and $_.CommandLine.Contains((Join-Path $target 'agent.py')) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+
+Copy-Item -Path (Join-Path $source '*') -Destination $target -Force -Recurse
 $runtime = Join-Path $target 'runtime'
 Expand-Archive -LiteralPath (Join-Path $target 'python.zip') -DestinationPath $runtime -Force
 $python = Join-Path $runtime 'pythonw.exe'

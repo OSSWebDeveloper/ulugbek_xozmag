@@ -46,7 +46,6 @@
                   <td>
                     <b>{{ qator.mahsulot_nomi }}</b>
                     {% if qator.mahsulot.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
-                    {% include "rang/_kassa_nishon.html" with hujjat=qarz %}
                   </td>
                   <td class="son">
                     {% url 'qarz:qator_miqdor' qator.pk as miqdor_amali %}

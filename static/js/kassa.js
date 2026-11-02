@@ -12,7 +12,7 @@
   "use strict";
 
   var oyna, qidiruv, miqdorEl, mahsulotId, tanlanganEl, qoshTugma, forma;
-  var kodEl, kodiEl, kodSora, rangChekEl;
+  var kodEl, kodiEl, kodSora;
   var faolMaydon = "miqdor";
 
   // Pul maydonlarida son guruhlangan turadi («200 000») — js/forma.js o'qiydi
@@ -63,7 +63,6 @@
 
   function tozalaHammasi() {
     mahsulotId.value = "";
-    if (rangChekEl) rangChekEl.value = "";
     miqdorEl.value = "";
     if (kodEl) kodEl.value = "";
     if (kodiEl) kodiEl.textContent = "";
@@ -83,7 +82,6 @@
     mahsulotId.value = karta.dataset.id;
     // Rang cheki faqat o'zi skanerlanganda bog'lanadi (rangChekQoy) — ro'yxatdan
     // tanlangan tovarga oldingi chek yopishib qolmasin
-    if (rangChekEl) rangChekEl.value = "";
     miqdorEl.value = miqdor || "";
     if (kodEl) kodEl.value = "";
     if (kodiEl) kodiEl.textContent = karta.dataset.qisqa || "";
@@ -234,7 +232,6 @@
     if (skanerdan) return skanerdanQosh(karta, javob);
 
     tovarTanla(karta, javob.miqdor);
-    rangChekQoy(javob);
     if (javob.miqdor) {
       // Miqdorni kod o'zi aytdi (tarozi yoki quti) — kassir ko'rib tursin.
       window.xabarBer(javob.nom + ": " + javob.miqdor_matni + " " + javob.birlik);
@@ -256,16 +253,12 @@
     }
     var oldindan = !mahsulotId.value && son(miqdorEl.value) > 0 ? miqdorEl.value : "";
     tovarTanla(karta, javob.miqdor || oldindan || "1");
-    rangChekQoy(javob);
     forma.requestSubmit(qoshTugma);
   }
 
   /* Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi, chek
      raqami forma bilan ketadi — server uni shu hujjatga bog'laydi va ikkinchi
      marta qabul qilmaydi (rang/kassa.py). */
-  function rangChekQoy(javob) {
-    if (rangChekEl) rangChekEl.value = javob.rang_chek || "";
-  }
 
   function kodniUlash() {
     var panel = document.querySelector(".ong-panel");
@@ -302,7 +295,6 @@
     qidiruv = document.getElementById("tovar-qidiruv");
     miqdorEl = document.getElementById("miqdor");
     mahsulotId = document.getElementById("mahsulot-id");
-    rangChekEl = document.getElementById("rang-chek");
     tanlanganEl = document.getElementById("tanlangan");
     qoshTugma = document.getElementById("qosh-tugma");
 

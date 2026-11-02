@@ -14,6 +14,14 @@
     </form>
     <p class="sust">Shu akkauntga tegishli paketni ZIP’dan ochib, ORNATISH.bat ni ishga tushiring. Windows’da chek printerini standart printer qiling. Qayta yuklab olish eski yordamchining ulanish kalitini bekor qiladi.</p>
   </section>
+  <section class="quti qurilma-kirish">
+    <h2>Chek printeri</h2>
+    <p>{% if terminal.printer %}{{ terminal.printer }}{% else %}Asosiy kassaning chek printeri{% endif %} · {{ request.user.username }}</p>
+    <form id="printer-sinov-form" action="{% url 'printer_sinov' %}" method="post">{% csrf_token %}
+      <button class="tugma yashil" type="submit">Sinov cheki chiqarish</button>
+    </form>
+    <p id="printer-sinov-xabar" role="status" aria-live="polite">Sinov savdo yaratmaydi va ombor qoldig‘ini o‘zgartirmaydi.</p>
+  </section>
   <section class="quti qurilma-kirish" id="rongta-panel"
            data-status="{% url 'tarozi_status' %}" data-sync="{% url 'tarozi_sync' %}"
            data-progress="{% url 'tarozi_progress' token='00000000-0000-0000-0000-000000000000' %}">

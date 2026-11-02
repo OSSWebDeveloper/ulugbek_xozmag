@@ -603,6 +603,7 @@ def tovarlar(q="", valyuta="", kam_birinchi=False, tugagan=False, yashirilgan=Fa
         izlov = Q()
         for soz in q.split():
             izlov &= Q(nom__icontains=soz)
+        izlov |= Q(shtrix_kod=raqam)
         if raqam.isdigit() and len(raqam) <= 10 and 1 <= int(raqam) <= KOD_MAX:
             izlov |= Q(kod=kod_yasa(raqam))
         qs = qs.filter(izlov)

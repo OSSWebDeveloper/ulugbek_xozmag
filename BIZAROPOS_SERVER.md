@@ -6,7 +6,12 @@ Yarlik serverni oynasiz ishga tushirib, brauzerni ochadi. Takror bosish yangi
 server ochmaydi. Eski SERVERXOZMAG.bat va kuzatuvchi bilan birga ishlatmang.
 
 Asosiy kompyuter: http://127.0.0.55:5555/.
-Boshqa qurilmalar: asosiy kassaning Wi-Fi IP manzili va :5555.
+Boshqa Windows kassalari: http://WIN-HS2MGB9MV4U:5555/ (server kompyuter nomi).
+Yangi USB yordamchi paketlari ham server nomiga ulanadi; eski IP yozilgan
+paketni qayta yuklab o'rnatish kerak. Kompyuter nomi o'zgartirilmasin.
+Ikkala kassa bir xil Wi-Fi yoki bir xil hotspotda bo'lishi kerak.
+Tarmoq Windows kompyuter nomlarini aniqlashi va mijozlararo aloqani o'tkazishi
+kerak. Mijozlarni ajratadigan hotspotda nom orqali ham ulanish bo'lmaydi.
 127.x manzillar har qurilmaning o‘zini anglatadi. Wi-Fi manzili routerdan
 o‘zgarishi mumkin; barqaror manzil uchun routerda DHCP reservation qo‘ying.
 Guest Wi-Fi / client isolation boshqa qurilmalar ulanishini to‘sishi mumkin.

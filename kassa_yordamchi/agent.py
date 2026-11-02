@@ -27,13 +27,22 @@ def powershell(code):
     return result.stdout.strip().lstrip('\ufeff')
 
 
-def printer_name(config):
-    rows = json.loads(powershell("[Console]::OutputEncoding=[Text.Encoding]::UTF8; ConvertTo-Json -InputObject @(Get-CimInstance Win32_Printer | Select-Object Name,Default) -Compress"))
-    available = [p['Name'] for p in rows if not any(s in p['Name'].lower() for s in ('pdf', 'xps', 'onenote', 'fax'))]
+def printer_list():
+    rows = json.loads(powershell("[Console]::OutputEncoding=[Text.Encoding]::UTF8; ConvertTo-Json -InputObject @(Get-CimInstance Win32_Printer | Select-Object Name,Default,DriverName,PortName,WorkOffline) -Compress"))
+    return [dict(nom=p['Name'], drayver=p.get('DriverName',''), port=p.get('PortName',''), default=p.get('Default',False))
+            for p in rows if not p.get('WorkOffline') and not any(s in p['Name'].lower() for s in ('pdf','xps','onenote','fax'))]
+
+
+def printer_name(config, rows=None):
+    rows = printer_list() if rows is None else rows
+    available = [p['nom'] for p in rows]
     preferred = config.get('printer', '')
     if preferred:
         return preferred if preferred in available else ''
-    defaults = [p['Name'] for p in rows if p.get('Default') and p['Name'] in available]
+    for p in rows:
+        if 'xp-80' in p['nom'].lower():
+            return p['nom']
+    defaults = [p['nom'] for p in rows if p.get('default')]
     return defaults[0] if defaults else (available[0] if len(available) == 1 else '')
 
 
@@ -63,20 +72,44 @@ def main():
         webbrowser.open(config['url'])
         return
     webbrowser.open(config['url'])
+    import threading
+    from tray import run_tray
+    stop=threading.Event()
+    state={'printers':[]}
+    thread=threading.Thread(target=run_loop,args=(config,stop,state),daemon=True)
+    thread.start()
+    restart=False
+    try:
+        restart=run_tray(ROOT,config,stop,state)
+    finally:
+        stop.set()
+        thread.join(timeout=65)
+        kernel.CloseHandle.argtypes=[ctypes.c_void_p]
+        kernel.CloseHandle(mutex)
+    if isinstance(restart,str):
+        subprocess.Popen([sys.executable,str(ROOT/'updater.py'),restart,str(os.getpid())],cwd=ROOT,creationflags=NO_WINDOW)
+    elif restart:
+        subprocess.Popen([sys.executable,str(ROOT/'agent.py')],cwd=ROOT,creationflags=NO_WINDOW)
+
+
+def run_loop(config, stop, state):
     devices = []
     printer = ''
+    printers = []
     next_scan = 0
     pending = ROOT / 'joriy_vazifa.json'
-    while True:
+    while not stop.is_set():
         try:
-            if time.monotonic() >= next_scan:
+            if time.monotonic() >= next_scan or state.pop('refresh', False):
                 next_scan = time.monotonic() + 30
                 try:
                     from local_devices import aniqlash
                     devices = aniqlash()
                 except Exception:
                     logging.exception('USB ro‘yxati yangilanmadi')
-                printer = printer_name(config)
+                printers = printer_list()
+                printer = printer_name(config, printers)
+                state['printers'] = printers
             ack = None
             if pending.exists():
                 stored = json.loads(pending.read_text(encoding='ascii'))
@@ -85,25 +118,35 @@ def main():
                 ack = {'id': stored['id'], 'claim': stored['claim'], 'ok': stored.get('ok', False),
                        'xato': stored.get('xato', 'Oldingi chop holati noma’lum; chekni tekshirib qo‘lda qayta chiqaring.')}
             result = exchange(config, {'nom': socket.gethostname(), 'printer': printer,
-                'qurilmalar': devices, 'tayyor': bool(printer) and not pending.exists(), 'ack': ack})
+                'qurilmalar': devices, 'printerlar': printers, 'etiketka': True, 'tayyor': bool(printers) and not pending.exists(), 'ack': ack})
             if ack:
                 pending.unlink(missing_ok=True)
             job = result.get('vazifa')
             if job:
                 atomic_json(pending, {'id': job['id'], 'claim': job['claim']})
                 data = job['data']
-                data['printer'] = printer  # Never use a server printer name.
+                is_label = data.get('kind') == 'etiketka'
+                if is_label:
+                    if data.get('printer') not in {p['nom'] for p in printers}:
+                        atomic_json(pending, {'id':job['id'],'claim':job['claim'],'ok':False,'xato':'Tanlangan mahalliy printer topilmadi.'})
+                        continue
+                else:
+                    data['printer'] = printer  # Never use a server printer name.
                 path = ROOT / 'chek.json'
                 atomic_json(path, data)
                 process = subprocess.run([PS, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
-                    '-File', str(ROOT / 'chek_print.ps1'), '-DataFile', str(path)], capture_output=True,
+                    '-File', str(ROOT / ('etiketka_print.ps1' if is_label else 'chek_print.ps1')), '-DataFile', str(path)], capture_output=True,
                     timeout=40, creationflags=NO_WINDOW)
                 atomic_json(pending, {'id': job['id'], 'claim': job['claim'], 'ok': process.returncode == 0,
                     'xato': '' if process.returncode == 0 else 'USB printerga yuborilmadi.'})
         except Exception:
             logging.exception('Kassa qurilmalari bilan aloqa xatosi')
-        time.sleep(2)
+        stop.wait(2)
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception:
+        logging.exception('Kassa yordamchisi ishga tushmadi')
+        ctypes.windll.user32.MessageBoxW(None, 'Kassa yordamchisi ochilmadi. kassa.log faylini tekshiring.', 'BizaroPOS Kassa', 16)

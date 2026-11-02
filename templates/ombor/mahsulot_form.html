@@ -32,7 +32,12 @@
       <div class="maydon-izoh">0001 … 9999{% if not mahsulot %} · bo'sh bo'lsa navbatdagisi beriladi{% else %} · o'zgarsa etiketkani qayta chop eting{% endif %}</div>
       {% if form.kod.errors %}<div class="xato-yozuv">{{ form.kod.errors|striptags }}</div>{% endif %}
     </div>
-    <div class="maydon"></div>
+    <div class="maydon">
+      <label for="{{ form.shtrix_kod.id_for_label }}">Shtrix kod</label>
+      {{ form.shtrix_kod }}
+      <div class="maydon-izoh">Mahsulot qadoqidagi zavod kodi. Bo‘sh qoldirish mumkin.</div>
+      {% if form.shtrix_kod.errors %}<div class="xato-yozuv">{{ form.shtrix_kod.errors|striptags }}</div>{% endif %}
+    </div>
 
     <div class="maydon keng">
       <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>

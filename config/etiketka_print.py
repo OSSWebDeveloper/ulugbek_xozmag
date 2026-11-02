@@ -73,21 +73,32 @@ def work(path, data):
     save(path, data)
 
 
+def local_printers(request):
+    if mahalliymi(request):
+        return printers()
+    from sotuv.models import KassaTerminal
+    from django.utils import timezone
+    terminal=KassaTerminal.objects.filter(kassir=request.user).first()
+    if not terminal or not terminal.oxirgi_aloqa or (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
+        raise RuntimeError('Shu kassada BizaroPOS Kassa yordamchisini oching.')
+    if not terminal.etiketka_tayyor:
+        raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
+    return terminal.printerlar
+
+
 @require_GET
 @never_cache
 def royxat(request):
-    if not mahalliymi(request):
-        return JsonResponse({'xato': 'Bu print modulini asosiy kassada oching. Ikkinchi kassa uchun USB yordamchisi orqali yorliq chiqarish hali ulanmagan.'}, status=409)
     try:
-        return JsonResponse({'printerlar': printers()})
+        return JsonResponse({'printerlar': local_printers(request)})
+    except RuntimeError as exc:
+        return JsonResponse({'xato': str(exc)},status=503)
     except Exception:
         return JsonResponse({'xato': 'Windows printerlari ro‘yxatini olib bo‘lmadi.'}, status=503)
 
 
 @require_POST
 def chop(request, pk):
-    if not mahalliymi(request):
-        return JsonResponse({'xato': 'Yorliq chiqarishni asosiy kassada oching.'}, status=409)
     product = get_object_or_404(Mahsulot, pk=pk)
     try:
         body = json.loads(request.body)
@@ -99,6 +110,21 @@ def chop(request, pk):
             raise ValueError
     except (ValueError, TypeError, KeyError):
         return JsonResponse({'xato': 'Nusxalar soni yoki o‘lcham noto‘g‘ri.'}, status=400)
+    if not mahalliymi(request):
+        from sotuv.models import ChekVazifa, KassaTerminal
+        from django.db import IntegrityError
+        try:
+            rows=local_printers(request)
+            if printer not in {p['nom'] for p in rows}:
+                return JsonResponse({'xato':'Tanlangan kassa printeri topilmadi.'},status=400)
+            terminal=KassaTerminal.objects.get(kassir=request.user)
+            data=payload(product,printer,size,copies);data['kind']='etiketka'
+            job,created=ChekVazifa.objects.get_or_create(request_key=token,defaults={'terminal':terminal,'malumot':data})
+            if job.terminal_id!=terminal.pk:
+                return JsonResponse({'xato':'Boshqa kassa vazifasi.'},status=403)
+            return JsonResponse({'id':token},status=202)
+        except RuntimeError as exc:
+            return JsonResponse({'xato':str(exc)},status=503)
     path = folder() / (token + '.json')
     if path.exists():
         current = json.loads(path.read_text(encoding='ascii'))
@@ -126,6 +152,14 @@ def chop(request, pk):
 @require_GET
 @never_cache
 def holat(request, token):
+    from sotuv.models import ChekVazifa
+    job=ChekVazifa.objects.filter(request_key=token).first()
+    if job:
+        if job.terminal.kassir_id!=request.user.pk:
+            return JsonResponse({'xato':'Boshqa kassa vazifasi.'},status=403)
+        status={'tayyor':'yuborildi','xato':'xato'}.get(job.holat,'yuborilmoqda')
+        message=job.xato if status=='xato' else ('Yorliq kassa printeri navbatiga yuborildi. Qog‘ozni tekshiring.' if status=='yuborildi' else 'Kassa yordamchisi yorliqni yubormoqda…')
+        return JsonResponse({'holat':status,'xabar':message})
     path = folder() / (str(token) + '.json')
     if not path.exists():
         return JsonResponse({'xato': 'Chop vazifasi topilmadi.'}, status=404)

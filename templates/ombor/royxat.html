@@ -11,7 +11,7 @@
   <div class="quti">
     <form method="get" class="qator" id="ombor-filtr">
       <input type="text" name="q" value="{{ matn }}" class="kirish" style="flex:3"
-             placeholder="Tovar nomi yoki kodi" autocomplete="off">
+             placeholder="Tovar nomi, kodi yoki shtrix kodi" autocomplete="off">
       <select name="valyuta" class="kirish" style="flex:1" title="Qaysi pulda sotiladi">
         <option value="">Hamma valyuta</option>
         <option value="som" {% if f.valyuta == 'som' %}selected{% endif %}>So'mda</option>
@@ -63,7 +63,7 @@
         <tr>
           <th class="son" style="width:1%">Kod</th>
           <th>Tovar</th>
-          <th>Birlik</th>
+          <th>Shtrix kod</th><th>Birlik</th>
           <th class="son">Kelish narxi</th>
           <th class="son">Sotish narxi</th>
           <th class="son">Qoldiq</th>
@@ -83,6 +83,19 @@
               <b>{{ m.nom }}</b>
               {% if m.dollarmi %}<span class="nishon dollar">$</span>{% endif %}
               {% if not m.faol %} <span class="nishon">yashirilgan</span>{% endif %}
+            </td>
+            <td data-kirimsiz class="shtrix-maydon">
+              <button type="button" class="tugma tinch kichik shtrix-och" title="Shtrix kodni kiritish yoki tahrirlash">{{ m.shtrix_kod|default:'—' }}</button>
+              <form class="shtrix-form" method="post" action="{% url 'ombor:shtrix_saqlash' m.pk %}" hidden>
+                {% csrf_token %}
+                <input type="hidden" name="eski" value="{{ m.shtrix_kod|default:'' }}">
+                <input class="kirish" name="shtrix_kod" value="{{ m.shtrix_kod|default:'' }}" maxlength="14" inputmode="numeric" autocomplete="off" aria-label="{{ m.nom }} — shtrix kod" placeholder="Shtrix kod">
+                <div class="qator" style="margin-top:6px">
+                  <button type="submit" class="tugma yashil kichik">Saqlash</button>
+                  <button type="button" class="tugma tinch kichik shtrix-bekor">Bekor</button>
+                </div>
+                <small class="shtrix-xato" role="alert"></small>
+              </form>
             </td>
             <td>
               <span class="sust">{{ m.birlik }}</span>
@@ -116,7 +129,7 @@
               <a class="tugma kichik yashil" href="{% url 'ombor:kirim' m.pk %}">
                 <svg class="ikon"><use href="#i-kirim"></use></svg> Kirim
               </a>
-              <a class="tugma tinch kichik" data-kirimsiz title="Etiketka chop etish"
+              <a class="tugma tinch kichik" data-kirimsiz title="Shtrix kod chop etish"
                  href="{% url 'ombor:etiketka' m.pk %}">
                 <svg class="ikon"><use href="#i-printer"></use></svg>
               </a>
@@ -132,7 +145,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="7">
+            <td colspan="8">
               <div class="bosh-holat">
                 <svg class="ikon"><use href="#i-quti"></use></svg>
                 <b>Sklad bo'sh</b>
@@ -178,6 +191,7 @@
 {% block skript %}
 <script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/ombor.js' %}"></script>
+<script src="{% statik 'js/shtrix_tahrir.js' %}"></script>
 <script>
 /* Belgilar va valyuta darhol qo'llanadi */
 document.querySelectorAll("#ombor-filtr select, .ombor-belgi input").forEach(function (el) {

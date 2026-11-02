@@ -122,8 +122,10 @@ def royxat(request):
     terminal = KassaTerminal.objects.filter(kassir=request.user).first()
     if terminal:
         if not terminal.oxirgi_aloqa or (timezone.now() - terminal.oxirgi_aloqa).total_seconds() > 60:
-            return JsonResponse({'xato': 'Shu kassaning USB yordamchisi ulanmagan. Quyidagi paketni shu kompyuterda o‘rnating yoki BizaroPOS Kassa yarligini oching.'}, status=503)
-        return JsonResponse({'qurilmalar': terminal.qurilmalar, 'vaqt': terminal.oxirgi_aloqa.isoformat()})
+            if not mahalliymi(request):
+                return JsonResponse({'xato': 'Shu kassaning USB yordamchisi ulanmagan. Quyidagi paketni shu kompyuterda o‘rnating yoki BizaroPOS Kassa yarligini oching.'}, status=503)
+        else:
+            return JsonResponse({'qurilmalar': terminal.qurilmalar, 'vaqt': terminal.oxirgi_aloqa.isoformat()})
     if not mahalliymi(request):
         return JsonResponse({'xato': 'USB qurilmalarni ko‘rish uchun shu kassada yordamchini o‘rnating.'}, status=503)
     try:

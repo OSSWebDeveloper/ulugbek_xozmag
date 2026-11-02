@@ -211,8 +211,8 @@ class Supervisor:
         webbrowser.open(URL)
         def ready(icon):
             icon.visible = True
-            from config.tarmoq import manzillar
-            self.notify('Server ishlayapti. Wi-Fi: ' + ', '.join(manzillar(PORT)))
+            from config.tarmoq import doimiy_manzil
+            self.notify('Server ishlayapti. Doimiy manzil: ' + doimiy_manzil(PORT))
             threading.Thread(target=self.periodic, daemon=True).start()
         try:
             self.icon.run(setup=ready)

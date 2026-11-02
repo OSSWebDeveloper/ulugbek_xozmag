@@ -70,6 +70,13 @@ class QurilmalarTests(TestCase):
             self.assertIn('no-store', response['Cache-Control'])
         detect.assert_called_once()
 
+    @patch.object(qurilmalar, 'aniqlash', return_value=[])
+    def test_unused_helper_does_not_hide_main_usb_devices(self, detect):
+        from sotuv.models import KassaTerminal
+        KassaTerminal.objects.create(kassir=self.request.user)
+        self.assertEqual(qurilmalar.royxat(self.request).status_code, 200)
+        detect.assert_called_once()
+
     @patch.object(qurilmalar, 'aniqlash', side_effect=subprocess.TimeoutExpired('powershell', 15))
     def test_timeout_not_a_successful_empty_list(self, detect):
         with self.assertLogs('config.qurilmalar', level='ERROR'):

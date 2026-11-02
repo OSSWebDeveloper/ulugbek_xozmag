@@ -128,6 +128,11 @@ class IkkiKassaTests(KirganTest):
 class UsbAgentTests(KirganTest):
     def setUp(self):
         super().setUp()
+        import tempfile
+        from pathlib import Path
+        directory=tempfile.TemporaryDirectory();self.addCleanup(directory.cleanup)
+        key_patch=patch('config.kassa_agent.key_path',return_value=Path(directory.name)/'key.json')
+        key_patch.start();self.addCleanup(key_patch.stop)
         self.user = get_user_model().objects.get(username=self.LOGIN)
         self.token = 'a' * 64
         self.terminal = KassaTerminal.objects.create(kassir=self.user, kalit_hash=digest(self.token))
@@ -207,3 +212,19 @@ class UsbAgentTests(KirganTest):
         self.assertEqual(self.terminal.kalit_hash, digest(config['token']))
         self.assertEqual(self.poll().status_code, 401)
         self.assertEqual(self.client.get(reverse('kassa_agent_yukla')).status_code, 405)
+
+
+    @patch('config.kassa_agent.Path.exists', return_value=True)
+    @patch('config.kassa_agent.zipfile.ZipFile.write')
+    def test_repeated_package_download_keeps_active_terminal_key(self, write, exists):
+        first=self.client.post(reverse('kassa_agent_yukla'))
+        with zipfile.ZipFile(io.BytesIO(first.content)) as z:token=json.loads(z.read('kassa.json'))['token']
+        from django.utils import timezone
+        stamp=timezone.now()
+        self.terminal.refresh_from_db()
+        self.terminal.oxirgi_aloqa=stamp;self.terminal.save()
+        second=self.client.post(reverse('kassa_agent_yukla'))
+        with zipfile.ZipFile(io.BytesIO(second.content)) as z:self.assertEqual(json.loads(z.read('kassa.json'))['token'],token)
+        self.terminal.refresh_from_db()
+        self.assertEqual(self.terminal.oxirgi_aloqa,stamp)
+        self.assertEqual(self.terminal.kalit_hash,digest(token))

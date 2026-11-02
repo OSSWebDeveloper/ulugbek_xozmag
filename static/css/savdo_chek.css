@@ -5,6 +5,15 @@
 .savdo-chek-shtrix svg { width: 100%; height: 16mm; display: block; }
 .savdo-chek-raqam, .savdo-chek p { text-align: center; }
 .savdo-chek-raqam { font-family: monospace; letter-spacing: 1px; }
+.savdo-chek hr { border: 0; border-top: 2px dashed #000; margin: 4mm 0; }
+.savdo-chek-satr { display: flex; justify-content: space-between; gap: 3mm; }
+.savdo-chek-satr strong { text-align: right; flex-shrink: 0; max-width: 65%; }
+.chek-title { justify-content: center; font-weight: 700; font-size: 17pt; margin: 1mm 0 5mm; }
+.chek-meta { font-size: 9pt; color: #000; }
+.chek-item { font-weight: 700; font-size: 11pt; margin-top: 4mm; }
+.chek-detail { font-size: 10pt; margin: 2mm 0; }
+.chek-total { font-size: 15pt; font-weight: 700; margin: 4mm 0; padding: 3mm 2mm; border: 2px solid #000; }
+.chek-footer { justify-content: center; font-size: 9pt; }
 @media print {
  @page { size: 80mm auto; margin: 0; }
  :root { zoom: 1 !important; }
@@ -13,3 +22,10 @@
  .ish, .sahifa, .savdo-chek-sahifa { padding: 0 !important; margin: 0 !important; display: block !important; height: auto !important; overflow: visible !important; }
  .savdo-chek { margin: 0; }
 }
+/* Selected receipt design 4: classic monochrome. */
+.savdo-chek { font-family: Consolas,'Courier New',monospace; }
+.chek-title { font-family: inherit; font-size: 13pt; }
+.chek-title span::before { content: '*** '; }
+.chek-title span::after { content: ' ***'; }
+.chek-item { text-transform: uppercase; }
+.chek-total { border: 0; border-top: 4px double #000; padding: 4mm 0 0; font-family: inherit; }

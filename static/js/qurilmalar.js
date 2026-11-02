@@ -73,3 +73,38 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   refresh();
 })();
+
+/* Printer tests always use the logged-in cashier's USB helper. */
+(() => {
+  const form = document.getElementById('printer-sinov-form');
+  if (!form) return;
+  const button = form.querySelector('button');
+  const message = document.getElementById('printer-sinov-xabar');
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (button.disabled) return;
+    button.disabled = true;
+    message.textContent = 'Sinov yuborilmoqda…';
+    try {
+      const response = await fetch(form.action, {method: 'POST', body: new FormData(form)});
+      if (response.redirected) throw new Error('Seans tugadi. Hisobingizga qayta kiring.');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.xato || 'Sinov yuborilmadi.');
+      message.textContent = data.xabar;
+      if (data.url) {
+        for (let i = 0; i < 20; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          const result = await fetch(data.url, {cache: 'no-store'});
+          if (result.redirected) throw new Error('Seans tugadi. Hisobingizga qayta kiring.');
+          const state = await result.json();
+          if (!result.ok) throw new Error(state.xato || 'Sinov holatini olib bo‘lmadi.');
+          message.textContent = state.xabar;
+          if (['tayyor','xato'].includes(state.holat)) return;
+        }
+        message.textContent = 'Sinov holati hali tasdiqlanmadi. Qog‘oz va USB yordamchisini tekshiring; qayta bosish navbatdagi sinovni takrorlamaydi.';
+      }
+    } catch (error) {
+      message.textContent = error.message;
+    } finally { button.disabled = false; }
+  });
+})();

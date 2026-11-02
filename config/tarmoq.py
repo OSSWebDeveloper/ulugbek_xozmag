@@ -43,6 +43,18 @@ def ip_manzillar():
     return natija
 
 
+def doimiy_manzil(port=5555, scheme='http'):
+    """Windows kassalari uchun DHCP manziliga bog'liq bo'lmagan host nomi."""
+    import json
+    from pathlib import Path
+    file=Path(__file__).resolve().parent.parent/'qurilmalar_data/kassalar.json'
+    try:
+        ip=json.loads(file.read_text(encoding='utf-8'))['server_ip']
+    except FileNotFoundError:
+        ip='192.168.153.25'
+    return f'{scheme}://{ip}:{port}'
+
+
 def manzillar(port):
     """Boshqa kompyuterning brauzeriga yoziladigan manzillar: IP bilan va nom bilan.
 

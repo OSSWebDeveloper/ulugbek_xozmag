@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block tana %}
+<div class="sahifa-keng" style="max-width:850px">
+ <div class="sarlavha">Kassalar</div>
+ <section class="quti">
+  <h2>Server va kassa IP manzillari</h2>
+  <p>Server: <b>http://{{ network.server_ip }}:5555</b></p>
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button class="tugma yashil">Saqlash va server IPsini qo‘llash</button></form>
+  <p class="sust">Tarmoq kartasi indeksi: Windows’dagi Wi-Fi uchun hozir 13. /24 (255.255.255.0). IP qo‘shimcha sifatida qo‘yiladi; DHCP saqlanadi. Ikkala kassa bir Wi-Fi yoki hotspotda bo‘lsin.</p>
+ </section>
+ <section class="quti" style="margin-top:16px">
+  <h2>2-kassa dasturi · kassa</h2>
+  <p>IP: {{ network.client_ip }} · Server: {{ network.server_ip }}:5555</p>
+  <form method="post" action="{% url 'kassa_agent_yukla' %}">{% csrf_token %}<input type="hidden" name="kassa2" value="1"><button class="tugma yashil">2-kassa dasturini yuklab olish</button></form>
+  <p>ZIP’ni ikkinchi kassada oching. ORNATISH.bat’ni administrator sifatida ishga tushiring. Kassa IPsi sozlanadi va «BizaroPOS Kassa» yarlig‘i yaratiladi. Login/parol: kassa.</p>
+  <p class="sust">Paketni qayta olish eski paket kalitini bekor qiladi. Hotspot qurilmalararo aloqani to‘smasligi kerak.</p>
+ </section>
+</div>
+{% endblock %}

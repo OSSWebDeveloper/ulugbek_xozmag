@@ -44,7 +44,7 @@ class MahsulotForm(forms.ModelForm):
     )
     class Meta:
         model = Mahsulot
-        fields = ["kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
+        fields = ["kod", "shtrix_kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
                   "qoldiq", "faol"]
         field_classes = {
             "qoldiq": VergulliDecimal,
@@ -52,6 +52,7 @@ class MahsulotForm(forms.ModelForm):
             "narx": VergulliDecimal,
         }
         widgets = {
+            "shtrix_kod": forms.TextInput(attrs={"class": "kirish", "inputmode": "numeric", "autocomplete": "off", "placeholder": "Skanerlang yoki kiriting (ixtiyoriy)"}),
             "kod": forms.TextInput(attrs={"class": "kirish raqam-maydon", "inputmode": "numeric",
                                           "autocomplete": "off", "maxlength": 5,
                                           "placeholder": "bo'sh — o'zi beriladi"}),
@@ -74,6 +75,16 @@ class MahsulotForm(forms.ModelForm):
                                              "inputmode": "decimal", "autocomplete": "off",
                                              "placeholder": "0"}),
         }
+
+    def clean_shtrix_kod(self):
+        value = (self.cleaned_data.get('shtrix_kod') or '').strip()
+        if not value:
+            return None
+        if not value.isascii() or not value.isdigit() or len(value) not in (8, 12, 13, 14):
+            raise forms.ValidationError('Shtrix kod 8, 12, 13 yoki 14 ta raqamdan iborat bo‘lsin.')
+        if (len(value) == 13 and value.startswith('2')) or (len(value) == 12 and value.startswith(('77', '88'))):
+            raise forms.ValidationError('Bu prefiks tarozi yoki chek kodlari uchun ajratilgan.')
+        return value
 
     def clean_kod(self):
         """Kod — tovar turgan joyi: «27» yozilsa ham «00027» bo'ladi."""
@@ -280,3 +291,10 @@ class QatorForm(forms.Form):
             raise forms.ValidationError(xato)
         d["holat"], d["ogohlantirish"] = holat, ogoh
         return d
+
+class ShtrixKodForm(forms.ModelForm):
+    clean_shtrix_kod = MahsulotForm.clean_shtrix_kod
+
+    class Meta:
+        model = Mahsulot
+        fields = ['shtrix_kod']

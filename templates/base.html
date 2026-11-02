@@ -33,16 +33,13 @@
        href="{% url 'ombor:royxat' %}">
       <svg class="ikon"><use href="#i-quti"></use></svg> Ombor
     </a>
-    <a class="menyu-tugma {% if ilova == 'rang' %}faol{% endif %}"
-       href="{% url 'rang:stansiya' %}" title="Rang mashinasi (kolerovka)">
-      <svg class="ikon"><use href="#i-rang"></use></svg> Rang
-    </a>
 
     <a class="menyu-tugma {% if bolim == 'qurilmalar' %}faol{% endif %}"
        href="{% url 'qurilmalar' %}" title="Yangi ulangan qurilmalar">
       <svg class="ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/></svg> Qurilmalar
     </a>
 
+    {% if server_kompyuteri %}<a class="menyu-tugma" href="{% url 'kassalar' %}" title="Kassalar va IP sozlamalari"><svg class="ikon"><use href="#i-savdo"></use></svg> Kassalar</a>{% endif %}
     <div class="menyu-pastki">
       <button type="button" class="richag" id="mavzu-richag" role="switch" aria-pressed="true"
               title="Kechki (quyuq) va kunduzgi (yorug') ko'rinish o'rtasida almashtirish">

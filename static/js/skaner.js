@@ -54,6 +54,15 @@
     }
 
     document.addEventListener("keydown", function (e) {
+      // Barcode assignment fields receive scanner keystrokes and Enter normally.
+      // Never restore their value or turn a new factory code into a lookup.
+      if (e.target && e.target.closest && e.target.closest('input[name="shtrix_kod"]')) {
+        bufer = "";
+        oxirgi = 0;
+        maydon = null;
+        avvalgi = "";
+        return;
+      }
       if (document.querySelector('#miqdor-dialog[open]')) {
         bufer = "";
         maydon = null;
@@ -74,6 +83,13 @@
         maydonniTikla();
         bufer = "";
         maydon = null;
+        var barcodeInput = document.querySelector('.shtrix-form:not([hidden]) input[name="shtrix_kod"]');
+        if (barcodeInput && !barcodeInput.disabled) {
+          barcodeInput.value = kod;
+          barcodeInput.dispatchEvent(new Event('input', {bubbles: true}));
+          barcodeInput.form.requestSubmit();
+          return;
+        }
         sora(kod, true);
         return;
       }

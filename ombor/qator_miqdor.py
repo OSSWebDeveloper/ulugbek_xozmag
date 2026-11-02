@@ -40,10 +40,6 @@ def yangila(request, pk, model, hujjat_turi, sahifa, yopiqni_tekshir):
     if not form.is_valid():
         messages.error(request, 'Miqdor va natija musbat son bo‘lsin (ko‘pi bilan 3 kasr xonasi).')
         return redirect(sahifa, pk=hujjat.pk)
-    from rang.models import Buyurtma
-    if Buyurtma.objects.filter(**{hujjat_turi: hujjat}, baza_id=qator.mahsulot_id).exists():
-        messages.error(request, 'Bu tovar rang chekiga bog‘langan. Miqdorini rang cheki orqali o‘zgartiring.')
-        return redirect(sahifa, pk=hujjat.pk)
     try:
         qator_miqdorini_qoy(qator, form.cleaned_data['yangi_miqdor'], form.cleaned_data['eski_miqdor'],
                             f'{hujjat_turi.capitalize()} #{hujjat.pk}: qator miqdori o‘zgartirildi')

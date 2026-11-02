@@ -30,40 +30,72 @@ def och(matn):
     return int(text[2:11]) or None
 
 
+def hujjat(blocks, barcode='', printer=None, test=False):
+    bars, width = chiziqlar(barcode) if barcode else ([], 0)
+    # lines remains compatible with already installed USB helpers.
+    lines = [b.get('text', '') + ('  ' + b['right'] if b.get('right') else '')
+             for b in blocks if b.get('kind') != 'title']
+    return {'nom': 'PRINTER SINOVI' if test else 'SAVDO CHEKI',
+            'blocks': blocks, 'lines': lines, 'barcode': barcode,
+            'bars': bars, 'width': width, 'test': test,
+            'printer': printer or settings.CHEK_PRINTER}
+
+
 def malumot(s):
     debt = s.qarz_hujjati
     total = s.jami + (debt.jami if debt else 0)
     dollars = s.jami_dollar + (debt.jami_dollar if debt else 0)
-    lines = [f'Chek #{s.pk}', timezone.localtime(s.sana).strftime('%d.%m.%Y %H:%M'), '']
+    blocks = [dict(kind='title', text='SAVDO CHEKI'),
+              dict(kind='meta', text=f'Chek #{s.pk}',
+                   right=timezone.localtime(s.sana).strftime('%d.%m.%Y %H:%M')),
+              dict(kind='meta', text='Kassa: ' + (s.kassir.username if s.kassir else '-')),
+              dict(kind='rule')]
     for row in s.qatorlar.all():
-        lines.extend([row.mahsulot_nomi, f'{tekis(row.miqdor)} {row.birlik}'])
-    lines += ['', 'JAMI: ' + pul(total) + " so'm"]
+        blocks.append(dict(kind='item', text=row.mahsulot_nomi))
+        qty = f'{tekis(row.miqdor)} {row.birlik}'
+        if row.narx is None:
+            blocks.append(dict(kind='detail', text=qty, right='Narx yozilmagan'))
+        else:
+            fmt = tekis if row.valyuta == 'dollar' else pul
+            currency = '$' if row.valyuta == 'dollar' else "so'm"
+            blocks.append(dict(kind='detail', text=f'{qty} x {fmt(row.narx)}',
+                               right=f'{fmt(row.narx * row.miqdor)} {currency}'))
+    blocks.extend([dict(kind='rule'), dict(kind='total', text='JAMI', right=pul(total) + " so'm")])
     if dollars:
-        lines.append('JAMI ($): ' + tekis(dollars))
-    lines.append('Naqd: ' + pul(s.jami) + " so'm")
+        blocks.append(dict(kind='total', text='JAMI ($)', right=tekis(dollars) + ' $'))
+    blocks.append(dict(kind='detail', text='Naqd', right=pul(s.jami) + " so'm"))
     if s.jami_dollar:
-        lines.append('Naqd ($): ' + tekis(s.jami_dollar))
+        blocks.append(dict(kind='detail', text='Naqd ($)', right=tekis(s.jami_dollar) + ' $'))
     if debt:
-        lines.append('Qarz: ' + pul(debt.jami) + " so'm")
+        blocks.append(dict(kind='detail', text='Qarz', right=pul(debt.jami) + " so'm"))
         if debt.jami_dollar:
-            lines.append('Qarz ($): ' + tekis(debt.jami_dollar))
+            blocks.append(dict(kind='detail', text='Qarz ($)', right=tekis(debt.jami_dollar) + ' $'))
     if s.qaytarilganmi:
-        lines.append('Qaytarishlar mavjud; tarix bazada saqlanadi.')
-    barcode = kod(s.pk)
-    bars, width = chiziqlar(barcode)
-    return {'nom': "ULUG'BEK XOZMAG", 'lines': lines, 'barcode': barcode,
-            'bars': bars, 'width': width, 'printer': settings.CHEK_PRINTER}
+        blocks.append(dict(kind='meta', text='Qaytarishlar mavjud; tarix bazada saqlanadi.'))
+    blocks.extend([dict(kind='rule'), dict(kind='footer', text='Xaridingiz uchun rahmat!')])
+    return hujjat(blocks, kod(s.pk))
 
 
-def chop_et(s):
-    if not s.yakunlangan or s.bekor_qilingan:
-        raise ValueError('Faqat yakunlangan savdo cheki chiqariladi.')
+def sinov_malumot(kassir, printer):
+    return hujjat([
+        dict(kind='title', text='PRINTER SINOVI'),
+        dict(kind='meta', text=timezone.localtime().strftime('%d.%m.%Y %H:%M')),
+        dict(kind='rule'), dict(kind='item', text='Kassa: ' + kassir.username),
+        dict(kind='detail', text='Printer: ' + printer),
+        dict(kind='detail', text='Matn: ABC abc 0123456789'),
+        dict(kind='total', text='SINOV', right='1 234,56'),
+        dict(kind='rule'), dict(kind='footer', text='Bu savdo cheki emas.'),
+        dict(kind='footer', text="Ombor va savdolar o'zgarmadi.")],
+        printer=printer, test=True)
+
+
+def chop_malumot(data):
     if os.name != 'nt':
         raise RuntimeError('Avtomatik chop etish Windows serverida ishlaydi.')
     folder = Path(settings.MALUMOT_DIR) / 'qurilmalar_data' / 'cheklar'
     folder.mkdir(parents=True, exist_ok=True)
-    datafile = folder / f'{s.pk}_{uuid.uuid4().hex}.json'
-    datafile.write_text(json.dumps(malumot(s), ensure_ascii=True), encoding='ascii')
+    datafile = folder / f'{uuid.uuid4().hex}.json'
+    datafile.write_text(json.dumps(data, ensure_ascii=True), encoding='ascii')
     exe = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
     result = subprocess.run([str(exe), '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
                              '-File', str(Path(__file__).with_name('chek_print.ps1')),
@@ -72,6 +104,12 @@ def chop_et(s):
                             creationflags=subprocess.CREATE_NO_WINDOW)
     if result.returncode:
         raise RuntimeError('Printerga yuborilmadi. Printer ulanishini tekshirib qayta chiqaring.')
+
+
+def chop_et(s):
+    if not s.yakunlangan or s.bekor_qilingan:
+        raise ValueError('Faqat yakunlangan savdo cheki chiqariladi.')
+    chop_malumot(malumot(s))
 
 
 def avtomatik(request, s):

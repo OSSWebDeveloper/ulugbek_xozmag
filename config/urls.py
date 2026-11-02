@@ -6,8 +6,14 @@ from . import qurilmalar
 from . import rongta
 from . import kassa_agent
 from . import etiketka_print
+from . import printer_sinov
+from . import kassalar
 
 urlpatterns = [
+    path("qurilmalar/kassa-agent/yangila/", kassa_agent.yangila, name="kassa_agent_yangila"),
+    path("kassalar/", kassalar.sahifa, name="kassalar"),
+    path('qurilmalar/printer/sinov/', printer_sinov.chop, name='printer_sinov'),
+    path('qurilmalar/printer/sinov/<int:pk>/', printer_sinov.holat, name='printer_sinov_holat'),
     path('qurilmalar/etiketka/printerlar/', etiketka_print.royxat, name='etiketka_printerlar'),
     path('ombor/<int:pk>/etiketka/chop/', etiketka_print.chop, name='etiketka_chop'),
     path('qurilmalar/etiketka/holat/<uuid:token>/', etiketka_print.holat, name='etiketka_chop_holat'),
@@ -24,6 +30,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("ombor/", include("ombor.urls")),
     path("sotuv/", include("sotuv.urls")),
-    path("rang/", include("rang.urls")),
     path("", include("qarz.urls")),
 ]

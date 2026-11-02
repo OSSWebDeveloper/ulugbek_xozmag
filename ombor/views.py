@@ -81,7 +81,6 @@ def kod_qidir(request):
         "kirim": reverse("ombor:kirim", args=[m.pk]) + "?oyna=1",
         # Rang cheki bo'lsa — kassa uni hujjatga bog'laydi (rang/kassa.py):
         # bitta chek ikki marta ishlatilmaydi
-        "rang_chek": natija.rang_cheki.pk if natija.rang_cheki else "",
     })
 
 
@@ -258,3 +257,24 @@ def harakatlar(request, pk):
         "mahsulot": mahsulot,
         "harakatlar": mahsulot.harakatlar.all()[:200],
     })
+
+from django.views.decorators.http import require_POST
+from django.db import IntegrityError
+from .forms import ShtrixKodForm
+
+
+@require_POST
+def shtrix_saqlash(request, pk):
+    try:
+        with transaction.atomic():
+            product = get_object_or_404(Mahsulot.objects.select_for_update(), pk=pk)
+            if request.POST.get('eski', '') != (product.shtrix_kod or ''):
+                return JsonResponse({'xato': 'Shtrix kod boshqa oynada o‘zgartirilgan. Sahifani yangilang.'}, status=409)
+            form = ShtrixKodForm(request.POST, instance=product)
+            if not form.is_valid():
+                return JsonResponse({'xato': ' '.join(str(e) for errors in form.errors.values() for e in errors)}, status=400)
+            product.shtrix_kod = form.cleaned_data['shtrix_kod']
+            product.save(update_fields=['shtrix_kod'])
+            return JsonResponse({'shtrix_kod': product.shtrix_kod or ''})
+    except IntegrityError:
+        return JsonResponse({'xato': 'Bu shtrix kod boshqa mahsulotga berilgan.'}, status=400)

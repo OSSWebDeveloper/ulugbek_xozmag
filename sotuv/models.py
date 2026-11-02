@@ -147,10 +147,13 @@ class KassaTerminal(models.Model):
     printer = models.CharField(max_length=200, blank=True)
     qurilmalar = models.JSONField(default=list)
     oxirgi_aloqa = models.DateTimeField(null=True, blank=True)
+    printerlar = models.JSONField(default=list)
+    etiketka_tayyor = models.BooleanField(default=False)
 
 
 class ChekVazifa(models.Model):
-    sotuv = models.OneToOneField(Sotuv, on_delete=models.CASCADE, related_name='chop_vazifa')
+    request_key = models.UUIDField(null=True, blank=True, unique=True)
+    sotuv = models.OneToOneField(Sotuv, null=True, blank=True, on_delete=models.CASCADE, related_name='chop_vazifa')
     terminal = models.ForeignKey(KassaTerminal, on_delete=models.PROTECT, related_name='cheklar')
     holat = models.CharField(max_length=12, default='kutilmoqda')
     malumot = models.JSONField(default=dict)

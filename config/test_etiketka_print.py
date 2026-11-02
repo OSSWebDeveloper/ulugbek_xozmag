@@ -48,8 +48,25 @@ class NativeLabelTests(KirganTest):
         self.assertEqual(response.json()['holat'], 'yuborilmoqda')
 
     def test_remote_cashier_cannot_print_on_server_printer(self):
-        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code, 409)
+        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code, 503)
         self.thread.assert_not_called()
+
+    def test_remote_helper_lists_and_queues_its_own_label_once(self):
+        from sotuv.models import KassaTerminal,ChekVazifa
+        from django.utils import timezone
+        user=get_user_model().objects.get(username=self.LOGIN)
+        terminal=KassaTerminal.objects.create(kassir=user,etiketka_tayyor=True,
+            printerlar=[{'nom':'USB label','port':'USB003','drayver':'label'}],oxirgi_aloqa=timezone.now())
+        self.data['printer']='USB label'
+        for _ in range(2):
+            self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code,202)
+        job=ChekVazifa.objects.get(request_key=self.id)
+        self.assertEqual(job.terminal,terminal)
+        self.assertEqual(job.malumot['kind'],'etiketka')
+        self.assertIsNone(job.sotuv_id)
+        self.thread.assert_not_called()
+        self.data['id']=str(uuid.uuid4());self.data['printer']='Server only'
+        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code,400)
 
     def test_unknown_printer_or_bad_size_does_not_start(self):
         self.data['printer'] = 'Fake'

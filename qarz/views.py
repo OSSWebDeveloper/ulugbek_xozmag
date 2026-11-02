@@ -10,7 +10,6 @@ from ombor.models import Mahsulot
 from ombor.models import HarakatTuri, Valyuta
 from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, oyna_tovarlari, pulga,
                           qaytar, qaytarishni_oqi, songa, summalarni_oqi)
-from rang import kassa as rang_kassa
 
 from .forms import QarzdorForm, TolovForm
 from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
@@ -214,21 +213,12 @@ def qator_qoshish(request, pk):
     if xato:
         messages.error(request, xato)
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
-    # Rang mashinasining cheki — sotuvdagidek, ikkinchi marta o'tmaydi
-    rang_cheki, xato = rang_kassa.chekni_oqi(request.POST, mahsulot)
-    if xato:
-        messages.error(request, xato)
-        return redirect("qarz:qarz_tahrir", pk=qarz.pk)
-
     try:
         qator = hujjatga_qosh(qarz.qatorlar, mahsulot, miqdor,
                               f"Qarz #{qarz.pk} - {qarz.qarzdor.toliq_ism}")
     except OmborXatosi as xato:
         messages.error(request, str(xato))
         return redirect("qarz:qarz_tahrir", pk=qarz.pk)
-    if rang_cheki:
-        rang_kassa.boglash(rang_cheki, qarz=qarz)
-        messages.info(request, rang_kassa.kassa_xabari(rang_cheki))
 
     # Qo'shilgan qator ko'rinib tursin — sotuvdagidek (sotuv/views.py)
     request.session["qarz_yangi_qator"] = qator.pk
@@ -250,7 +240,6 @@ def qator_ochirish(request, pk):
         yopiq = yopiq_hujjat(request, qator.qarz)
         if yopiq:
             return yopiq
-        rang_kassa.ajratish(qarz=qator.qarz, mahsulot_id=qator.mahsulot_id)
         qator.delete()
         messages.success(request, "Qator savatdan o'chirildi.")
     return redirect("qarz:qarz_tahrir", pk=qarz_pk)

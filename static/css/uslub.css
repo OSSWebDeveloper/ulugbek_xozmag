@@ -1555,3 +1555,13 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 .ombor-qadamlar { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; }
 
 .oyna-izoh { margin-bottom: 10px; }
+/* Daylight home: pale sculpted ribbons and readable white glass cards. */
+body.kunduzgi .sahifa:has(.bosh-sahifa) { background-image: url('../img/bosh-kunduzgi.svg'); background-color: #eef4ff; }
+body.kunduzgi .bosh-sahifa .tanlov { background: rgba(255,255,255,.8); border-color: rgba(109,143,189,.32); color: #173454; box-shadow: 0 10px 30px rgba(53,83,127,.1); }
+body.kunduzgi .bosh-sahifa .tanlov:hover { background: rgba(255,255,255,.96); border-color: #82a8db; }
+body.kunduzgi .bosh-sahifa .tanlov .bosh { color: #173454; text-shadow: none; }
+body.kunduzgi .bosh-sahifa .tanlov .izoh { color: #536a87; }
+body.kunduzgi .bosh-sahifa .tanlov .belgi { color: #245a99; background: #e1ecfb; }
+body.kunduzgi .bosh-sahifa .tanlov.yangi .belgi { color: #176d55; background: #def3e9; }
+body.kunduzgi .bosh-sahifa .tanlov.qarz .belgi { color: #196b8e; background: #def1fa; }
+.shtrix-maydon .shtrix-och[hidden], .shtrix-maydon .shtrix-form[hidden] { display: none !important; }

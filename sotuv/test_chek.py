@@ -20,6 +20,19 @@ class SavdoChekTests(KirganTest):
     def finish(self):
         return self.client.post(reverse('sotuv:yakunlash', args=[self.s.pk]), {'jami':'200000'})
 
+    def test_receipt_has_snapshot_prices_and_no_shop_brand(self):
+        self.row.narx = Decimal('10000')
+        self.row.save()
+        self.m.narx = Decimal('90000')
+        self.m.save()
+        data = chek.malumot(self.s)
+        self.assertEqual(data['nom'], 'SAVDO CHEKI')
+        detail = next(b for b in data['blocks'] if b['kind'] == 'detail')
+        self.assertEqual(detail['text'], '20 dona x 10 000')
+        self.assertEqual(detail['right'], "200 000 so'm")
+        self.assertNotIn('XOZMAG', str(data).upper())
+        self.assertEqual(chek.och(data['barcode']), self.s.pk)
+
     def test_receipt_code_cannot_be_confused_with_product_weight_or_paint(self):
         value = chek.kod(self.s.pk)
         self.assertEqual(len(value), 12)

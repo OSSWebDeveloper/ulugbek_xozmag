@@ -22,3 +22,11 @@ Paketni qayta yuklash eski yordamchi kalitini bekor qiladi.
 Savdoni takror yakunlash avtomatik ikkinchi chek chiqarmaydi.
 Printer xatosida yoki chop holati noma'lum bo'lsa savdo saqlanadi:
 qog'ozni tekshiring, keyin Sotuvlar > Chek > qayta chiqarishdan foydalaning.
+
+Yangilash: eski yordamchini qo‘lda o‘chirmang. Yangi ZIPni alohida papkaga
+chiqaring va ORNATISH.bat ni administrator sifatida ishga tushiring.
+O‘rnatuvchi eski yordamchini to‘xtatadi va yarlikni yangilaydi.
+Traydagi BizaroPOS belgisini chap tugma bilan bosing: kassani ochish,
+chek printerini tanlash, printerlarni yangilash, qayta ishga tushirish,
+yordamchini yopish va dastur versiyasi.
+Yorliq printeri esa chop etish oynasida har bir vazifa uchun tanlanadi.

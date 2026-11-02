@@ -105,6 +105,7 @@ class Mahsulot(models.Model):
         "Kod", max_length=KOD_UZUNLIK, unique=True, blank=True, db_index=True,
         help_text="Tovar turgan joyi: 0001 … 9999. Bo'sh qoldirilsa navbatdagi bo'sh kod beriladi.",
     )
+    shtrix_kod = models.CharField('Shtrix kod', max_length=14, null=True, blank=True, unique=True)
     tarozi_kodi = models.CharField('Tarozi shtrix identifikatori', max_length=6,
                                    null=True, blank=True, unique=True, editable=False)
     birlik = models.CharField("Sotuv birligi", max_length=10, choices=Birlik,

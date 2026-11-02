@@ -158,6 +158,10 @@ def topish(kiritilgan):
     if not matn:
         return Natija(None, None, "", "Kod yozilmadi.")
 
+    factory = Mahsulot.objects.filter(shtrix_kod=matn).first()
+    if factory:
+        return Natija(factory, None, 'shtrix', None)
+
     # 1. Tarozi etiketkasi (og'irlik bilan)
     plu, miqdor = shtrixni_ochish(matn)
     if plu:
@@ -179,13 +183,6 @@ def topish(kiritilgan):
         mahsulot, xato = _kod_bilan(matn)
         qanday = "qisqa" if len(matn) < KOD_UZUNLIK else "toliq"
         return Natija(mahsulot, None, qanday, xato)
-
-    # 3. Rang (kolerovka) cheki: baza bo'yoq chekdagi miqdori bilan keladi.
-    #    Buyurtma rang ilovasida — ombor unga faqat shu yerda murojaat qiladi.
-    raqam = rang_chekini_ochish(matn)
-    if raqam:
-        from rang.kassa import chekni_top
-        return chekni_top(raqam)
 
     # 4. Bizning formatga to'g'ri kelmaydi. Ko'pincha bu qadoqdagi zavod
     #    shtrixi — skaner etiketka o'rniga shuni o'qib qo'ygan.

@@ -25,4 +25,5 @@ def _oqi():
 
 
 def versiya(request):
-    return {"versiya": _oqi()}
+    from sotuv.chek import mahalliymi
+    return {"versiya": _oqi(), "server_kompyuteri": mahalliymi(request)}

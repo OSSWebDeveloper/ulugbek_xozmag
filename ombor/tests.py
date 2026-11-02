@@ -621,11 +621,11 @@ class EtiketkaTest(KirganTest):
         kalit = Mahsulot.objects.get(nom="Kalit")
         self.assertRedirects(javob, reverse("ombor:etiketka", args=[kalit.pk]) + "?soni=12")
 
-    def test_tovar_formasida_skanerlanadigan_maydon_yoq(self):
-        """Shtrix tovar yaratilganda o'zi beriladi — formada kiritilmaydi."""
+    def test_tovar_formasida_ixtiyoriy_shtrix_maydoni_bor(self):
+        """Zavod shtrixi alohida, ichki kod avtomatik beriladi."""
         javob = self.client.get(reverse("ombor:mahsulot_yangi"))
         self.assertNotContains(javob, 'name="shtrix"')
-        self.assertNotContains(javob, "Skanerlang")
+        self.assertContains(javob, 'name="shtrix_kod"')
 
     def test_kirimdan_keyin_etiketka(self):
         javob = self.client.post(reverse("ombor:kirim", args=[self.rozetka.pk]),

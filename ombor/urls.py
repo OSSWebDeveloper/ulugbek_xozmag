@@ -6,6 +6,7 @@ from . import excel_views, views
 app_name = "ombor"
 
 urlpatterns = [
+    path("<int:pk>/shtrix/", views.shtrix_saqlash, name="shtrix_saqlash"),
     path("", views.royxat, name="royxat"),
     path("kod/", views.kod_qidir, name="kod_qidir"),
     path("tovar-qidir/", views.tovar_qidir, name="tovar_qidir"),

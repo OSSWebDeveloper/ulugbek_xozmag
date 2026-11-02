@@ -17,7 +17,6 @@ from ombor.xizmat import (OmborXatosi, hujjatga_qosh, oxirgi_kurs, oyna_tovarlar
 from qarz.forms import QarzdorForm
 from qarz.models import Qarz, Qarzdor
 from qarz.templatetags.xozmag import pul, tekis
-from rang import kassa as rang_kassa
 
 from .models import Sotuv, SotuvQator
 from config.kassa import hujjat
@@ -104,20 +103,11 @@ def qator_qoshish(request, pk):
     if xato:
         messages.error(request, xato)
         return redirect("sotuv:tahrir", pk=sotuv.pk)
-    # Rang mashinasining cheki skanerlangan bo'lsa — u ikkinchi marta o'tmasin
-    rang_cheki, xato = rang_kassa.chekni_oqi(request.POST, mahsulot)
-    if xato:
-        messages.error(request, xato)
-        return redirect("sotuv:tahrir", pk=sotuv.pk)
-
     try:
         qator = hujjatga_qosh(sotuv.qatorlar, mahsulot, miqdor, f"Sotuv #{sotuv.pk}")
     except OmborXatosi as xato:
         messages.error(request, str(xato))
         return redirect("sotuv:tahrir", pk=sotuv.pk)
-    if rang_cheki:
-        rang_kassa.boglash(rang_cheki, sotuv=sotuv)
-        messages.info(request, rang_kassa.kassa_xabari(rang_cheki))
 
     # Qo'shilgan qator ko'rinib tursin: chek uzun bo'lsa ham o'sha yerga
     # siljiydi va bir lahza yonib turadi. URL dagi #langar emas, sessiya —
@@ -140,7 +130,6 @@ def qator_ochirish(request, pk):
         yopiq = yopiq_chek(request, sotuv)
         if yopiq:
             return yopiq
-        rang_kassa.ajratish(sotuv=sotuv, mahsulot_id=qator.mahsulot_id)
         qator.delete()
         messages.success(request, "Qator savatdan o'chirildi.")
     return redirect("sotuv:tahrir", pk=sotuv.pk)
@@ -278,7 +267,6 @@ def bekor(request, pk):
 
         with transaction.atomic():
             # Rang cheklari yana bo'sh: mijoz qaytib kelsa boshqa chekka o'tadi
-            rang_kassa.ajratish(sotuv=sotuv)
             sotuv.bekor_qilingan = True
             sotuv.sana = timezone.now()
             sotuv.save(update_fields=["bekor_qilingan", "sana"])

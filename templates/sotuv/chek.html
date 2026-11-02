@@ -15,8 +15,10 @@
   </div>
   {% if vazifa %}<p class="chek-boshqaruv">Chop holati: {{ vazifa.holat }}{% if vazifa.xato %} · {{ vazifa.xato }}{% endif %}</p>{% endif %}
   <article class="savdo-chek">
-    <h1>{{ data.nom }}</h1>
-    {% for line in data.lines %}<div class="savdo-chek-satr">{{ line|default:' ' }}</div>{% endfor %}
+    {% for block in data.blocks %}
+      {% if block.kind == 'rule' %}<hr>
+      {% else %}<div class="savdo-chek-satr chek-{{ block.kind }}"><span>{{ block.text }}</span>{% if block.right %}<strong>{{ block.right }}</strong>{% endif %}</div>{% endif %}
+    {% endfor %}
     <div class="savdo-chek-shtrix">{{ barcode_svg|safe }}</div>
     <div class="savdo-chek-raqam">{{ data.barcode }}</div>
     <p>Qaytarish uchun chekni saqlang.</p>
