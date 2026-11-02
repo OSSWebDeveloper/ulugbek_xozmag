@@ -48,7 +48,6 @@ def malumot(s):
     blocks = [dict(kind='title', text='SAVDO CHEKI'),
               dict(kind='meta', text=f'Chek #{s.pk}',
                    right=timezone.localtime(s.sana).strftime('%d.%m.%Y %H:%M')),
-              dict(kind='meta', text='Kassa: ' + (s.kassir.username if s.kassir else '-')),
               dict(kind='rule')]
     for row in s.qatorlar.all():
         blocks.append(dict(kind='item', text=row.mahsulot_nomi))
