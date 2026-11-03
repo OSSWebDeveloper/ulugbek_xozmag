@@ -4,9 +4,8 @@
 <div class="sahifa-keng" style="max-width:660px">
   <div class="sarlavha">Login va parolni o'zgartirish</div>
   {% if majburiy %}
-  <div class="xabar error" style="margin-bottom:16px">
-    Standart parolni birinchi kirishda yangilash shart.
-    Yangi parol kamida 8 belgidan iborat va taxmin qilish qiyin bo'lsin.
+  <div class="xabar" style="margin-bottom:16px">
+    Xavfsizlik uchun standart parolni o'zgartirish tavsiya etiladi.
   </div>
   {% endif %}
   <form method="post" class="quti" autocomplete="off">
@@ -21,7 +20,7 @@
     {% endfor %}
     <div class="qator">
       <button class="tugma yashil" type="submit">Login va parolni saqlash</button>
-      {% if not majburiy %}<a class="tugma tinch" href="{% url 'qarz:boshlash' %}">Ortga</a>{% endif %}
+      <a class="tugma tinch" href="{% url 'qarz:boshlash' %}">Ortga</a>
     </div>
   </form>
 </div>
