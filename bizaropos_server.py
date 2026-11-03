@@ -76,7 +76,12 @@ class Supervisor:
         self.git_path = os.environ.get('BIZARO_GIT') or 'git'
 
     def git(self, *args):
-        result = subprocess.run([self.git_path, *args], cwd=ROOT, capture_output=True,
+        # Windows o'rnatuvchisi Administrator orqali ishga tushirilsa, papkaning
+        # egasi foydalanuvchidan farq qilishi mumkin. Faqat joriy ilova
+        # papkasi uchun Git ishonchini vaqtincha taqdim etamiz.
+        # Global safe.directory='*' ishlatilmaydi.
+        result = subprocess.run([self.git_path, '-c', 'safe.directory=' + str(ROOT), *args],
+                                cwd=ROOT, capture_output=True,
                                 text=True, encoding='utf-8', errors='replace', timeout=90,
                                 creationflags=NO_WINDOW, env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'})
         if result.returncode:
@@ -149,7 +154,13 @@ class Supervisor:
             self.notify('GitHub’da yangi versiya yo‘q. Versiya: ' + version())
             return
         # Never discard local work or replace the live warehouse with GitHub's DB.
-        changed = self.git('status', '--porcelain', '--untracked-files=all', '--', '.', ':(exclude)db.sqlite3')
+        # Dastur ishga tushganda hosil bo'ladigan untracked fayllar
+        # (BizaroPOS.vbs, loglar, .secret_key va boshqalar) yangilashga
+        # to'sqinlik qilmasin. Git merge mavjud faylni bosib yozishni
+        # baribir tekshiradi; kuzatilayotgan kodga mahalliy o'zgarish
+        # kiritilsa esa yangilash xavfsiz ravishda to'xtaydi.
+        changed = self.git('status', '--porcelain', '--untracked-files=no',
+                           '--', '.', ':(exclude)db.sqlite3')
         if changed:
             self.notify('Mahalliy kodda GitHub’ga saqlanmagan o‘zgarishlar bor. Yangilash ularni bosib yozmasligi uchun to‘xtatildi.')
             return
