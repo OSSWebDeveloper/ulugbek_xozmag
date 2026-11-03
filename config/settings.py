@@ -64,7 +64,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Barcha sahifa login talab qiladi (kirish sahifasidan tashqari)
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
-    "config.akkaunt_middleware.StandartParolMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
