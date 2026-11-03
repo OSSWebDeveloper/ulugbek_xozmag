@@ -110,6 +110,10 @@ class MahsulotForm(forms.ModelForm):
         self.fields["narx"].required = False
         self.fields["kelish_narxi"].required = False
         self.fields["kelish_valyutasi"].required = False
+        self.fields["kelish_valyutasi"].choices = [
+            ("", "Sotuv valyutasi bilan bir xil"),
+            *[(code, label) for code, label in Valyuta.choices],
+        ]
         # Tanlanmasa so'm: do'kondagi tovarlarning ko'pi so'mda keladi
         self.fields["valyuta"].required = False
         self.fields["olish_birligi"].choices = [("", "— tanlang —")] + [
