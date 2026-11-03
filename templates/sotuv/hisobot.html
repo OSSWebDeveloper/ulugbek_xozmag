@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load xozmag %}
+
+{% block sarlavha %}Kassa hisoboti — Ulug'bek Xozmag{% endblock %}
+{% block tana %}
+<div class="sahifa-keng">
+  <div class="sarlavha">Hisobot — kassa savdolari</div>
+  <p class="kichik">Faqat yakunlangan, bekor qilinmagan kassa savdolari. Qaytarilgan summa ayriladi; qarz undiruvi qo'shilmaydi.</p>
+  <form method="get" class="quti forma-setka" style="margin-bottom:var(--oraliq)">
+    <div class="maydon">
+      <label for="dan">Boshlanish sanasi</label>
+      <input class="kirish" type="date" id="dan" name="dan" value="{{ dan|date:'Y-m-d' }}">
+    </div>
+    <div class="maydon">
+      <label for="gacha">Tugash sanasi</label>
+      <input class="kirish" type="date" id="gacha" name="gacha" value="{{ gacha|date:'Y-m-d' }}">
+    </div>
+    <div class="maydon">
+      <label for="kassir">Kassir</label>
+      <select class="kirish" id="kassir" name="kassir">
+        <option value="">Barcha kassalar</option>
+        {% for k in kassirlar %}
+          <option value="{{ k.pk }}" {% if kassir == k.pk|stringformat:"s" %}selected{% endif %}>{{ k.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="maydon"><label>&nbsp;</label><button class="tugma yashil" type="submit">Ko'rsatish</button></div>
+  </form>
+  <div class="quti">
+    <h3>Jami: {{ soni }} ta chek</h3>
+    <p><b>Naqd so'm:</b> {{ jami_som|pul }} so'm</p>
+    <p><b>Naqd dollar:</b> {{ jami_dollar|tekis }} $</p>
+    <h3>Kassalar kesimida</h3>
+    <div style="overflow-x:auto">
+      <table class="jadval" style="width:100%">
+        <thead><tr><th>Kassir</th><th>Cheklar</th><th>So'm</th><th>Dollar</th></tr></thead>
+        <tbody>
+        {% for k in kassalar %}
+          <tr><td>{{ k.kassir__username|default:"Noma'lum" }}</td><td>{{ k.soni }}</td>
+          <td>{{ k.som|default_if_none:0|pul }}</td><td>{{ k.dollar|default_if_none:0|tekis }}</td></tr>
+        {% empty %}<tr><td colspan="4">Sotuv topilmadi.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <h3>Cheklar ro'yxati (oxirgi 500 ta)</h3>
+    <div style="overflow-x:auto">
+      <table class="jadval" style="width:100%">
+        <thead><tr><th>Chek</th><th>Sana</th><th>Kassir</th><th>Naqd so'm</th><th>Naqd dollar</th></tr></thead>
+        <tbody>
+        {% for s in sotuvlar %}
+          <tr><td><a href="{% url 'sotuv:chek' s.pk %}">#{{ s.pk }}</a></td>
+          <td>{{ s.sana|date:"d.m.Y H:i" }}</td><td>{{ s.kassir.username|default:"Noma'lum" }}</td>
+          <td>{{ s.sof_jami|pul }}</td><td>{{ s.sof_jami_dollar|tekis }}</td></tr>
+        {% empty %}<tr><td colspan="5">Tanlangan davrda sotuv yo'q.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if soni > 500 %}<p class="kichik">Faqat oxirgi 500 ta chek ko'rsatildi; jami hisob barcha cheklar bo'yicha.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}
