@@ -31,3 +31,72 @@
   .mahsulot-amallar .forma-tugmalar { width:100%; display:grid; grid-template-columns:1fr 1fr; }
   .mahsulot-amallar .forma-tugmalar > * { text-align:center; justify-content:center; }
 }
+
+/* Yakuniy UI polishing: faqat ombor mahsulot formasiga ta'sir qiladi. */
+.mahsulot-sahifa { max-width:860px; padding-bottom:12px; }
+.mahsulot-sarlavha { margin-bottom:26px; align-items:flex-start; }
+.mahsulot-sarlavha > div:first-child > div:first-child {
+  font-size:clamp(24px,2.3vw,30px); font-weight:760; letter-spacing:-.03em; line-height:1.2;
+}
+.mahsulot-sarlavha .kichik { margin-top:9px; font-size:14px; line-height:1.55; max-width:620px; }
+.mahsulot-bolim-bosh { margin-bottom:20px; }
+.mahsulot-bolim h2 { font-size:20px; font-weight:720; letter-spacing:-.015em; }
+.mahsulot-bolim-bosh p { margin-top:6px; font-size:13px; line-height:1.5; }
+.mahsulot-ajratgich { margin:30px 0; opacity:.75; }
+.mahsulot-bolim .forma-setka { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px 18px; }
+.mahsulot-bolim .maydon { min-width:0; }
+.mahsulot-bolim .maydon label { display:block; margin-bottom:8px; font-size:13px; line-height:1.4; font-weight:650; color:var(--matn-2); }
+.mahsulot-bolim .maydon-izoh { margin-top:7px; font-size:12px; line-height:1.5; }
+.mahsulot-bolim .kirish {
+  box-sizing:border-box; width:100%; min-height:52px; padding:12px 15px;
+  border:1px solid var(--chegara-2); border-radius:11px;
+  background:var(--panel); color:var(--matn-rang);
+  font-size:16px; line-height:1.35;
+  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+}
+.mahsulot-bolim .kirish::placeholder { color:var(--matn-3); opacity:.85; }
+.mahsulot-bolim .kirish:hover { border-color:var(--urgu-chek); }
+.mahsulot-bolim .kirish:focus, .mahsulot-bolim .kirish:focus-visible {
+  outline:none; border-color:var(--urgu); box-shadow:0 0 0 3px var(--urgu-fon);
+}
+.mahsulot-bolim .raqam-maydon { text-align:right; font-variant-numeric:tabular-nums; }
+.mahsulot-bolim .richag.keng {
+  margin-top:3px; padding:15px 16px; background:var(--panel);
+  border:1px solid var(--chegara); border-radius:12px;
+}
+.mahsulot-bolim .richag.keng:hover { border-color:var(--chegara-2); }
+.mahsulot-bolim .richag.yoniq { border-color:var(--urgu-chek); background:var(--urgu-fon); }
+.mahsulot-bolim .richag-matn b { font-size:15px; font-weight:700; }
+.mahsulot-bolim .richag-matn small { margin-top:3px; font-size:12px; line-height:1.5; }
+.mahsulot-ikki { min-width:0; padding:16px; }
+.mahsulot-farq { padding:14px 16px; border-radius:11px; background:var(--tasdiq-fon); border-color:var(--tasdiq-chek); }
+.mahsulot-farq strong { color:var(--tasdiq); font-size:18px; font-weight:750; }
+.mahsulot-farq.manfiy { background:var(--xato-fon); border-color:var(--xato-chek); }
+.mahsulot-farq.manfiy strong { color:var(--xato); }
+.mahsulot-amallar {
+  position:sticky; bottom:0; z-index:5; margin-top:30px;
+  padding:16px 0; background:var(--fon);
+  box-shadow:0 -12px 18px -20px rgba(0,0,0,.6);
+}
+.mahsulot-amallar .faol-belgi { color:var(--matn-2); font-size:14px; }
+.mahsulot-amallar .forma-tugmalar { gap:12px; }
+.mahsulot-amallar .forma-tugmalar .tugma {
+  box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
+  min-height:50px; border-radius:11px; padding:0 22px; font-size:14px; font-weight:650;
+}
+.mahsulot-amallar .forma-tugmalar .tugma.yashil { min-width:184px; }
+.mahsulot-amallar .forma-tugmalar .tugma:focus-visible { outline:2px solid var(--urgu); outline-offset:3px; }
+@media(max-width:684px) {
+  .mahsulot-sahifa { width:100%; }
+  .mahsulot-sarlavha > div:first-child > div:first-child { font-size:25px; }
+  .mahsulot-bolim .forma-setka { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .mahsulot-bolim-bosh { margin-bottom:17px; }
+  .mahsulot-ajratgich { margin:25px 0; }
+  .mahsulot-ikki { padding:13px; }
+  .mahsulot-amallar { padding:13px 0; }
+  .mahsulot-amallar .forma-tugmalar .tugma { min-width:0; width:100%; padding-inline:10px; }
+  .mahsulot-amallar .forma-tugmalar .tugma.yashil { min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .mahsulot-bolim .kirish { transition:none; }
+}
