@@ -1,160 +1,166 @@
 {% extends "base.html" %}
 {% load statik_versiya %}
 
-{% block tana %}
-<div class="sahifa-keng" style="max-width:880px">
-  <div class="sarlavha">
-    {% if mahsulot %}{{ mahsulot.nom }}{% else %}Omborga yangi tovar{% endif %}
-    {% if mahsulot %}
-      {# Kassada va tarozida shu raqam uriladi — yorliqda ham shu turadi #}
-      <span class="nishon kok" title="Kassada va tarozida uriladigan kod">
-        Kod: {{ mahsulot.qisqa_kod }}
-      </span>
+{% block sarlavha %}{% if mahsulot %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %} — Ombor{% endblock %}
 
-    {% else %}
-      <span class="kichik">kod bo'sh qoldirilsa o'zi beriladi</span>
-    {% endif %}
+{% block tana %}
+<div class="sahifa-keng mahsulot-sahifa">
+  <div class="sarlavha mahsulot-sarlavha">
+    <div>
+      <div>{% if mahsulot %}Mahsulotni tahrirlash{% else %}Yangi mahsulot qo'shish{% endif %}</div>
+      <div class="kichik">Mahsulot kartochkasini to'ldiring. Narxlar 1 sotuv birligi uchun yoziladi.</div>
+    </div>
+    {% if mahsulot %}<span class="nishon kok">Kod: {{ mahsulot.qisqa_kod }}</span>{% endif %}
   </div>
 
-  <form method="post" class="quti forma-setka" id="mahsulot-forma"
-        data-yangi="{{ yangi|yesno:'1,0' }}">
+  <form method="post" class="mahsulot-forma" id="mahsulot-forma"
+        data-yangi="{{ yangi|yesno:'1,0' }}" autocomplete="off">
     {% csrf_token %}
     {% if form.non_field_errors %}
-      <div class="xabar error keng" style="margin-bottom:var(--oraliq)">
-        <svg class="ikon"><use href="#i-ogoh"></use></svg>
-        <span>{{ form.non_field_errors|striptags }}</span>
-      </div>
+      <div class="xabar error" role="alert">{{ form.non_field_errors|striptags }}</div>
     {% endif %}
 
-    <div class="maydon">
-      <label for="{{ form.kod.id_for_label }}">{{ form.kod.label }} (turgan joyi)</label>
-      {{ form.kod }}
-      <div class="maydon-izoh">0001 … 9999{% if not mahsulot %} · bo'sh bo'lsa navbatdagisi beriladi{% else %} · o'zgarsa etiketkani qayta chop eting{% endif %}</div>
-      {% if form.kod.errors %}<div class="xato-yozuv">{{ form.kod.errors|striptags }}</div>{% endif %}
-    </div>
-    <div class="maydon">
-      <label for="{{ form.shtrix_kod.id_for_label }}">Shtrix kod</label>
-      {{ form.shtrix_kod }}
-      <div class="maydon-izoh">Mahsulot qadoqidagi zavod kodi. Bo‘sh qoldirish mumkin.</div>
-      {% if form.shtrix_kod.errors %}<div class="xato-yozuv">{{ form.shtrix_kod.errors|striptags }}</div>{% endif %}
-    </div>
-
-    <div class="maydon keng">
-      <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }}</label>
-      {{ form.nom }}
-      {% if form.nom.errors %}<div class="xato-yozuv">{{ form.nom.errors|striptags }}</div>{% endif %}
-    </div>
-
-    {# ---- Qaysi pulda keladi va narxi — ikkovi bir qatorda turadi ---- #}
-    <div class="maydon">
-      <label for="{{ form.valyuta.id_for_label }}">{{ form.valyuta.label }}</label>
-      {{ form.valyuta }}
-      <div class="maydon-izoh">So'm va dollar hisobi aralashmaydi</div>
-      {% if form.valyuta.errors %}<div class="xato-yozuv">{{ form.valyuta.errors|striptags }}</div>{% endif %}
-    </div>
-
-    <div class="maydon">
-      <label for="{{ form.narx.id_for_label }}">
-        {{ form.narx.label }} (1 <span class="sotuv-birlik-nomi">birlik</span> uchun)
-      </label>
-      {{ form.narx }}
-      <div class="maydon-izoh">
-        <span class="valyuta-nomi">so'm</span>da &middot; kassada summa qo'lda yoziladi
+    <section class="quti mahsulot-bolim" aria-labelledby="mahsulot-asosiy">
+      <div class="mahsulot-bolim-bosh">
+        <span class="mahsulot-qadam">01</span>
+        <div>
+          <h2 id="mahsulot-asosiy">Asosiy ma'lumotlar</h2>
+          <p>Mahsulot nomi va kodlari</p>
+        </div>
       </div>
-      {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
-    </div>
+      <div class="forma-setka">
+        <div class="maydon keng">
+          <label for="{{ form.nom.id_for_label }}">Mahsulot nomi <span class="mahsulot-majburiy">*</span></label>
+          {{ form.nom }}
+          {% if form.nom.errors %}<div class="xato-yozuv">{{ form.nom.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.kod.id_for_label }}">Ichki kod (turgan joyi)</label>
+          {{ form.kod }}
+          <div class="maydon-izoh">0001–9999. Bo'sh qoldirsangiz avtomatik beriladi{% if mahsulot %}; o'zgarsa etiketkani qayta chop eting{% endif %}.</div>
+          {% if form.kod.errors %}<div class="xato-yozuv">{{ form.kod.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.shtrix_kod.id_for_label }}">Zavod shtrix kodi <span class="mahsulot-ixtiyoriy">ixtiyoriy</span></label>
+          {{ form.shtrix_kod }}
+          <div class="maydon-izoh">Skanerlang yoki kiriting; 8, 12, 13 yoki 14 raqam.</div>
+          {% if form.shtrix_kod.errors %}<div class="xato-yozuv">{{ form.shtrix_kod.errors|striptags }}</div>{% endif %}
+        </div>
+      </div>
+    </section>
 
-    <div class="maydon">
-      <label for="{{ form.kelish_narxi.id_for_label }}">Do'kon sotib olish narxi (1 <span class="sotuv-birlik-nomi">birlik</span> uchun)</label>
-      {{ form.kelish_narxi }}
-      <div class="maydon-izoh">Do'konning xarid narxi — sotish narxidan alohida.</div>
-      {% if form.kelish_narxi.errors %}<div class="xato-yozuv">{{ form.kelish_narxi.errors|striptags }}</div>{% endif %}
-    </div>
-    <div class="maydon">
-      <label for="{{ form.kelish_valyutasi.id_for_label }}">Xarid narxi valyutasi</label>
-      {{ form.kelish_valyutasi }}
-      <div class="maydon-izoh">Bo'sh bo'lsa mahsulot valyutasi olinadi.</div>
-      {% if form.kelish_valyutasi.errors %}<div class="xato-yozuv">{{ form.kelish_valyutasi.errors|striptags }}</div>{% endif %}
-    </div>
-    {# ---- Richag: tovar bir birlikda olinib boshqasida sotiladimi ---- #}
-    <label class="richag keng" id="birlik-richag">
-      {{ form.birlik_ozgaradi }}
-      <span class="yo-l"><span class="dasta"></span></span>
-      <span class="richag-matn">
-        <b>Birlik o'zgaradi</b>
-        <small>Tovar bir birlikda olinib boshqasida sotiladi — masalan polietilen
-               lenta rulonda olinib metrda sotiladi</small>
-      </span>
-    </label>
+    <section class="quti mahsulot-bolim" aria-labelledby="mahsulot-narx">
+      <div class="mahsulot-bolim-bosh">
+        <span class="mahsulot-qadam">02</span>
+        <div>
+          <h2 id="mahsulot-narx">Narx va valyuta</h2>
+          <p>Sotuv va xarid narxini alohida belgilang</p>
+        </div>
+      </div>
+      <div class="forma-setka">
+        <div class="maydon">
+          <label for="{{ form.valyuta.id_for_label }}">Sotuv narxi valyutasi</label>
+          {{ form.valyuta }}
+          <div class="maydon-izoh">So'm va dollar alohida hisoblanadi.</div>
+          {% if form.valyuta.errors %}<div class="xato-yozuv">{{ form.valyuta.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.narx.id_for_label }}">Sotuv narxi — 1 <span class="sotuv-birlik-nomi">dona</span></label>
+          {{ form.narx }}
+          <div class="maydon-izoh"><span class="valyuta-nomi">so'm</span>da. Kassada yakuniy summa qo'lda yoziladi.</div>
+          {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.kelish_narxi.id_for_label }}">Xarid narxi — 1 <span class="sotuv-birlik-nomi">dona</span> <span class="mahsulot-ixtiyoriy">ixtiyoriy</span></label>
+          {{ form.kelish_narxi }}
+          <div class="maydon-izoh">Do'kon sotib olgan tannarx; sotuv narxiga qo'shilmaydi.</div>
+          {% if form.kelish_narxi.errors %}<div class="xato-yozuv">{{ form.kelish_narxi.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.kelish_valyutasi.id_for_label }}">Xarid narxi valyutasi</label>
+          {{ form.kelish_valyutasi }}
+          <div class="maydon-izoh">Tanlanmasa sotuv valyutasi olinadi.</div>
+          {% if form.kelish_valyutasi.errors %}<div class="xato-yozuv">{{ form.kelish_valyutasi.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="mahsulot-farq keng" id="mahsulot-farq" hidden aria-live="polite">
+          <span>Bir birlikdagi taxminiy narx farqi</span>
+          <strong id="mahsulot-farq-qiymat"></strong>
+          <small>Bu sof foyda emas; chegirma, xarajatlar va haqiqiy chek summasi hisobga olinmagan.</small>
+        </div>
+      </div>
+    </section>
 
-    {# ---- 1-qadam: necha qadoq keldi (faqat yangi tovarda) ---- #}
-    {% if yangi %}
-      <div class="maydon" data-ikki>
-        <label for="{{ form.qadoq_soni.id_for_label }}">
-          Necha <span class="olish-birlik-nomi">qadoq</span> keldi
+    <section class="quti mahsulot-bolim" aria-labelledby="mahsulot-ombor">
+      <div class="mahsulot-bolim-bosh">
+        <span class="mahsulot-qadam">03</span>
+        <div>
+          <h2 id="mahsulot-ombor">Ombor va o'lchov birligi</h2>
+          <p>Qoldiq har doim sotuv birligida saqlanadi</p>
+        </div>
+      </div>
+      <div class="forma-setka">
+        <div class="maydon">
+          <label for="{{ form.birlik.id_for_label }}" id="birlik-yorliq">Sotuv birligi</label>
+          {{ form.birlik }}
+          <div class="maydon-izoh">Mahsulot mijozga qaysi birlikda sotiladi?</div>
+          {% if form.birlik.errors %}<div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon" id="qoldiq-maydon">
+          <label for="{{ form.qoldiq.id_for_label }}">Qoldiq (<span class="sotuv-birlik-nomi">dona</span>)</label>
+          {{ form.qoldiq }}
+          <div class="maydon-izoh">{% if yangi %}Boshlang'ich qoldiq{% else %}Mavjud qoldiqni o'zgartirish tarixga yoziladi{% endif %}.</div>
+          {% if form.qoldiq.errors %}<div class="xato-yozuv">{{ form.qoldiq.errors|striptags }}</div>{% endif %}
+        </div>
+
+        <label class="richag keng" id="birlik-richag">
+          {{ form.birlik_ozgaradi }}
+          <span class="yo-l"><span class="dasta"></span></span>
+          <span class="richag-matn">
+            <b>Mahsulot boshqa birlikda keladi</b>
+            <small>Masalan, 1 rulon olinadi, lekin metrda sotiladi. Yoqilganda quyida konvertatsiya ochiladi.</small>
+          </span>
         </label>
-        {{ form.qadoq_soni }}
-        <div class="maydon-izoh">Boshlang'ich qoldiq shundan hisoblanadi</div>
-        {% if form.qadoq_soni.errors %}
-          <div class="xato-yozuv">{{ form.qadoq_soni.errors|striptags }}</div>
-        {% endif %}
+
+        <div class="mahsulot-ikki keng" data-ikki>
+          <div class="forma-setka">
+            <div class="maydon">
+              <label for="{{ form.olish_birligi.id_for_label }}">Olish birligi</label>
+              {{ form.olish_birligi }}
+              <div class="maydon-izoh">Do'konga qaysi birlikda keladi?</div>
+              {% if form.olish_birligi.errors %}<div class="xato-yozuv">{{ form.olish_birligi.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="maydon">
+              <label for="{{ form.olish_miqdori.id_for_label }}">1 <span class="olish-birlik-nomi">qadoq</span>da nechta <span class="sotuv-birlik-nomi">dona</span>?</label>
+              {{ form.olish_miqdori }}
+              <div class="maydon-izoh">Masalan, 1 rulon = 100 metr.</div>
+              {% if form.olish_miqdori.errors %}<div class="xato-yozuv">{{ form.olish_miqdori.errors|striptags }}</div>{% endif %}
+            </div>
+            {% if yangi %}
+            <div class="maydon keng">
+              <label for="{{ form.qadoq_soni.id_for_label }}">Necha <span class="olish-birlik-nomi">qadoq</span> keldi?</label>
+              {{ form.qadoq_soni }}
+              <div class="maydon-izoh">Masalan, 3 rulon kirsa va har biri 100 metr bo'lsa, 300 metr saqlanadi.</div>
+              {% if form.qadoq_soni.errors %}<div class="xato-yozuv">{{ form.qadoq_soni.errors|striptags }}</div>{% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="qoida-satri keng" id="birlik-qoida" hidden aria-live="polite"></div>
       </div>
-    {% endif %}
+    </section>
 
-    {# ---- 2-qadam: kelgan birligi ---- #}
-    <div class="maydon" data-ikki>
-      <label for="{{ form.olish_birligi.id_for_label }}">Kelgan birligi</label>
-      {{ form.olish_birligi }}
-      <div class="maydon-izoh">Do'konga shu ko'rinishda keladi</div>
-      {% if form.olish_birligi.errors %}
-        <div class="xato-yozuv">{{ form.olish_birligi.errors|striptags }}</div>
-      {% endif %}
-    </div>
-
-    {# ---- 3-qadam: sotiladigan birlik ---- #}
-    <div class="maydon">
-      <label for="{{ form.birlik.id_for_label }}" id="birlik-yorliq">{{ form.birlik.label }}</label>
-      {{ form.birlik }}
-      <div class="maydon-izoh">Mijozga shu birlikda sotiladi</div>
-      {% if form.birlik.errors %}<div class="xato-yozuv">{{ form.birlik.errors|striptags }}</div>{% endif %}
-    </div>
-
-    {# ---- 4-qadam: bitta qadoqda nechta ---- #}
-    <div class="maydon" data-ikki>
-      <label for="{{ form.olish_miqdori.id_for_label }}">
-        1 <span class="olish-birlik-nomi">qadoq</span>da nechta
-        <span class="sotuv-birlik-nomi">birlik</span>
-      </label>
-      {{ form.olish_miqdori }}
-      {% if form.olish_miqdori.errors %}
-        <div class="xato-yozuv">{{ form.olish_miqdori.errors|striptags }}</div>
-      {% endif %}
-    </div>
-
-    {# ---- Qoldiq: yangi tovarda richag yoqiq bo'lsa qadoqdan hisoblanadi ---- #}
-    <div class="maydon" id="qoldiq-maydon">
-      <label for="{{ form.qoldiq.id_for_label }}">
-        {{ form.qoldiq.label }} (<span class="sotuv-birlik-nomi">birlik</span>da)
-      </label>
-      {{ form.qoldiq }}
-      {% if form.qoldiq.errors %}<div class="xato-yozuv">{{ form.qoldiq.errors|striptags }}</div>{% endif %}
-    </div>
-
-    <div class="qoida-satri keng" id="birlik-qoida" hidden></div>
-
-    <div class="forma-pastki keng">
+    <div class="quti mahsulot-amallar">
       <label class="faol-belgi">
         {{ form.faol }} <span>Ro'yxatda ko'rinsin</span>
       </label>
       <div class="forma-tugmalar">
         <a class="tugma tinch" href="{% url 'ombor:royxat' %}">Bekor qilish</a>
-        <button type="submit" class="tugma yashil">
-          <svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash
-        </button>
+        <button type="submit" class="tugma yashil"><svg class="ikon"><use href="#i-belgi"></use></svg> Saqlash</button>
       </div>
     </div>
   </form>
 </div>
 {% endblock %}
 
+{% block uslub %}<link rel="stylesheet" href="{% statik 'css/mahsulot-forma.css' %}">{% endblock %}
 {% block skript %}<script src="{% statik 'js/ombor.js' %}"></script>{% endblock %}
