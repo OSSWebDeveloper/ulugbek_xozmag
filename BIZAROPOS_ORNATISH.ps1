@@ -5,8 +5,12 @@ if (-not $Python) { $Python = (& py -c 'import sys; print(sys.executable)').Trim
 $Python = [IO.Path]::GetFullPath($Python)
 $pythonw = Join-Path (Split-Path $Python) 'pythonw.exe'
 if (-not (Test-Path -LiteralPath $pythonw)) { throw 'pythonw.exe topilmadi' }
-& $Python -m pip install -r (Join-Path $root 'requirements-server.txt')
+& $Python -m pip install -r (Join-Path $root 'requirements-server.txt') openpyxl
 if ($LASTEXITCODE -ne 0) { throw 'Kutubxonalar ornatilmadi' }
+& $Python (Join-Path $root 'manage.py') migrate --noinput
+if ($LASTEXITCODE -ne 0) { throw 'Baza migratsiyasi bajarilmadi' }
+& $Python (Join-Path $root 'manage.py') standart_akkauntlar
+if ($LASTEXITCODE -ne 0) { throw 'Standart akkauntlar yaratilmadi' }
 $gitPath = (Get-Command git.exe).Source
 $startFile = Join-Path $root 'BizaroPOS.vbs'
 $vbs = @"
