@@ -13,7 +13,7 @@
     {% if mahsulot %}<span class="nishon kok">Kod: {{ mahsulot.qisqa_kod }}</span>{% endif %}
   </div>
 
-  <form method="post" class="quti mahsulot-forma" id="mahsulot-forma"
+  <form method="post" class="mahsulot-forma" id="mahsulot-forma"
         data-yangi="{{ yangi|yesno:'1,0' }}" autocomplete="off">
     {% csrf_token %}
     {% if form.non_field_errors %}
