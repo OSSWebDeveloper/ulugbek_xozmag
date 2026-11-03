@@ -64,6 +64,18 @@
       {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
     </div>
 
+    <div class="maydon">
+      <label for="{{ form.kelish_narxi.id_for_label }}">Do'kon sotib olish narxi (1 <span class="sotuv-birlik-nomi">birlik</span> uchun)</label>
+      {{ form.kelish_narxi }}
+      <div class="maydon-izoh">Do'konning xarid narxi — sotish narxidan alohida.</div>
+      {% if form.kelish_narxi.errors %}<div class="xato-yozuv">{{ form.kelish_narxi.errors|striptags }}</div>{% endif %}
+    </div>
+    <div class="maydon">
+      <label for="{{ form.kelish_valyutasi.id_for_label }}">Xarid narxi valyutasi</label>
+      {{ form.kelish_valyutasi }}
+      <div class="maydon-izoh">Bo'sh bo'lsa mahsulot valyutasi olinadi.</div>
+      {% if form.kelish_valyutasi.errors %}<div class="xato-yozuv">{{ form.kelish_valyutasi.errors|striptags }}</div>{% endif %}
+    </div>
     {# ---- Richag: tovar bir birlikda olinib boshqasida sotiladimi ---- #}
     <label class="richag keng" id="birlik-richag">
       {{ form.birlik_ozgaradi }}

@@ -27,9 +27,7 @@ class MahsulotForm(forms.ModelForm):
     «Birlik o'zgaradi» richagi yoqilsa forma qadoq bo'yicha savol beradi:
     necha qadoq keldi, qaysi birlikda keldi, qaysi birlikda sotiladi, bitta
     qadoqda nechta. Qoldiq shundan hisoblanadi — operator metrni o'zi
-    ko'paytirib o'tirmaydi. Narx bu yerda so'ralmaydi — pul kalkulyatorda
-    hisoblanadi; tovardan faqat qaysi pulda kelgani (so'm yoki dollar)
-    so'raladi, kassada summa o'sha ustunga yoziladi.
+    ko'paytirib o'tirmaydi. Sotish va do'kon xarid narxlari alohida yuritiladi.
     """
 
     birlik_ozgaradi = forms.BooleanField(
@@ -44,12 +42,13 @@ class MahsulotForm(forms.ModelForm):
     )
     class Meta:
         model = Mahsulot
-        fields = ["kod", "shtrix_kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
+        fields = ["kod", "shtrix_kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx", "kelish_narxi", "kelish_valyutasi",
                   "qoldiq", "faol"]
         field_classes = {
             "qoldiq": VergulliDecimal,
             "olish_miqdori": VergulliDecimal,
             "narx": VergulliDecimal,
+            "kelish_narxi": VergulliDecimal,
         }
         widgets = {
             "shtrix_kod": forms.TextInput(attrs={"class": "kirish", "inputmode": "numeric", "autocomplete": "off", "placeholder": "Skanerlang yoki kiriting (ixtiyoriy)"}),
@@ -71,6 +70,10 @@ class MahsulotForm(forms.ModelForm):
             "narx": forms.TextInput(attrs={"class": "kirish raqam-maydon pul-maydon", "id": "id_narx",
                                            "inputmode": "decimal", "autocomplete": "off",
                                            "placeholder": "0"}),
+            "kelish_narxi": forms.TextInput(attrs={"class": "kirish raqam-maydon pul-maydon",
+                                                   "inputmode": "decimal", "autocomplete": "off",
+                                                   "placeholder": "Do'kon sotib olgan narx"}),
+            "kelish_valyutasi": forms.Select(attrs={"class": "kirish"}),
             "qoldiq": forms.TextInput(attrs={"class": "kirish raqam-maydon",
                                              "inputmode": "decimal", "autocomplete": "off",
                                              "placeholder": "0"}),
@@ -105,6 +108,8 @@ class MahsulotForm(forms.ModelForm):
         self.fields["qoldiq"].required = False
         self.fields["olish_miqdori"].required = False
         self.fields["narx"].required = False
+        self.fields["kelish_narxi"].required = False
+        self.fields["kelish_valyutasi"].required = False
         # Tanlanmasa so'm: do'kondagi tovarlarning ko'pi so'mda keladi
         self.fields["valyuta"].required = False
         self.fields["olish_birligi"].choices = [("", "— tanlang —")] + [
@@ -112,7 +117,7 @@ class MahsulotForm(forms.ModelForm):
         ]
         if not self.is_bound:
             self.fields["birlik_ozgaradi"].initial = self.instance.ikki_birlikmi
-            sonli = ("qoldiq", "olish_miqdori", "narx")
+            sonli = ("qoldiq", "olish_miqdori", "narx", "kelish_narxi")
             if self.instance.pk is None:
                 # Yangi tovarda modeldagi standart qiymatlar (0 va 1) maydonda
                 # yozuv bo'lib turmasin — placeholder ko'rinib tursin.
@@ -121,7 +126,8 @@ class MahsulotForm(forms.ModelForm):
             else:
                 # Tahrirlashda ortiqcha nollar ko'rinmasin: 45.00 -> 45, 2.500 -> 2,5
                 for maydon in sonli:
-                    self.initial[maydon] = tekis_matn(getattr(self.instance, maydon))
+                    qiymat = getattr(self.instance, maydon)
+                    self.initial[maydon] = tekis_matn(qiymat) if qiymat is not None else ""
 
     # ---------- Tekshiruv ----------
 
@@ -137,6 +143,13 @@ class MahsulotForm(forms.ModelForm):
 
         if t.get("narx") is None:
             t["narx"] = Decimal("0")
+        xarid_narxi = t.get("kelish_narxi")
+        if xarid_narxi is not None and xarid_narxi < 0:
+            self.add_error("kelish_narxi", "Xarid narxi manfiy bo'lishi mumkin emas.")
+        if xarid_narxi is not None:
+            t["kelish_valyutasi"] = t.get("kelish_valyutasi") or t.get("valyuta") or Valyuta.SOM
+        else:
+            t["kelish_valyutasi"] = ""
 
         if not ozgaradi:
             # Oddiy tovar: qanday olinsa shunday sotiladi.

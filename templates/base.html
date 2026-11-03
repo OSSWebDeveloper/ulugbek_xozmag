@@ -21,10 +21,16 @@
        href="{% url 'qarz:boshlash' %}">
       <svg class="ikon"><use href="#i-uy"></use></svg> Bosh
     </a>
-    <a class="menyu-tugma {% if ilova == 'sotuv' %}faol{% endif %}"
+    <a class="menyu-tugma {% if ilova == 'sotuv' and bolim != 'hisobot' %}faol{% endif %}"
        href="{% url 'sotuv:boshlash' %}">
       <svg class="ikon"><use href="#i-savdo"></use></svg> Sotuv
     </a>
+    {% if server_kompyuteri %}
+    <a class="menyu-tugma {% if bolim == 'hisobot' and ilova == 'sotuv' %}faol{% endif %}"
+       href="{% url 'sotuv:hisobot' %}">
+      <svg class="ikon"><use href="#i-savdo"></use></svg> Hisobot
+    </a>
+    {% endif %}
     <a class="menyu-tugma {% if ilova == 'qarz' and bolim != 'boshlash' %}faol{% endif %}"
        href="{% url 'qarz:qarzdorlar' %}">
       <svg class="ikon"><use href="#i-odamlar"></use></svg> Qarzdor
