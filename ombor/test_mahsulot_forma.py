@@ -25,6 +25,11 @@ class MahsulotFormaTest(TestCase):
         self.assertContains(response, "Narx va valyuta")
         self.assertContains(response, "Ombor va o")
         self.assertContains(response, "mahsulot-farq")
+        self.assertContains(response, 'id="preview-nom"')
+        self.assertContains(response, 'id="preview-narx"')
+        self.assertContains(response, 'id="preview-qoldiq"')
+        self.assertContains(response, 'class="mahsulot-layout"')
+        self.assertEqual(response.content.decode("utf-8").count('class="mahsulot-ajratgich"'), 2)
 
     def test_purchase_price_inherits_sales_currency(self):
         form = MahsulotForm(data={
