@@ -13,9 +13,9 @@
 .mahsulot-majburiy { color:var(--xato); }
 .mahsulot-ixtiyoriy { color:var(--matn-3); font-weight:400; font-size:11px; margin-left:4px; }
 .mahsulot-bolim .richag.keng { margin-top:2px; }
-.mahsulot-ikki { padding:16px; border:1px solid var(--chegara); border-radius:12px; background:var(--fon-2); }
+.mahsulot-ikki { padding:16px; border:1px solid var(--chegara); border-radius:12px; background:var(--panel-2); }
 .mahsulot-ikki[hidden], .mahsulot-bolim [hidden] { display:none !important; }
-.mahsulot-farq { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:12px; row-gap:5px; padding:12px 14px; border:1px solid var(--chegara); border-radius:10px; background:var(--fon-2); }
+.mahsulot-farq { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:12px; row-gap:5px; padding:12px 14px; border:1px solid var(--chegara); border-radius:10px; background:var(--panel-2); }
 .mahsulot-farq span { color:var(--matn-2); font-size:13px; }
 .mahsulot-farq strong { color:var(--matn-rang); font-size:17px; font-variant-numeric:tabular-nums; }
 .mahsulot-farq small { flex-basis:100%; color:var(--matn-3); line-height:1.45; }
