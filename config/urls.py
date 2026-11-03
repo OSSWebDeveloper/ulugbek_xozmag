@@ -8,8 +8,10 @@ from . import kassa_agent
 from . import etiketka_print
 from . import printer_sinov
 from . import kassalar
+from . import akkaunt
 
 urlpatterns = [
+    path("akkaunt/", akkaunt.sozlamalar, name="akkaunt_sozlamalar"),
     path("qurilmalar/kassa-agent/yangila/", kassa_agent.yangila, name="kassa_agent_yangila"),
     path("kassalar/", kassalar.sahifa, name="kassalar"),
     path('qurilmalar/printer/sinov/', printer_sinov.chop, name='printer_sinov'),
