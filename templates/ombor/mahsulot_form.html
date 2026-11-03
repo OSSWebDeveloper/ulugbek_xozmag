@@ -8,7 +8,7 @@
   <div class="sarlavha mahsulot-sarlavha">
     <div>
       <div>{% if mahsulot %}Mahsulotni tahrirlash{% else %}Yangi mahsulot qo'shish{% endif %}</div>
-      <div class="kichik">Mahsulot kartochkasini to'ldiring. Narxlar 1 sotuv birligi uchun yoziladi.</div>
+      <div class="kichik">Tovar ma'lumotlarini bir joyda boshqaring — kod, narx va qoldiq.</div>
     </div>
     {% if mahsulot %}<span class="nishon kok">Kod: {{ mahsulot.qisqa_kod }}</span>{% endif %}
   </div>
@@ -20,6 +20,8 @@
       <div class="xabar error" role="alert">{{ form.non_field_errors|striptags }}</div>
     {% endif %}
 
+    <div class="mahsulot-layout">
+      <div class="mahsulot-asosiy-panel">
     <section class="mahsulot-bolim" aria-labelledby="mahsulot-asosiy">
       <div class="mahsulot-bolim-bosh">
         <div>
@@ -149,6 +151,41 @@
         <div class="qoida-satri keng" id="birlik-qoida" hidden aria-live="polite"></div>
       </div>
     </section>
+
+      </div>
+      <aside class="mahsulot-preview" aria-label="Mahsulotning jonli ko'rinishi">
+        <div class="mahsulot-preview-ichki">
+          <div class="mahsulot-preview-yuqori">
+            <span class="mahsulot-preview-belgi">MAHSULOT KARTOCHKASI</span>
+            <span class="mahsulot-preview-status" id="preview-status">Ro'yxatda</span>
+          </div>
+          <div class="mahsulot-preview-rasm" aria-hidden="true">
+            <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="13" y="28" width="70" height="54" rx="10" stroke="currentColor" stroke-width="2.5"/>
+              <path d="M13 39L48 55L83 39M48 55V82M25 18L48 6L71 18L48 30L25 18Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="mahsulot-preview-kod" id="preview-kod">KOD AVTOMATIK</div>
+          <div class="mahsulot-preview-nom" id="preview-nom">Yangi mahsulot</div>
+          <div class="mahsulot-preview-tavsif">Kassadagi ma'lumot kartochkasi</div>
+          <div class="mahsulot-preview-qator">
+            <span>Sotuv narxi</span>
+            <strong id="preview-narx">—</strong>
+          </div>
+          <div class="mahsulot-preview-qator">
+            <span>Xarid narxi</span>
+            <strong id="preview-xarid">—</strong>
+          </div>
+          <div class="mahsulot-preview-qator">
+            <span>Ombor qoldig'i</span>
+            <strong id="preview-qoldiq">0 dona</strong>
+          </div>
+          <div class="mahsulot-preview-izoh">
+            Bu ko'rinish yozayotganingizda yangilanadi. Saqlashdan oldin ma'lumotlarni tekshiring.
+          </div>
+        </div>
+      </aside>
+    </div>
 
     <div class="mahsulot-amallar">
       <label class="faol-belgi">
