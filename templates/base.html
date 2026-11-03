@@ -46,6 +46,7 @@
     </a>
 
     {% if server_kompyuteri %}<a class="menyu-tugma" href="{% url 'kassalar' %}" title="Kassalar va IP sozlamalari"><svg class="ikon"><use href="#i-savdo"></use></svg> Kassalar</a>{% endif %}
+    <a class="menyu-tugma {% if bolim == 'akkaunt_sozlamalar' %}faol{% endif %}" href="{% url 'akkaunt_sozlamalar' %}"><svg class="ikon"><use href="#i-odamlar"></use></svg> Login / Parol</a>
     <div class="menyu-pastki">
       <button type="button" class="richag" id="mavzu-richag" role="switch" aria-pressed="true"
               title="Kechki (quyuq) va kunduzgi (yorug') ko'rinish o'rtasida almashtirish">
@@ -57,7 +58,6 @@
         <span class="yo-l"><span class="dasta"></span></span>
         <span class="holat">Sensor</span>
       </button>
-      <a class="menyu-tugma" href="{% url 'akkaunt_sozlamalar' %}"><svg class="ikon"><use href="#i-odamlar"></use></svg> Login / Parol</a>
       <form method="post" action="{% url 'chiqish' %}">
         {% csrf_token %}
         <button type="submit" class="menyu-tugma chiqish" style="width:100%"
