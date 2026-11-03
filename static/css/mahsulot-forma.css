@@ -2,7 +2,7 @@
 .mahsulot-sahifa { max-width: 920px; }
 .mahsulot-sarlavha { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
 .mahsulot-sarlavha .kichik { margin-top:6px; line-height:1.45; }
-.mahsulot-forma { display:flex; flex-direction:column; gap:0; padding:20px; }
+.mahsulot-forma { display:flex; flex-direction:column; gap:0; padding:0; background:transparent; border:0; box-shadow:none; }
 .mahsulot-bolim { padding:0; border:0; background:transparent; box-shadow:none; }
 .mahsulot-bolim-bosh { margin-bottom:12px; }
 .mahsulot-ajratgich { display:block; width:100%; border:0; border-top:1px solid var(--chegara); height:0; margin:24px 0; }
@@ -24,7 +24,7 @@
 .mahsulot-amallar .forma-tugmalar { display:flex; flex-wrap:wrap; gap:10px; }
 .mahsulot-amallar .faol-belgi { margin:0; }
 @media(max-width:684px) {
-  .mahsulot-forma { padding:15px; }
+  .mahsulot-forma { padding:0; }
   .mahsulot-bolim-bosh { margin-bottom:16px; }
   .mahsulot-ikki { padding:12px; }
   .mahsulot-amallar { padding:16px 0 0; }
