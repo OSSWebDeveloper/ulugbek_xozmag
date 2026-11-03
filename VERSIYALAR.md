@@ -1,5 +1,10 @@
 # Versiyalar tarixi
 
+### Hisoblar va login/parolni o'zgartirish — 2026-11-03
+- Yangi o'rnatishda server/server va kassa/kassa boshlang'ich akkauntlari.
+- Birinchi kirishda parolni majburiy almashtirish va keyinchalik login/parolni sozlash.
+- O'rnatuvchi yoki qayta ishga tushirish mavjud akkaunt parollarini qayta yozmaydi.
+
 ## 3.9.9 — 2026-11-03
 
 - Server kassasiga «Hisobot» bo'limi: kassir va sana bo'yicha yakunlangan sotuvlar, qaytarilgan summa ayrilgan tushum.
