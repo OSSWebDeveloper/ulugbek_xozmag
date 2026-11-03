@@ -42,7 +42,7 @@ class MahsulotForm(forms.ModelForm):
     )
     class Meta:
         model = Mahsulot
-        fields = ["kod", "shtrix_kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx",
+        fields = ["kod", "shtrix_kod", "nom", "valyuta", "birlik", "olish_birligi", "olish_miqdori", "narx", "kelish_narxi", "kelish_valyutasi",
                   "qoldiq", "faol"]
         field_classes = {
             "qoldiq": VergulliDecimal,
