@@ -30,6 +30,10 @@ class StandartHisobTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(get_user_model().objects.get(username="server_new").check_password("UniqueSecurePassword987!"))
         self.assertNotEqual(self.client.get(reverse("akkaunt_sozlamalar")).status_code, 302)
+        # Server qayta ishga tushganda eski zaif login/parol qayta yaratilmasin.
+        call_command("standart_akkauntlar", verbosity=0)
+        self.assertFalse(get_user_model().objects.filter(username="server").exists())
+        self.assertEqual(get_user_model().objects.filter(username="server_new").count(), 1)
 
     def test_cannot_reuse_default(self):
         call_command("standart_akkauntlar", verbosity=0)
