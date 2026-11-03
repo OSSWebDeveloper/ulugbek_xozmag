@@ -35,6 +35,7 @@ def worker():
     from django.core.handlers.wsgi import WSGIHandler
     from waitress import create_server, wasyncore
     call_command('migrate', interactive=False, verbosity=0)
+    call_command('standart_akkauntlar', verbosity=0)
     server = create_server(StaticFilesHandler(WSGIHandler()), host='0.0.0.0', port=PORT, threads=8)
     stop_file = DATA / f'stop-{os.getpid()}'
     stop_file.unlink(missing_ok=True)

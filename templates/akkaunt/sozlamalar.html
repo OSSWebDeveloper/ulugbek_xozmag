@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block sarlavha %}Login va parolni o'zgartirish{% endblock %}
+{% block tana %}
+<div class="sahifa-keng" style="max-width:660px">
+  <div class="sarlavha">Login va parolni o'zgartirish</div>
+  {% if majburiy %}
+  <div class="xabar error" style="margin-bottom:16px">
+    Standart parolni birinchi kirishda yangilash shart.
+    Yangi parol kamida 8 belgidan iborat va taxmin qilish qiyin bo'lsin.
+  </div>
+  {% endif %}
+  <form method="post" class="quti" autocomplete="off">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="xabar error">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="maydon" style="margin-bottom:16px">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="xato-yozuv">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <div class="qator">
+      <button class="tugma yashil" type="submit">Login va parolni saqlash</button>
+      {% if not majburiy %}<a class="tugma tinch" href="{% url 'qarz:boshlash' %}">Ortga</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

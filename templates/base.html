@@ -57,6 +57,7 @@
         <span class="yo-l"><span class="dasta"></span></span>
         <span class="holat">Sensor</span>
       </button>
+      <a class="menyu-tugma" href="{% url 'akkaunt_sozlamalar' %}"><svg class="ikon"><use href="#i-odamlar"></use></svg> Login / Parol</a>
       <form method="post" action="{% url 'chiqish' %}">
         {% csrf_token %}
         <button type="submit" class="menyu-tugma chiqish" style="width:100%"
