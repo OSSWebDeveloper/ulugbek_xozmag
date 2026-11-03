@@ -70,3 +70,19 @@ python manage.py test sotuv ombor
 python manage.py runserver
 ```
 `Hisobot` bo'limi faqat server kompyuterining mahalliy IP manzilidan ishlashi uchun cheklangan. Yangilanishlar dastlab alohida branch'ga kiritiladi; sinovdan keyin main'ga qo'shing.
+
+## Server va kassa uchun boshlang'ich login
+
+Yangi o'rnatilganda `python manage.py standart_akkauntlar` buyrug'i ikkita hisobni yaratadi:
+
+| Ish joyi | Login | Boshlang'ich parol |
+|---|---|---|
+| Server interfeysi | `server` | `server` |
+| Ikkinchi kassa | `kassa` | `kassa` |
+
+**Muhim:** bu parollar birinchi kirish uchun xolos. Ilk kirishda dastur login/parolni almashtirish sahifasiga yo'naltiradi; yangi parol Django xavfsizlik tekshiruvlaridan o'tishi kerak. `server` akkaunti Django superuser emas, dastur interfeysi uchun oddiy foydalanuvchi. Alohida admin panel huquqi kerak bo'lsa, administrator uni xavfsiz boshqarishi kerak.
+
+- Kiritilgan yangi parol yoki login **qayta o'rnatishda tiklanmaydi**. `standart_akkauntlar` mavjud foydalanuvchilarga tegmaydi.
+- Keyinchalik yon menyudagi **Login / Parol** orqali login ham, parol ham almashtiriladi; amaldagi parol talab qilinadi.
+- Ikkinchi kassada printer yordamchisini yuklashdan avval `kassa` bilan tizimga kiring, birinchi parolni almashtiring; yangi login/parol bilan yordamchi paketini yuklab oling.
+- Standart parollarni internetga ochiq tarmoqlarda qoldirmang, serverni faqat ishonchli lokal LAN/Wi-Fi ichida ishlating.
