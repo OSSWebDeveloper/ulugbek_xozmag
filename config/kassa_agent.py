@@ -36,7 +36,8 @@ def paket(request):
         if not mahalliymi(request):
             return HttpResponseForbidden('Faqat server kompyuterida.')
         from django.contrib.auth import get_user_model
-        cashier=get_object_or_404(get_user_model(),username='kassa',is_active=True)
+        from qarz.management.commands.standart_akkauntlar import KASSA_GURUH
+        cashier=get_object_or_404(get_user_model(),groups__name=KASSA_GURUH,is_active=True)
     root = Path(settings.BASE_DIR)
     runtime = root / 'qurilma_drivers/kassa/python.zip'
     if not runtime.exists():
@@ -64,7 +65,8 @@ def paket(request):
     data = {'url': doimiy_manzil(request.get_port(), request.scheme), 'token': token,
             'kassir': cashier.username, 'printer': ''}
     from .kassalar import config
-    data['client_ip']=config()['client_ip'] if cashier.username == 'kassa' else ''
+    from qarz.management.commands.standart_akkauntlar import KASSA_GURUH
+    data['client_ip']=config()['client_ip'] if cashier.groups.filter(name=KASSA_GURUH).exists() else ''
     output = io.BytesIO()
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('kassa.json', json.dumps(data, ensure_ascii=True))
