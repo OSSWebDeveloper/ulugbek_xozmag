@@ -1,0 +1,33 @@
+/* Yangi mahsulot kartochkasi — faqat mahsulot sahifasiga ta'sir qiladi. */
+.mahsulot-sahifa { max-width: 920px; }
+.mahsulot-sarlavha { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.mahsulot-sarlavha .kichik { margin-top:6px; line-height:1.45; }
+.mahsulot-forma { display:flex; flex-direction:column; gap:16px; }
+.mahsulot-bolim { padding:20px; }
+.mahsulot-bolim-bosh { display:flex; align-items:flex-start; gap:12px; margin-bottom:20px; }
+.mahsulot-qadam { display:inline-grid; place-items:center; flex:none; width:36px; height:36px; border-radius:10px; color:var(--urgu-matn); background:var(--urgu-fon); border:1px solid var(--urgu-chek); font-size:13px; font-weight:750; }
+.mahsulot-bolim h2 { margin:0; font-size:18px; line-height:1.3; font-weight:700; color:var(--matn-rang); }
+.mahsulot-bolim-bosh p { margin:5px 0 0; color:var(--matn-3); font-size:13px; }
+.mahsulot-bolim .forma-setka { gap:16px; }
+.mahsulot-bolim .maydon-izoh { line-height:1.45; }
+.mahsulot-majburiy { color:var(--xato); }
+.mahsulot-ixtiyoriy { color:var(--matn-3); font-weight:400; font-size:11px; margin-left:4px; }
+.mahsulot-bolim .richag.keng { margin-top:2px; }
+.mahsulot-ikki { padding:16px; border:1px solid var(--chegara); border-radius:12px; background:var(--fon-2); }
+.mahsulot-ikki[hidden], .mahsulot-bolim [hidden] { display:none !important; }
+.mahsulot-farq { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:12px; row-gap:5px; padding:12px 14px; border:1px solid var(--chegara); border-radius:10px; background:var(--fon-2); }
+.mahsulot-farq span { color:var(--matn-2); font-size:13px; }
+.mahsulot-farq strong { color:var(--matn-rang); font-size:17px; font-variant-numeric:tabular-nums; }
+.mahsulot-farq small { flex-basis:100%; color:var(--matn-3); line-height:1.45; }
+.mahsulot-farq.manfiy strong { color:var(--xato); }
+.mahsulot-amallar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; padding:15px 20px; }
+.mahsulot-amallar .forma-tugmalar { display:flex; flex-wrap:wrap; gap:10px; }
+.mahsulot-amallar .faol-belgi { margin:0; }
+@media(max-width:684px) {
+  .mahsulot-bolim { padding:15px; }
+  .mahsulot-bolim-bosh { margin-bottom:16px; }
+  .mahsulot-ikki { padding:12px; }
+  .mahsulot-amallar { padding:14px; }
+  .mahsulot-amallar .forma-tugmalar { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+  .mahsulot-amallar .forma-tugmalar > * { text-align:center; justify-content:center; }
+}
