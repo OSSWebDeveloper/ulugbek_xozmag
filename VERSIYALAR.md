@@ -1,5 +1,11 @@
 # Versiyalar tarixi
 
+## 3.9.9 — 2026-11-03
+
+- Server kassasiga «Hisobot» bo'limi: kassir va sana bo'yicha yakunlangan sotuvlar, qaytarilgan summa ayrilgan tushum.
+- Omborga mahsulot qo'shish va tahrirlashda do'kon sotib olish narxi hamda xarid valyutasi.
+- Dasturdan foydalanish qo'llanmasi va tegishli testlar.
+
 ## 3.9.8 — 2026-11-01
 
 - Ikki kassa uchun umumiy ombor, alohida savatlar va USB chek printeri yordamchisi.
