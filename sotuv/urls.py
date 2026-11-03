@@ -1,12 +1,13 @@
 """Naqd sotuv manzillari."""
 from django.urls import path
 
-from . import views
+from . import views, hisobot
 from . import chek_views
 
 app_name = "sotuv"
 
 urlpatterns = [
+    path("hisobot/", hisobot.sahifa, name="hisobot"),
     path("chek-qidir/", chek_views.qaytarish_cheki, name="chek_izla"),
     path("chek/<int:pk>/", chek_views.korish, name="chek"),
     path("chek/<int:pk>/chop/", chek_views.chiqarish, name="chek_chop"),
