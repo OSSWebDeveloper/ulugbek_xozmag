@@ -1,5 +1,13 @@
 # Versiyalar tarixi
 
+## 3.9.20 — 2026-11-04
+
+- Foydalanuvchi yuborgan BizaroPOS_v1.3.2.cmd o'rnatuvchisi yangilandi va BizaroPOS_v3.9.20.cmd sifatida qo'shildi.
+- CMD fayli ikki marta bosilganda Windows UAC Administrator ruxsatini so'raydi.
+- Git safe.directory ishonchi global sozlamasiz, har bir git chaqiruvida faqat shu server papkasi uchun beriladi.
+- Avtomatik yangilashning local database va foydalanuvchi qurilma fayllarini himoyalash mexanizmlari saqlandi.
+- PowerShell skript cheklovi uchun o'rnatuvchi faqat o'z ishga tushirish jarayonida ExecutionPolicy Bypass ishlatadi.
+
 ## 3.9.19 — 2026-11-04
 
 - BIZAROPOS_ORNATISH.ps1 ichidagi PowerShell 5.1 da parser xatosiga sabab bo'lgan tipografik apostrof olib tashlandi.
