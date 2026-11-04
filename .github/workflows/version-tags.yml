@@ -1,0 +1,51 @@
+name: BizaroPOS version tags
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - versiya.txt
+      - .github/workflows/version-tags.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-version-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publish missing version tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Backfill completed versions at their original commits, not HEAD.
+          while read -r name sha; do
+            git cat-file -e "${sha}^{commit}"
+            if ! git show-ref --verify --quiet "refs/tags/${name}"; then
+              git tag -a "${name}" "${sha}" -m "BizaroPOS ${name}"
+              git push origin "refs/tags/${name}"
+            fi
+          done <<'HISTORY'
+          v3.9.16 f8aa0e4e67ba41835e70c3e9d8e49b8368875e3c
+          v3.9.17 206d0244bd6d39b1ffad5577bafa79b263ecdd04
+          v3.9.18 59a177debc19061d211efaf4833762b1e441834d
+          v3.9.19 c1953dcc6a6766e510d6112d442fdf008de5a580
+          v3.9.20 8f9423208356ae79d0834ebab0c656dd534de976
+          v3.9.21 ca026d45cfb3e60522a84a4bec60623d53ca92ed
+          HISTORY
+          current="$(tr -d '\r\n ' < versiya.txt)"
+          if [[ ! "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $current" >&2
+            exit 1
+          fi
+          if ! git show-ref --verify --quiet "refs/tags/v${current}"; then
+            git tag -a "v${current}" "$GITHUB_SHA" -m "BizaroPOS v${current}"
+            git push origin "refs/tags/v${current}"
+          fi
