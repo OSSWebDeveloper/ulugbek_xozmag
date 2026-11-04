@@ -121,8 +121,17 @@ def avtomatik(request, s):
         messages.warning(request, f'Savdo saqlandi, lekin chek #{s.pk} printerga yuborilmadi. Sotuvlar ro‘yxatidagi «Chek» orqali qayta chiqaring.')
 
 
+TUNNEL_DOMENLARI = ('.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io')
+
+
 def mahalliymi(request):
     from config.tarmoq import ip_manzillar
+    # ngrok so'rovni shu kompyuterdan uzatadi (REMOTE_ADDR=127.0.0.1), lekin u
+    # internetdan kelgan. Waitress X-Forwarded-* ni o'chirib yuboradi, shuning
+    # uchun asosiy belgi — Host; X-Forwarded-For runserver uchun qoldirilgan.
+    host = request.META.get('HTTP_HOST', '').split(':')[0].lower()
+    if host.endswith(TUNNEL_DOMENLARI) or request.META.get('HTTP_X_FORWARDED_FOR'):
+        return False
     return request.META.get('REMOTE_ADDR', '') in {'127.0.0.1', '127.0.0.55', '::1', *ip_manzillar()}
 
 
