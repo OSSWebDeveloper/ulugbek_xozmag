@@ -1,15 +1,14 @@
 """Local-server cashier network setup; changes only extra IPv4 addresses."""
 import ipaddress
 import json
-import os
 from pathlib import Path
-import subprocess
 from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from sotuv.chek import mahalliymi
+from config.tarmoq import ip_manzillar, doimiy_manzil
 
 
 def path():
@@ -46,15 +45,16 @@ def sahifa(request):
     form=KassaForm(request.POST or None,initial=saved)
     if request.method=='POST' and form.is_valid():
         try:
-            exe=Path(os.environ.get('SystemRoot',r'C:\Windows'))/'System32/WindowsPowerShell/v1.0/powershell.exe'
-            result=subprocess.run([str(exe),'-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',str(Path(__file__).with_name('kassa_ip.ps1')),'-Address',form.cleaned_data['server_ip'],'-InterfaceIndex',str(form.cleaned_data['interface'])],capture_output=True,timeout=20,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-            if result.returncode:
-                raise RuntimeError('IP qo‘llanmadi. Serverni administrator sifatida oching; tarmoq kartasi va IP band emasligini tekshiring.')
-            target=path();target.parent.mkdir(parents=True,exist_ok=True)
-            temp=target.with_suffix('.tmp');temp.write_text(json.dumps(form.cleaned_data),encoding='utf-8');temp.replace(target)
-            messages.success(request,'Server IP saqlandi va tarmoq kartasiga qo‘llandi.')
+            # Faqat konfiguratsiyani yozamiz: IP o'zgartirish va server
+            # ishga tushirish saytning POST so'rovi orqali bajarilmaydi.
+            target=path()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temp=target.with_suffix('.tmp')
+            temp.write_text(json.dumps(form.cleaned_data), encoding='utf-8')
+            temp.replace(target)
+            messages.success(request, 'Sozlamalar saqlandi. Server qayta ishga tushirilmadi.')
             return redirect('kassalar')
-        except (OSError,subprocess.SubprocessError,RuntimeError) as exc:
-            form.add_error(None,str(exc))
+        except OSError as exc:
+            form.add_error(None, 'Sozlamalarni saqlab bo‘lmadi: ' + str(exc))
     for field in form.fields.values():field.widget.attrs['class']='kirish'
-    return render(request,'kassalar.html',{'form':form,'network':saved})
+    return render(request,'kassalar.html',{'form':form,'network':saved, 'live_ips':ip_manzillar(), 'server_url':doimiy_manzil()})
