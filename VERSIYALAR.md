@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.24 — 2026-11-04
+
+Mahsulot formasidan narx farqi bloki olib tashlandi
+
 ## 3.9.23 — 2026-11-04
 
 Mahsulot formasida narx tartibi: avval xarid valyutasi va narxi, keyin sotuv valyutasi va narxi
