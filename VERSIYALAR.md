@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.22 — 2026-11-04
+
+Ngrok orqali kirganlar server kompyuteri hisoblanmaydi; mahsulot formasidan kartochka olib tashlandi, saqlash qatori soddalashtirildi
+
 ## 3.9.21 — 2026-11-04
 
 - Kassalar sahifasidagi ortiqcha tarmoq izohlari, eskirgan IP ogohlantirishlari va uzun o‘rnatish yo‘riqnomalari olib tashlandi.
