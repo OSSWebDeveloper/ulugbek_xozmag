@@ -28,12 +28,6 @@
 .mahsulot-bolim .richag-matn small {margin-top:4px;color:var(--matn-3);font-size:11.5px;line-height:1.4;}
 .mahsulot-ikki {padding:16px;border-radius:11px;background:var(--panel);border:1px solid var(--chegara);min-width:0;}
 .mahsulot-ikki[hidden],.mahsulot-bolim [hidden] {display:none!important;}
-.mahsulot-farq {display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;padding:11px 13px;background:var(--tasdiq-fon);border:1px solid var(--tasdiq-chek);border-radius:10px;}
-.mahsulot-farq span {font-size:12px;color:var(--matn-2);}
-.mahsulot-farq strong {color:var(--tasdiq);font-size:16px;font-variant-numeric:tabular-nums;}
-.mahsulot-farq small {flex-basis:100%;color:var(--matn-3);font-size:11px;line-height:1.5;}
-.mahsulot-farq.manfiy {background:var(--xato-fon);border-color:var(--xato-chek);}
-.mahsulot-farq.manfiy strong {color:var(--xato);}
 
 /* Saqlash qatori */
 .mahsulot-amallar {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--chegara);}

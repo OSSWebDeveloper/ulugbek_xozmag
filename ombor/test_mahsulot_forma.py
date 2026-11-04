@@ -24,7 +24,7 @@ class MahsulotFormaTest(TestCase):
         self.assertContains(response, "Asosiy ma")
         self.assertContains(response, "Narx va valyuta")
         self.assertContains(response, "Ombor va o")
-        self.assertContains(response, "mahsulot-farq")
+        self.assertNotContains(response, "mahsulot-farq")
         self.assertContains(response, 'class="mahsulot-amallar"')
         self.assertContains(response, 'name="faol"')
         self.assertNotContains(response, "MAHSULOT KARTOCHKASI")

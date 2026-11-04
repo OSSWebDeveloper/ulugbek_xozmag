@@ -48,10 +48,6 @@
     var qoldiqMaydon = document.getElementById("qoldiq-maydon");
     var qadoqSoni = document.getElementById("qadoq-soni");
     var narx = document.getElementById("id_narx");
-    var xaridNarxi = document.getElementById("id_kelish_narxi");
-    var xaridValyutasi = document.getElementById("id_kelish_valyutasi");
-    var farqBox = document.getElementById("mahsulot-farq");
-    var farqQiymat = document.getElementById("mahsulot-farq-qiymat");
     var valyuta = document.getElementById("id_valyuta");
     var birlikYorliq = document.getElementById("birlik-yorliq");
     var qoida = document.getElementById("birlik-qoida");
@@ -75,27 +71,6 @@
       matnQoy("olish-birlik-nomi", olish || "qadoq");
       matnQoy("valyuta-nomi", valyutaBelgisi());
       birlikYorliq.textContent = yoniq ? "Sotiladigan birligi" : "Sotuv birligi";
-
-      // Narx farqini faqat bir xil valyutada ko'rsatamiz; kurs bo'yicha
-      // faraz qilmaymiz. Bu faqat ma'lumot, backend qiymati o'zgarmaydi.
-      if (farqBox && farqQiymat) {
-        var sotishKiritilgan = !!(narx && narx.value.trim());
-        var xaridKiritilgan = !!(xaridNarxi && xaridNarxi.value.trim());
-        var pul = valyuta ? valyuta.value || "som" : "som";
-        var kelishPul = xaridValyutasi && xaridValyutasi.value ? xaridValyutasi.value : pul;
-        var sotish = son(narx && narx.value);
-        var xarid = son(xaridNarxi && xaridNarxi.value);
-        var korsat = sotishKiritilgan && xaridKiritilgan &&
-                      pul === kelishPul && sotish >= 0 && xarid >= 0;
-        farqBox.hidden = !korsat;
-        if (korsat) {
-          var farq = sotish - xarid;
-          farqQiymat.textContent = (farq > 0 ? "+" : "") +
-            chiroyli(Math.round(farq * 10000) / 10000) +
-            (pul === "dollar" ? " $" : " so'm");
-          farqBox.classList.toggle("manfiy", farq < 0);
-        }
-      }
 
       // Yangi tovarda qoldiq qadoq sonidan chiqadi — qo'lda yozilmaydi.
       var qoldiqYashirin = yoniq && yangiMi;
@@ -155,7 +130,7 @@
       qoida.textContent = qatorlar.join("  ·  ");
     }
 
-    [belgi, birlik, olishBirligi, olishMiqdori, qoldiq, qadoqSoni, narx, valyuta, xaridNarxi, xaridValyutasi]
+    [belgi, birlik, olishBirligi, olishMiqdori, qoldiq, qadoqSoni, narx, valyuta]
       .forEach(function (el) {
         if (!el) return;
         el.addEventListener("change", yangila);
