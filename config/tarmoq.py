@@ -44,15 +44,19 @@ def ip_manzillar():
 
 
 def doimiy_manzil(port=5555, scheme='http'):
-    """Windows kassalari uchun DHCP manziliga bog'liq bo'lmagan host nomi."""
+    """Ishlayotgan LAN IPni tanlash: mavjud bo'lmagan statik IPni reklama qilmaydi."""
     import json
     from pathlib import Path
-    file=Path(__file__).resolve().parent.parent/'qurilmalar_data/kassalar.json'
+    file = Path(__file__).resolve().parent.parent / 'qurilmalar_data/kassalar.json'
     try:
-        ip=json.loads(file.read_text(encoding='utf-8'))['server_ip']
-    except FileNotFoundError:
-        ip='192.168.153.25'
-    return f'{scheme}://{ip}:{port}'
+        configured = json.loads(file.read_text(encoding='utf-8')).get('server_ip', '')
+    except (OSError, ValueError, TypeError):
+        configured = ''
+    available = ip_manzillar()
+    # IP haqiqatan ham tarmoq kartasida bo'lsagina undan foydalanamiz.
+    ip = configured if configured in available else (available[0] if available else '')
+    return f'{scheme}://{ip}:{port}' if ip else ''
+
 
 
 def manzillar(port):
