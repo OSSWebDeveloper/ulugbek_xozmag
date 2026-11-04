@@ -73,7 +73,13 @@ class Supervisor:
         self.busy = threading.Lock()
         self.closing = threading.Event()
         self.update_text = 'Dasturni yangilash'
+        # Admin UAC launcher passes the Git executable explicitly because
+        # elevated processes may not inherit the user's PATH.
         self.git_path = os.environ.get('BIZARO_GIT') or 'git'
+        if '--git-path' in sys.argv:
+            index = sys.argv.index('--git-path') + 1
+            if index < len(sys.argv) and sys.argv[index]:
+                self.git_path = sys.argv[index]
 
     def git(self, *args):
         # Windows o'rnatuvchisi Administrator orqali ishga tushirilsa, papkaning
