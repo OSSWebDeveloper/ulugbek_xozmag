@@ -47,15 +47,6 @@
     var qoldiq = document.getElementById("id_qoldiq");
     var qoldiqMaydon = document.getElementById("qoldiq-maydon");
     var qadoqSoni = document.getElementById("qadoq-soni");
-    var nom = document.getElementById("id_nom");
-    var kod = document.getElementById("id_kod");
-    var faol = document.getElementById("id_faol");
-    var previewNom = document.getElementById("preview-nom");
-    var previewKod = document.getElementById("preview-kod");
-    var previewNarx = document.getElementById("preview-narx");
-    var previewXarid = document.getElementById("preview-xarid");
-    var previewQoldiq = document.getElementById("preview-qoldiq");
-    var previewStatus = document.getElementById("preview-status");
     var narx = document.getElementById("id_narx");
     var xaridNarxi = document.getElementById("id_kelish_narxi");
     var xaridValyutasi = document.getElementById("id_kelish_valyutasi");
@@ -109,28 +100,6 @@
       // Yangi tovarda qoldiq qadoq sonidan chiqadi — qo'lda yozilmaydi.
       var qoldiqYashirin = yoniq && yangiMi;
       qoldiqMaydon.hidden = qoldiqYashirin;
-
-      // Jonli kartochka: hech qanday ma'lumot serverga yuborilmaydi.
-      // Faqat foydalanuvchi kiritgan qiymatlarni ko'rsatadi.
-      if (previewNom) {
-        previewNom.textContent = nom && nom.value.trim() ? nom.value.trim() : "Yangi mahsulot";
-        var kodMatn = kod && kod.value.trim();
-        previewKod.textContent = kodMatn ? "KOD " + kodMatn : "KOD AVTOMATIK";
-        var sotuvMatn = narx && narx.value.trim() ? chiroyli(son(narx.value)) : "—";
-        var xaridMatn = xaridNarxi && xaridNarxi.value.trim() ? chiroyli(son(xaridNarxi.value)) : "—";
-        var valyutaKod = valyuta && valyuta.value === "dollar" ? "$" : "so'm";
-        var xaridKod = xaridValyutasi && xaridValyutasi.value === "dollar" ? "$"
-                      : xaridValyutasi && xaridValyutasi.value === "som" ? "so'm" : valyutaKod;
-        if (previewNarx) previewNarx.textContent = sotuvMatn === "—" ? "—" : sotuvMatn + " " + valyutaKod;
-        if (previewXarid) previewXarid.textContent = xaridMatn === "—" ? "—" : xaridMatn + " " + xaridKod;
-        var qoldiqHisob = son(qoldiq && qoldiq.value);
-        if (qoldiqYashirin) qoldiqHisob = son(qadoqSoni && qadoqSoni.value) * son(olishMiqdori.value);
-        if (previewQoldiq) previewQoldiq.textContent = chiroyli(Math.round(qoldiqHisob * 1000) / 1000) + " " + (sotuv || "dona");
-        if (previewStatus && faol) {
-          previewStatus.textContent = faol.checked ? "Ro'yxatda" : "Yashirilgan";
-          previewStatus.classList.toggle("yashirin", !faol.checked);
-        }
-      }
 
       if (!yoniq) {
         qoida.hidden = true;
@@ -186,7 +155,7 @@
       qoida.textContent = qatorlar.join("  ·  ");
     }
 
-    [belgi, birlik, olishBirligi, olishMiqdori, qoldiq, qadoqSoni, narx, valyuta, xaridNarxi, xaridValyutasi, nom, kod, faol]
+    [belgi, birlik, olishBirligi, olishMiqdori, qoldiq, qadoqSoni, narx, valyuta, xaridNarxi, xaridValyutasi]
       .forEach(function (el) {
         if (!el) return;
         el.addEventListener("change", yangila);

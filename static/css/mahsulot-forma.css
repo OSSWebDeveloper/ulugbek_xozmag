@@ -1,11 +1,9 @@
 /* BizaroPOS — mahsulot muharriri. Boshqa sahifalar uslubi o'zgarmaydi. */
-.mahsulot-sahifa {max-width:1180px;margin-inline:auto;padding:0 8px 28px;}
+.mahsulot-sahifa {max-width:860px;margin-inline:auto;padding:0 8px 28px;}
 .mahsulot-sarlavha {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:5px 0 26px;}
 .mahsulot-sarlavha > div:first-child > div:first-child {font-size:clamp(25px,2.4vw,33px);font-weight:780;letter-spacing:-.035em;line-height:1.18;color:var(--matn-rang);}
 .mahsulot-sarlavha .kichik {font-size:14px;color:var(--matn-3);margin-top:9px;font-weight:400;line-height:1.5;}
 .mahsulot-forma {display:block;padding:0;border:0;background:none;box-shadow:none;}
-.mahsulot-layout {display:grid;grid-template-columns:minmax(0,1fr) 294px;align-items:start;gap:36px;}
-.mahsulot-asosiy-panel {min-width:0;}
 .mahsulot-bolim {padding:0;margin:0;border:0;background:none;box-shadow:none;}
 .mahsulot-bolim-bosh {margin:0 0 20px;}
 .mahsulot-bolim h2 {margin:0;color:var(--matn-rang);font-size:19px;font-weight:760;line-height:1.3;letter-spacing:-.015em;}
@@ -37,32 +35,10 @@
 .mahsulot-farq.manfiy {background:var(--xato-fon);border-color:var(--xato-chek);}
 .mahsulot-farq.manfiy strong {color:var(--xato);}
 
-/* O'ng tarafdagi jonli kartochka */
-.mahsulot-preview {position:sticky;top:18px;min-width:0;}
-.mahsulot-preview-ichki {overflow:hidden;border:1px solid var(--chegara);border-radius:17px;background:var(--panel);box-shadow:0 14px 36px rgba(0,0,0,.10);padding:18px;}
-.mahsulot-preview-yuqori {display:flex;justify-content:space-between;align-items:center;gap:7px;}
-.mahsulot-preview-belgi {font-size:9px;letter-spacing:.11em;font-weight:780;color:var(--matn-3);}
-.mahsulot-preview-status {border-radius:50px;padding:5px 8px;color:var(--tasdiq);background:var(--tasdiq-fon);border:1px solid var(--tasdiq-chek);white-space:nowrap;font-size:10px;font-weight:700;}
-.mahsulot-preview-status.yashirin {background:var(--panel-2);color:var(--matn-3);border-color:var(--chegara);}
-.mahsulot-preview-rasm {width:100%;height:126px;display:grid;place-items:center;margin:18px 0 13px;border-radius:12px;background:linear-gradient(145deg,var(--urgu-fon),var(--panel-2));color:var(--urgu-matn);}
-.mahsulot-preview-rasm svg {width:82px;height:82px;opacity:.75;}
-.mahsulot-preview-kod {color:var(--urgu-matn);font-weight:750;font-size:10px;letter-spacing:.095em;}
-.mahsulot-preview-nom {margin-top:6px;font-size:19px;font-weight:770;line-height:1.3;color:var(--matn-rang);overflow-wrap:anywhere;}
-.mahsulot-preview-tavsif {margin-top:5px;font-size:11px;color:var(--matn-3);}
-.mahsulot-preview-qator {display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--chegara);}
-.mahsulot-preview-tavsif + .mahsulot-preview-qator {margin-top:19px;}
-.mahsulot-preview-qator span {font-size:12px;color:var(--matn-3);}
-.mahsulot-preview-qator strong {max-width:145px;text-align:right;font-size:13px;color:var(--matn-rang);font-weight:740;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}
-.mahsulot-preview-izoh {padding:12px;margin-top:9px;background:var(--urgu-fon);border-radius:9px;color:var(--matn-2);font-size:11px;line-height:1.6;}
-
-/* Bir butun asosiy saqlash paneli */
-.mahsulot-amallar {position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:30px;padding:13px 18px;background:var(--panel);border:1px solid var(--chegara);border-radius:12px;box-shadow:0 -6px 24px rgba(0,0,0,.17);}
+/* Saqlash qatori */
+.mahsulot-amallar {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--chegara);}
 .mahsulot-amallar .faol-belgi {font-size:13px;color:var(--matn-2);margin:0;}
-.mahsulot-amallar .forma-tugmalar {display:flex;gap:9px;min-width:0;flex:none;}
-.mahsulot-amallar .forma-tugmalar .tugma {display:inline-flex;align-items:center;justify-content:center;min-height:46px;min-width:125px;padding:0 18px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:700;}
-.mahsulot-amallar .forma-tugmalar .tugma.yashil {min-width:180px;}
-.mahsulot-amallar .forma-tugmalar .tugma:focus-visible {outline:2px solid var(--urgu);outline-offset:3px;}
-@media(max-width:980px) {.mahsulot-layout {grid-template-columns:minmax(0,1fr) 250px;gap:22px;}.mahsulot-preview-ichki{padding:14px;}.mahsulot-amallar{padding:12px;}}
-@media(max-width:760px) {.mahsulot-layout{grid-template-columns:minmax(0,1fr);gap:22px;}.mahsulot-preview{position:static;}.mahsulot-preview-ichki{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}.mahsulot-preview-yuqori,.mahsulot-preview-izoh{grid-column:1/-1;}.mahsulot-preview-rasm{height:110px;grid-row:2/6;}.mahsulot-preview-kod{margin-top:18px;}.mahsulot-preview-qator{grid-column:1/-1;}}
-@media(max-width:540px) {.mahsulot-sahifa{padding-inline:0;}.mahsulot-sarlavha > div:first-child > div:first-child{font-size:25px;}.mahsulot-bolim .forma-setka{grid-template-columns:minmax(0,1fr);gap:16px;}.mahsulot-ajratgich{margin:26px 0;}.mahsulot-preview-ichki{display:block;}.mahsulot-preview-rasm{height:110px;}.mahsulot-amallar{padding:11px;border-radius:10px;}.mahsulot-amallar .forma-tugmalar{width:100%;display:grid;grid-template-columns:1fr 1fr;}.mahsulot-amallar .forma-tugmalar .tugma,.mahsulot-amallar .forma-tugmalar .tugma.yashil{width:100%;min-width:0;padding:0 8px;}}
+.mahsulot-amallar .forma-tugmalar {display:flex;gap:8px;margin:0;min-width:0;flex:none;}
+.mahsulot-amallar .forma-tugmalar .tugma {flex:none;white-space:nowrap;}
+@media(max-width:540px) {.mahsulot-sahifa{padding-inline:0;}.mahsulot-sarlavha > div:first-child > div:first-child{font-size:25px;}.mahsulot-bolim .forma-setka{grid-template-columns:minmax(0,1fr);gap:16px;}.mahsulot-ajratgich{margin:26px 0;}.mahsulot-amallar .forma-tugmalar{width:100%;}.mahsulot-amallar .forma-tugmalar .tugma{flex:1;min-width:0;}}
 @media(prefers-reduced-motion:reduce){.mahsulot-bolim .kirish{transition:none;}}
