@@ -1,5 +1,11 @@
 # Versiyalar tarixi
 
+## 3.9.17 — 2026-11-04
+
+- LAN portining firewall qoidasi Wi-Fi Public profilida ham ishlashi uchun Profile Any qilib yangilandi, RemoteAddress esa LocalSubnet4 bilan cheklangan.
+- Administrator huquqi dastur o'rnatuvchisining boshida tekshiriladi; shuning uchun o'rnatish yarmida firewall qoidasiga yetib kelib to'xtamaydi.
+- Telefonning ERR_ADDRESS_UNREACHABLE xatosi subnetlar yoki Wi-Fi client isolation tufayli bo'lsa, router va telefon tarmog'ini alohida tekshirish talab etiladi; dastur kodi buni o'zi hal qila olmaydi.
+
 ## 3.9.16 — 2026-11-04
 
 - Wi-Fi/LAN orqali kirishda mavjud tarmoq IP manzili ko‘rsatiladi; eskirgan 192.168.153.25 manziliga ko‘r-ko‘rona tayanilmaydi.
