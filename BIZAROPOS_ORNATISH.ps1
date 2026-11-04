@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 # Firewall qoidasini yangilash uchun administrator huquqi avval tekshiriladi.
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw 'O‘rnatishni administrator PowerShell orqali boshlang: LAN firewall qoidasini yaratish uchun ruxsat kerak.'
+    throw 'Ornatishni administrator PowerShell orqali boshlang: LAN firewall qoidasini yaratish uchun ruxsat kerak.'
 }
 if (-not $Python) { $Python = (& py -c 'import sys; print(sys.executable)').Trim() }
 $Python = [IO.Path]::GetFullPath($Python)
@@ -31,7 +31,7 @@ $shortcut.TargetPath = Join-Path $env:WINDIR 'System32\wscript.exe'
 $shortcut.Arguments = '"' + $startFile + '"'
 $shortcut.WorkingDirectory = $root
 $shortcut.IconLocation = (Join-Path $root 'static\img\bizaropos.ico') + ',0'
-$shortcut.Description = 'BizaroPOS — asosiy kassa va Wi-Fi serveri (5555)'
+$shortcut.Description = 'BizaroPOS - asosiy kassa va Wi-Fi serveri (5555)'
 $shortcut.Save()
 # Pythonw.exe worker ham shu portda tinglaydi. Shuning uchun qoidani
 # python.exe bilan cheklamaymiz. Windows hotspot/Wi-Fi ko'pincha Public
