@@ -2,8 +2,10 @@
 
 `BIZAROPOS_ORNATISH.ps1` (administrator PowerShell) Python kutubxonalarini,
 desktop yarligini va mahalliy tarmoq uchun 5555-port qoidasini o‘rnatadi.
-Yarlik serverni oynasiz ishga tushirib, brauzerni ochadi. Takror bosish yangi
-server ochmaydi. Eski SERVERXOZMAG.bat va kuzatuvchi bilan birga ishlatmang.
+Ish stolidagi BizaroPOS yorlig‘i ikki marta bosilganda Windows UAC orqali
+Administrator ruxsatini so‘raydi. Faqat ruxsat berilganda server ishga tushadi;
+rad etilganda ishga tushmaydi. Pythonw oynasiz ishlaydi, brauzer ochiladi.
+Takror bosish yangi server ochmaydi. Eski SERVERXOZMAG.bat va kuzatuvchi bilan birga ishlatmang.
 
 Asosiy kompyuter: http://127.0.0.55:5555/.
 Boshqa Windows kassalari: http://WIN-HS2MGB9MV4U:5555/ (server kompyuter nomi).
