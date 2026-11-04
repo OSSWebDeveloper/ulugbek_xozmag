@@ -1,5 +1,11 @@
 # Versiyalar tarixi
 
+## 3.9.21 — 2026-11-04
+
+- Kassalar sahifasidagi ortiqcha tarmoq izohlari, eskirgan IP ogohlantirishlari va uzun o‘rnatish yo‘riqnomalari olib tashlandi.
+- Faqat sarlavhalar, mavjud IP maydonlari, server havolasi, saqlash va ikkinchi kassani yuklash tugmalari hamda qisqa kirish ma’lumoti qoldirildi.
+- Saqlash funksiyasi o‘zgarmadi: serverni avtomatik ishga tushirmaydi.
+
 ## 3.9.20 — 2026-11-04
 
 - Foydalanuvchi yuborgan BizaroPOS_v1.3.2.cmd o'rnatuvchisi yangilandi va BizaroPOS_v3.9.20.cmd sifatida qo'shildi.
