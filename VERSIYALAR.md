@@ -1,5 +1,12 @@
 # Versiyalar tarixi
 
+## 3.9.18 — 2026-11-04
+
+- BizaroPOS ish stoli yorlig'i ishga tushirilganda Windows standart UAC administrator ruxsatini avtomatik so'raydi (ShellExecute runas).
+- UAC rad etilsa server ochilmaydi; rozilik berilganda oldingi tray va brauzer rejimi saqlanadi.
+- Elevated Pythonw jarayonida yangilash funksiyasi Git yo'lini to'g'ri ishlatishi uchun launcher --git-path argumentini uzatadi.
+- Yangilangan yorliqni olish uchun BIZAROPOS_ORNATISH.ps1 qayta bajariladi; mavjud eski yorliqlar avtomatik o'zgarmaydi.
+
 ## 3.9.17 — 2026-11-04
 
 - LAN portining firewall qoidasi Wi-Fi Public profilida ham ishlashi uchun Profile Any qilib yangilandi, RemoteAddress esa LocalSubnet4 bilan cheklangan.
