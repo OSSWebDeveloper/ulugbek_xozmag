@@ -18,10 +18,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Standart akkauntlar yaratilmadi' }
 $gitPath = (Get-Command git.exe).Source
 $startFile = Join-Path $root 'BizaroPOS.vbs'
 $vbs = @"
-Set shell = CreateObject("WScript.Shell")
-shell.CurrentDirectory = "$root"
-shell.Environment("PROCESS")("BIZARO_GIT") = "$gitPath"
-shell.Run """$pythonw"" ""$root\bizaropos_server.py""", 0, False
+' Windows ShellExecute "runas" shows the standard UAC administrator prompt
+' when the desktop BizaroPOS icon is clicked. A denied UAC does not start POS.
+Set launcher = CreateObject("Shell.Application")
+launcher.ShellExecute "$pythonw", Chr(34) & "$root\bizaropos_server.py" & Chr(34) & " --git-path " & Chr(34) & "$gitPath" & Chr(34), "$root", "runas", 1
 "@
 [IO.File]::WriteAllText($startFile, $vbs, [Text.Encoding]::Unicode)
 $shell = New-Object -ComObject WScript.Shell
