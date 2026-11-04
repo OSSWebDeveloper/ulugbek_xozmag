@@ -1,5 +1,10 @@
 # Versiyalar tarixi
 
+## 3.9.19 — 2026-11-04
+
+- BIZAROPOS_ORNATISH.ps1 ichidagi PowerShell 5.1 da parser xatosiga sabab bo'lgan tipografik apostrof olib tashlandi.
+- Installerning UAC yo'li va desktop yorlig'i saqlandi; kod faqat moslik uchun tuzatildi.
+
 ## 3.9.18 — 2026-11-04
 
 - BizaroPOS ish stoli yorlig'i ishga tushirilganda Windows standart UAC administrator ruxsatini avtomatik so'raydi (ShellExecute runas).
