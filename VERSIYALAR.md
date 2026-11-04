@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.23 — 2026-11-04
+
+Mahsulot formasida narx tartibi: avval xarid valyutasi va narxi, keyin sotuv valyutasi va narxi
+
 ## 3.9.22 — 2026-11-04
 
 Ngrok orqali kirganlar server kompyuteri hisoblanmaydi; mahsulot formasidan kartochka olib tashlandi, saqlash qatori soddalashtirildi
