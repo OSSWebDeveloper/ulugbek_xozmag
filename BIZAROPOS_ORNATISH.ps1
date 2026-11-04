@@ -29,10 +29,15 @@ $shortcut.WorkingDirectory = $root
 $shortcut.IconLocation = (Join-Path $root 'static\img\bizaropos.ico') + ',0'
 $shortcut.Description = 'BizaroPOS — asosiy kassa va Wi-Fi serveri (5555)'
 $shortcut.Save()
-# Allow just this Python interpreter and port, only from the local subnet.
+# Pythonw.exe worker ham shu portda tinglaydi. Shuning uchun qoidani
+# python.exe bilan cheklamaymiz; faqat Private LAN + LocalSubnet + TCP 5555.
+# Windows Firewall qoidasini o'rnatish Administrator huquqini talab qiladi.
 $rule = 'BizaroPOS-LAN-5555'
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'O‘rnatishni administrator PowerShell orqali boshlang: LAN firewall qoidasini yaratish uchun ruxsat kerak.'
+}
 if (Get-NetFirewallRule -Name $rule -ErrorAction SilentlyContinue) {
     Remove-NetFirewallRule -Name $rule
 }
-New-NetFirewallRule -Name $rule -DisplayName 'BizaroPOS Wi-Fi server 5555' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5555 -RemoteAddress LocalSubnet -Profile Any -Program $Python | Out-Null
+New-NetFirewallRule -Name $rule -DisplayName 'BizaroPOS Wi-Fi server 5555' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5555 -RemoteAddress LocalSubnet -Profile Private | Out-Null
 Write-Output ('Tayyor: ' + (Join-Path $desktop 'BizaroPOS.lnk'))
