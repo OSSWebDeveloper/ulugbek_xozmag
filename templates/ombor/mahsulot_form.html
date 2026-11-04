@@ -59,6 +59,18 @@
       </div>
       <div class="forma-setka">
         <div class="maydon">
+          <label for="{{ form.kelish_valyutasi.id_for_label }}">Xarid narxi valyutasi</label>
+          {{ form.kelish_valyutasi }}
+          <div class="maydon-izoh">Tanlanmasa sotuv valyutasi olinadi.</div>
+          {% if form.kelish_valyutasi.errors %}<div class="xato-yozuv">{{ form.kelish_valyutasi.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
+          <label for="{{ form.kelish_narxi.id_for_label }}">Xarid narxi — 1 <span class="sotuv-birlik-nomi">dona</span> <span class="mahsulot-ixtiyoriy">ixtiyoriy</span></label>
+          {{ form.kelish_narxi }}
+          <div class="maydon-izoh">Do'kon sotib olgan tannarx; sotuv narxiga qo'shilmaydi.</div>
+          {% if form.kelish_narxi.errors %}<div class="xato-yozuv">{{ form.kelish_narxi.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="maydon">
           <label for="{{ form.valyuta.id_for_label }}">Sotuv narxi valyutasi</label>
           {{ form.valyuta }}
           <div class="maydon-izoh">So'm va dollar alohida hisoblanadi.</div>
@@ -69,18 +81,6 @@
           {{ form.narx }}
           <div class="maydon-izoh"><span class="valyuta-nomi">so'm</span>da. Kassada yakuniy summa qo'lda yoziladi.</div>
           {% if form.narx.errors %}<div class="xato-yozuv">{{ form.narx.errors|striptags }}</div>{% endif %}
-        </div>
-        <div class="maydon">
-          <label for="{{ form.kelish_narxi.id_for_label }}">Xarid narxi — 1 <span class="sotuv-birlik-nomi">dona</span> <span class="mahsulot-ixtiyoriy">ixtiyoriy</span></label>
-          {{ form.kelish_narxi }}
-          <div class="maydon-izoh">Do'kon sotib olgan tannarx; sotuv narxiga qo'shilmaydi.</div>
-          {% if form.kelish_narxi.errors %}<div class="xato-yozuv">{{ form.kelish_narxi.errors|striptags }}</div>{% endif %}
-        </div>
-        <div class="maydon">
-          <label for="{{ form.kelish_valyutasi.id_for_label }}">Xarid narxi valyutasi</label>
-          {{ form.kelish_valyutasi }}
-          <div class="maydon-izoh">Tanlanmasa sotuv valyutasi olinadi.</div>
-          {% if form.kelish_valyutasi.errors %}<div class="xato-yozuv">{{ form.kelish_valyutasi.errors|striptags }}</div>{% endif %}
         </div>
         <div class="mahsulot-farq keng" id="mahsulot-farq" hidden aria-live="polite">
           <span>Bir birlikdagi taxminiy narx farqi</span>

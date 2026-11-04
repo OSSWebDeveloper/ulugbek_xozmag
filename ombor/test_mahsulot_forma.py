@@ -31,6 +31,11 @@ class MahsulotFormaTest(TestCase):
         self.assertNotContains(response, 'id="preview-nom"')
         self.assertEqual(response.content.decode("utf-8").count('class="mahsulot-ajratgich"'), 2)
 
+    def test_price_fields_order_purchase_then_sale(self):
+        html = self.client.get(reverse("ombor:mahsulot_yangi")).content.decode("utf-8")
+        joylar = [html.index(f'name="{m}"') for m in ("kelish_valyutasi", "kelish_narxi", "valyuta", "narx")]
+        self.assertEqual(joylar, sorted(joylar))
+
     def test_purchase_price_inherits_sales_currency(self):
         form = MahsulotForm(data={
             "nom": "Sinov tovar dollar",
