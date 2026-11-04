@@ -1,5 +1,13 @@
 # Versiyalar tarixi
 
+## 3.9.16 — 2026-11-04
+
+- Wi-Fi/LAN orqali kirishda mavjud tarmoq IP manzili ko‘rsatiladi; eskirgan 192.168.153.25 manziliga ko‘r-ko‘rona tayanilmaydi.
+- Kassalar sahifasidagi Saqlash tugmasi faqat sozlamalarni faylga yozadi; PowerShell orqali IP qo‘shmaydi va server jarayonini ishga tushirmaydi.
+- Installer firewall qoidasi 5555-portni Private LAN va LocalSubnet uchun ochadi; pythonw.exe va python.exe farqidan keladigan bloklanish bartaraf etiladi.
+- IP saqlash va haqiqiy LAN manzilni ko‘rsatish uchun regressiya testlari qo‘shildi.
+- Bosh versiya foydalanuvchi belgilagan 3.9.15 asosidan 3.9.16 ga ko‘tarildi. Avvalgi git versiyasi 3.9.9 edi.
+
 ### Hisoblar va login/parolni o'zgartirish — 2026-11-03
 - Yangi o'rnatishda server/server va kassa/kassa boshlang'ich akkauntlari.
 - Birinchi kirishda parolni majburiy almashtirish va keyinchalik login/parolni sozlash.
