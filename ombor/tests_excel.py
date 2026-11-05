@@ -199,6 +199,27 @@ class TovarOynasiTest(KirganTest):
         self.assertEqual(len(javob.context["mahsulotlar"]), OYNA_SONI)
         self.assertContains(javob, 'data-qidir-manzil="/ombor/tovar-qidir/"')
 
+    def test_qidiruv_ong_panelda_kod_ustida(self):
+        html = self.client.get(reverse("sotuv:boshlash"), follow=True).content.decode("utf-8")
+        self.assertEqual(html.count('id="tovar-qidiruv"'), 1)
+        joylar = [html.index(f'id="{i}"') for i in
+                  ("yangi-tovar", "tovar-qidiruv", "qator-forma", "kod-kirish", "tovar-oyna")]
+        self.assertEqual(joylar, sorted(joylar))
+
+    def test_qidiruvda_bor_tovar_birinchi(self):
+        url = reverse("ombor:tovar_qidir")
+        Mahsulot.objects.filter(kod__in=[f"{i:04d}" for i in range(1, 41)]).update(qoldiq=0)
+        javob = self.client.get(url, {"q": "Tovar"}).json()
+        self.assertEqual(javob["tovarlar"][0]["kod"], "0041")
+        self.assertFalse(any(t["yoq"] for t in javob["tovarlar"]))
+        # Tugagan bo'lsa ham kodga aniq moslik birinchi: nomida 5 borlardan oldin
+        javob = self.client.get(url, {"q": "5"}).json()
+        self.assertEqual((javob["tovarlar"][0]["kod"], javob["tovarlar"][0]["yoq"]), ("0005", True))
+        self.assertFalse(javob["tovarlar"][1]["yoq"])
+        # Ombor ro'yxati tartibi o'zgarmagan
+        from .excel import tovarlar
+        self.assertEqual(tovarlar(q="Tovar").first().kod, "0001")
+
     def test_qidiruv_nom_va_kod(self):
         url = reverse("ombor:tovar_qidir")
         javob = self.client.get(url, {"q": "Tovar 14"}).json()     # so'zlar alohida izlanadi

@@ -140,12 +140,12 @@ Yon menyu ostida ikkita richag bor, ikkalasining tanlovi ham brauzerda saqlanadi
 |---|---|---|
 | O'ngdagi raqamlar klaviaturasi | yo'q | bor |
 | Kirim ekranida | numpad yo'q | numpad maydon yonida turadi |
-| Matn maydoni bosilganda | klaviaturadan yoziladi | saytning o'z ekran klaviaturasi chiqadi |
+| Matn maydoni bosilganda | klaviaturadan yoziladi | ekran klaviaturasi hozircha o'chirilgan |
 | Klaviatura yorliqlari (F2, Enter) | ko'rinadi | yashiriladi |
 
 **Kechki** — quyuq (yoqiq) va yorug' (o'chiq) ko'rinish o'rtasida almashtiradi.
 
-Ekran klaviaturasi (`static/js/klaviatura.js`) Windows klaviaturasi emas, saytning
+Ekran klaviaturasi (`static/js/klaviatura.js`, hozircha `YOQIQ = false`) Windows klaviaturasi emas, saytning
 o'ziniki: planshetdagidek pastda, butun enlikda turadi va mavzu bilan birga rangini
 o'zgartiradi. **Faqat harf** — QWERTY, katta harf (⇧), o'zbekcha apostrof (`o'`, `g'`)
 uchun alohida tugma, bo'sh joy va «Tayyor». Raqam va maxsus belgi yo'q.

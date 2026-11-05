@@ -996,7 +996,6 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   border-bottom: 1px solid var(--chegara);
   background: var(--panel-2);
 }
-.oyna-qidiruv { padding: var(--oraliq) var(--oraliq) 0; flex: none; position: relative; z-index: 5; }
 .oyna-tana { padding: var(--oraliq); overflow: auto; }
 
 /* Qidiruv maydoni ostidagi tezkor ro'yxat.
@@ -1016,6 +1015,15 @@ body.kb-ochiq .oyna { max-height: 52vh; }
   display: none;
 }
 .tovar-dropdown.ochiq { display: block; }
+/* O'ng paneldagi qidiruv: ro'yxat panel kengligidan chiqadi (o'rni js/kassa.js da) */
+.panel-qidiruv { flex: none; }
+.qidiruv-maydon.faol .kirish { border-color: var(--urgu); box-shadow: 0 0 0 3px var(--urgu-fon); }
+.panel-qidiruv .tovar-dropdown {
+  position: fixed;
+  top: 0; left: auto; right: 0;
+  width: min(560px, calc(100vw - 32px));
+  z-index: 50;
+}
 .dropdown-qator {
   width: 100%;
   display: flex;

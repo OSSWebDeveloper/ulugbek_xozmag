@@ -93,7 +93,7 @@ def tovar_qidir(request):
     matn = request.GET.get("q", "").strip()
     if not matn:
         return JsonResponse({"tovarlar": []})
-    topilgan = list(excel.tovarlar(q=matn)[:QIDIRUV_SONI + 1])
+    topilgan = list(excel.tovarlar(q=matn, bor_birinchi=True)[:QIDIRUV_SONI + 1])
     return JsonResponse({
         "tovarlar": [karta_malumoti(m) for m in topilgan[:QIDIRUV_SONI]],
         "yana": len(topilgan) > QIDIRUV_SONI,

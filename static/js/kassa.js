@@ -64,6 +64,7 @@
   function tozalaHammasi() {
     mahsulotId.value = "";
     miqdorEl.value = "";
+    qidiruvTozala();
     if (kodEl) kodEl.value = "";
     if (kodiEl) kodiEl.textContent = "";
     tanlanganEl.className = "tanlangan-tovar";
@@ -100,6 +101,7 @@
     document.getElementById("miqdor-birlik").textContent = karta.dataset.birlik;
 
     oynaYop();
+    qidiruvTozala();
     faolQoy("miqdor");
     holatYangila();
     if (!sensorMi()) miqdorEl.focus();
@@ -108,9 +110,7 @@
   // ---------- Tovar tanlash oynasi ----------
   function oynaOch() {
     oyna.classList.add("ochiq");
-    qidiruv.value = "";
-    dropdownYop();
-    if (!sensorMi()) qidiruv.focus();
+    qidiruvTozala();
   }
 
   function oynaYop() {
@@ -142,12 +142,26 @@
     nishonda = -1;
   }
 
+  // Yo'lda qolgan so'rov ham bekor bo'ladi — ro'yxat keyin o'zi ochilib qolmasin
+  function qidiruvTozala() {
+    qidiruv.value = "";
+    window.TovarOyna.izla("", dropdownYop);
+  }
+
+  // Ro'yxat panelga sig'maydi va panel ortiqchasini kesadi, shuning uchun
+  // `position: fixed` — maydon ostida, panelning o'ng chetiga tekislanadi.
+  function dropdownJoyla() {
+    var r = qidiruv.getBoundingClientRect();
+    dropdown.style.top = (r.bottom + 5) + "px";
+    dropdown.style.right = (document.documentElement.clientWidth - r.right) + "px";
+  }
+
   /* Qidiruv butun ombordan — serverda (static/js/tovar_oyna.js): oynaga faqat
      eng ko'p sotiladigan tovarlar chizilgan. Raqam yozilsa kod bo'yicha ham. */
   function dropdownYangila() {
     var soz = qidiruv.value.toLowerCase().trim();
     window.TovarOyna.izla(soz, function (tovarlar, yana) {
-      if (!tovarlar) return dropdownYop();
+      if (!tovarlar || !qidiruv.value.trim()) return dropdownYop();
       if (!tovarlar.length) {
         dropdown.innerHTML = '<div class="dropdown-bosh">Bunday tovar topilmadi</div>';
       } else {
@@ -163,6 +177,7 @@
               (d.ikkinchi ? " · " + d.ikkinchi : ""))) + "</span></button>";
         }).join("") + (yana ? '<div class="dropdown-bosh">Yana bor — aniqroq yozing</div>' : "");
       }
+      dropdownJoyla();
       dropdown.classList.add("ochiq");
       qidiruv.setAttribute("aria-expanded", "true");
       nishonda = -1;
@@ -307,18 +322,21 @@
     oyna.addEventListener("click", function (e) {
       if (e.target === oyna || e.target.closest("[data-yop]")) return oynaYop();
 
-      var qator = e.target.closest(".dropdown-qator");
-      if (qator) {
-        if (!qator.classList.contains("yoq")) dropdowndanTanla(qator.dataset.id);
-        return;
-      }
-      // Ro'yxatdan tashqariga bosilsa ro'yxat yopiladi
-      if (!e.target.closest(".qidiruv-quti")) dropdownYop();
-
       var karta = e.target.closest(".tovar-karta");
       if (karta && !karta.classList.contains("yoq")) tovarTanla(karta);
     });
 
+    dropdown.addEventListener("click", function (e) {
+      var qator = e.target.closest(".dropdown-qator");
+      if (qator && !qator.classList.contains("yoq")) dropdowndanTanla(qator.dataset.id);
+    });
+    // Ro'yxatdan tashqariga bosilsa yopiladi; numpad qidiruvga yozayotgan bo'lishi mumkin
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".qidiruv-quti, #raqamlar")) dropdownYop();
+    });
+    window.addEventListener("resize", dropdownYop);
+
+    qidiruv.addEventListener("focus", function () { faolQoy("qidiruv"); });
     qidiruv.addEventListener("input", dropdownYangila);
     qidiruv.addEventListener("keydown", function (e) {
       if (!dropdown.classList.contains("ochiq")) return;

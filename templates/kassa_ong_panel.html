@@ -4,8 +4,8 @@ Tovar va miqdor tanlanadi, jami qatorlardagi sotish narxlaridan hisoblanadi.
 Chaqirilishi: {% include "kassa_ong_panel.html" with amal=<forma manzili> %}
 Raqamlar klaviaturasi faqat sensorli rejimda ko'rinadi (CSS orqali).
 
-Tovar uch yo'l bilan tanlanadi: ro'yxatdan, «Kod» maydoniga oxirgi 4 raqamni
-urib, yoki skanerlab. Uchalasi ham bitta joyga — kassa.js dagi tovarTanla() ga
+Tovar to'rt yo'l bilan tanlanadi: qidiruvdan, ro'yxatdan, «Kod» maydoniga oxirgi
+4 raqamni urib, yoki skanerlab. Hammasi bitta joyga — kassa.js dagi tovarTanla() ga
 boradi.
 {% endcomment %}
 <div class="ong-panel" data-kod-manzil="{% url 'ombor:kod_qidir' %}">
@@ -13,6 +13,15 @@ boradi.
     <svg class="ikon"><use href="#i-plus"></use></svg> Yangi tovar
     <span class="yorliq-tugma faqat-sichqoncha">F2</span>
   </button>
+
+  {# Forma tashqarisida: bu yerdagi Enter qator qo'shmaydi. Ro'yxat chek ustida ochiladi (js/kassa.js). #}
+  <div class="qidiruv-quti panel-qidiruv">
+    <div class="qidiruv-maydon" data-maydon="qidiruv">
+      <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomi yoki kodi"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tovar-dropdown">
+    </div>
+    <div class="tovar-dropdown" id="tovar-dropdown" role="listbox"></div>
+  </div>
 
   <form method="post" action="{{ amal }}" id="qator-forma" data-bir-marta>
     {% csrf_token %}

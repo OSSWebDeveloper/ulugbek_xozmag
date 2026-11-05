@@ -6,6 +6,11 @@
 (function () {
   "use strict";
 
+  // Hozircha o'chirilgan: sensor rejimida ekran klaviaturasi chiqmaydi, sahifadagi
+  // raqamlar klaviaturasi (num pad) esa ishlayveradi. Qayta yoqish uchun: true.
+  var YOQIQ = false;
+  if (!YOQIQ) return;
+
   var HARFLAR = [
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["a", "s", "d", "f", "g", "h", "j", "k", "l", "'"],

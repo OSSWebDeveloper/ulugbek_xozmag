@@ -592,21 +592,29 @@ def bekor_qil(yangilanish):
 
 # ---------- Ro'yxat va yuklab olish ----------
 
-def tovarlar(q="", valyuta="", kam_birinchi=False, tugagan=False, yashirilgan=False):
-    """Ombor ro'yxati va eksport uchun bir xil filtr."""
+def tovarlar(q="", valyuta="", kam_birinchi=False, tugagan=False, yashirilgan=False,
+             bor_birinchi=False):
+    """Ombor ro'yxati va eksport uchun bir xil filtr.
+
+    `bor_birinchi` — kassa qidiruvi uchun: natijalar soni cheklangan, tugagan tovarlar
+    borlarini ro'yxatdan siqib chiqarmasin. Kod yoki shtrixga aniq moslik baribir
+    birinchi turadi: kassir shu tovarni so'radi, tugagani ham ko'rinsin.
+    """
     qs = Mahsulot.objects.all()
     if not yashirilgan:
         qs = qs.filter(faol=True)
     q = (q or "").strip()
+    bor_tartibi = [When(qoldiq__gt=0, then=Value(1))]
     if q:
         raqam = q.replace(" ", "")
         izlov = Q()
         for soz in q.split():
             izlov &= Q(nom__icontains=soz)
-        izlov |= Q(shtrix_kod=raqam)
+        aniq = Q(shtrix_kod=raqam)
         if raqam.isdigit() and len(raqam) <= 10 and 1 <= int(raqam) <= KOD_MAX:
-            izlov |= Q(kod=kod_yasa(raqam))
-        qs = qs.filter(izlov)
+            aniq |= Q(kod=kod_yasa(raqam))
+        bor_tartibi.insert(0, When(aniq, then=Value(0)))
+        qs = qs.filter(izlov | aniq)
     if valyuta in (Valyuta.SOM, Valyuta.DOLLAR):
         qs = qs.filter(valyuta=valyuta)
     if tugagan:
@@ -615,6 +623,10 @@ def tovarlar(q="", valyuta="", kam_birinchi=False, tugagan=False, yashirilgan=Fa
     qs = qs.annotate(kg_tartibi=Case(
         When(birlik=Birlik.KG, then=Value(0)), default=Value(1), output_field=IntegerField(),
     ))
+    if bor_birinchi:
+        return qs.annotate(bor_tartibi=Case(
+            *bor_tartibi, default=Value(2), output_field=IntegerField(),
+        )).order_by("bor_tartibi", "kg_tartibi", "kod")
     return (qs.order_by("kg_tartibi", "qoldiq", "kod") if kam_birinchi
             else qs.order_by("kg_tartibi", "kod"))
 

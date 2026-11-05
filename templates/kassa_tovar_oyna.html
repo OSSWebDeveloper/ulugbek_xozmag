@@ -1,7 +1,7 @@
 {% comment %}
 Skladdan tovar tanlash oynasi — qarz va sotuv ekranlarida bir xil.
 Kartalar — eng ko'p sotiladigan 60 ta tovar (ombor/xizmat.py, oyna_tovarlari);
-qolgani qidiruvda serverdan keladi (static/js/tovar_oyna.js).
+qolgani o'ng paneldagi qidiruvda serverdan keladi (static/js/tovar_oyna.js).
 Har bir kartada tovarning qisqa kodi turadi: kassir shu raqamni o'ng
 paneldagi «Kod» maydoniga urib ham tanlay oladi.
 {% endcomment %}
@@ -14,15 +14,8 @@ paneldagi «Kod» maydoniga urib ham tanlay oladi.
         <svg class="ikon"><use href="#i-yopish"></use></svg> Yopish (Esc)
       </button>
     </div>
-    <div class="oyna-qidiruv">
-      <div class="qidiruv-quti">
-        <input type="text" id="tovar-qidiruv" class="kirish" placeholder="Tovar nomi yoki kodi — butun ombordan izlaydi"
-               autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tovar-dropdown">
-        <div class="tovar-dropdown" id="tovar-dropdown" role="listbox"></div>
-      </div>
-    </div>
     <div class="oyna-tana">
-      {% if mahsulotlar %}<div class="sust oyna-izoh">Eng ko'p sotiladiganlari. Boshqa tovarni yuqoridagi qidiruvdan toping.</div>{% endif %}
+      {% if mahsulotlar %}<div class="sust oyna-izoh">Eng ko'p sotiladiganlari. Boshqa tovarni o'ng paneldagi qidiruvdan toping.</div>{% endif %}
       <div class="tovar-setka">
         {% for m in mahsulotlar %}
           <button type="button" class="tovar-karta {% if m.qoldiq <= 0 %}yoq{% endif %}"
