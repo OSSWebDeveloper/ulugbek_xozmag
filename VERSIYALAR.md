@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.25 — 2026-11-05
+
+Hisobot Wi-Fi va ngrok orqali ham ochiladi; Kassalar faqat server kompyuterida qoldi
+
 ## 3.9.24 — 2026-11-04
 
 Mahsulot formasidan narx farqi bloki olib tashlandi
