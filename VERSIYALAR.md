@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.26 — 2026-11-05
+
+Kassa qidiruvi o'ng panelda Kod ustida; omborda bor tovarlar birinchi chiqadi; sensor rejimida ekran klaviaturasi hozircha o'chirilgan, num pad qoldi
+
 ## 3.9.25 — 2026-11-05
 
 Hisobot Wi-Fi va ngrok orqali ham ochiladi; Kassalar faqat server kompyuterida qoldi
