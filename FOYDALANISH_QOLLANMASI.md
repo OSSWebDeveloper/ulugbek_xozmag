@@ -36,8 +36,8 @@ Ulug'bek Xozmag — Django asosidagi do'kon POS tizimi. Ombor mahsulotlari, sotu
 5. Savdoni yakunlang: ombor qoldig'i kamayadi, chek saqlanadi. Printer ishlamasa, `Sotuv` ro'yxatidan chekni qayta chop etish imkoniyati mavjud.
 6. Qaytarish kerak bo'lsa tegishli chekning `Qaytarish` amaliyotidan foydalaning; miqdor omborga qaytadi va qaytarilgan pul tushumdan ayriladi.
 
-## 6. Serverda «Hisobot» bo'limi
-**Faqat server kompyuterida ochiladi.** Yon menyudagi `Hisobot`ni tanlang (yoki `/sotuv/hisobot/` manzilini oching).
+## 6. «Hisobot» bo'limi
+Kirgan har bir foydalanuvchiga ochiq (Wi-Fi va ngrok orqali ham). Yon menyudagi `Hisobot`ni tanlang (yoki `/sotuv/hisobot/` manzilini oching).
 - Sana oralig'i: `Boshlanish sanasi` va `Tugash sanasi`.
 - `Kassir`: bitta kassir yoki `Barcha kassalar`.
 - Natija: yakunlangan va bekor qilinmagan cheklar soni, qaytarishdan keyingi naqd so'm, naqd dollar, kassirlar bo'yicha jamlanma va so'nggi 500 ta chek.
@@ -69,7 +69,7 @@ python manage.py migrate
 python manage.py test sotuv ombor
 python manage.py runserver
 ```
-`Hisobot` bo'limi faqat server kompyuterining mahalliy IP manzilidan ishlashi uchun cheklangan. Yangilanishlar dastlab alohida branch'ga kiritiladi; sinovdan keyin main'ga qo'shing.
+Yangilanishlar dastlab alohida branch'ga kiritiladi; sinovdan keyin main'ga qo'shing.
 
 ## Server va kassa uchun boshlang'ich login
 

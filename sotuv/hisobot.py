@@ -1,13 +1,11 @@
-"""Faqat server kompyuterida ko'rinadigan kassa savdolari hisoboti."""
+"""Kassa savdolari hisoboti: kirgan har bir foydalanuvchiga ochiq."""
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 
 from django.db.models import Count, F, Sum
-from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.utils import timezone
 
-from sotuv.chek import mahalliymi
 from sotuv.models import Sotuv
 
 NOL = Decimal("0")
@@ -21,9 +19,6 @@ def _sana(matn, standart):
 
 
 def sahifa(request):
-    if not mahalliymi(request):
-        return HttpResponseForbidden("Hisobot faqat server kompyuterida ochiladi.")
-
     bugun = timezone.localdate()
     boshlanish = _sana(request.GET.get("dan"), bugun)
     tugash = _sana(request.GET.get("gacha"), bugun)

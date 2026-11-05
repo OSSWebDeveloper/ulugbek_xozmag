@@ -1,6 +1,5 @@
 """Server kassa hisobotlari va mahsulot xarid narxi testlari."""
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -17,8 +16,7 @@ class HisobotTests(TestCase):
         self.kassir2 = user_model.objects.create_user(username="kassa_two", password="test-password")
         self.client.force_login(self.kassir1)
 
-    @patch("sotuv.hisobot.mahalliymi", return_value=True)
-    def test_only_finished_non_cancelled_sales_and_returns(self, _server):
+    def test_only_finished_non_cancelled_sales_and_returns(self):
         Sotuv.objects.create(
             kassir=self.kassir1, yakunlangan=True, jami=Decimal("100"),
             qaytarilgan_summa=Decimal("25"), jami_dollar=Decimal("10"),
@@ -44,10 +42,19 @@ class HisobotTests(TestCase):
         self.assertEqual(r.context["soni"], 1)
         self.assertEqual(r.context["jami_som"], Decimal("75"))
 
-    @patch("sotuv.hisobot.mahalliymi", return_value=False)
-    def test_report_is_forbidden_from_other_computers(self, _server):
-        r = self.client.get(reverse("sotuv:hisobot"))
-        self.assertEqual(r.status_code, 403)
+    def test_report_opens_from_wifi_and_ngrok(self):
+        url = reverse("sotuv:hisobot")
+        self.assertEqual(self.client.get(url, REMOTE_ADDR="192.168.100.6").status_code, 200)
+        r = self.client.get(url, HTTP_HOST="misol.ngrok-free.app")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'href="%s"' % url)
+        # Tarmoq sozlamalari faqat server kompyuterida qoladi.
+        self.assertNotContains(r, 'href="%s"' % reverse("kassalar"))
+
+    def test_report_requires_login(self):
+        self.client.logout()
+        r = self.client.get(reverse("sotuv:hisobot"), HTTP_HOST="misol.ngrok-free.app")
+        self.assertEqual(r.status_code, 302)
 
 
 class XaridNarxiTests(TestCase):
