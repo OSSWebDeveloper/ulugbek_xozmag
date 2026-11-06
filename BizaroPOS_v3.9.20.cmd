@@ -16,7 +16,7 @@ $ProgressPreference = 'SilentlyContinue'
 $repo = 'https://github.com/OSSWebDeveloper/ulugbek_xozmag.git'
 $gitWeb = 'https://git-scm.com/downloads/win'
 $serverPath = Join-Path $env:LOCALAPPDATA 'BizaroPOS-Server'
-$installerVersion = '3.9.20'
+$installerVersion = '3.9.20.1'
 
 function Status([string]$msg) { Write-Host ('  ' + $msg) -ForegroundColor Cyan }
 function Stop-Setup([string]$msg) { throw $msg }
@@ -63,17 +63,29 @@ function Ensure-Git {
     if (-not $git) { Stop-Setup ('Git topilmadi: ' + $gitWeb) }
     return $git
 }
+function Python-Sora([string]$exe, [string[]]$arguments) {
+    # Windows PowerShell 5.1 da $ErrorActionPreference = 'Stop' bo'lsa, tashqi dasturning
+    # stderr xabari butun o'rnatuvchini to'xtatadi. Bu yerda u faqat "yo'q" degani.
+    $eski = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $chiqish = & $exe @arguments 2>$null
+        return [pscustomobject]@{ Ok = ($LASTEXITCODE -eq 0); Chiqish = $chiqish }
+    } catch {
+        return [pscustomobject]@{ Ok = $false; Chiqish = $null }
+    } finally {
+        $ErrorActionPreference = $eski
+    }
+}
 function Ensure-Python {
     Refresh-Path
     $p = Command-Path 'py.exe'
     if ($p) {
-        $null = & $p -3.13 -c 'import sys; print(sys.executable)' 2>$null
-        if ($LASTEXITCODE -eq 0) { return @($p,'-3.13') }
+        if ((Python-Sora $p @('-3.13','-c','import sys; print(sys.executable)')).Ok) { return @($p,'-3.13') }
     }
     $p = Command-Path 'python.exe'
     if ($p) {
-        $v = & $p -c 'import sys; print(sys.version_info[:2] == (3,13))' 2>$null
-        if ($v -eq 'True') { return @($p) }
+        if ((Python-Sora $p @('-c','import sys; print(sys.version_info[:2] == (3,13))')).Chiqish -eq 'True') { return @($p) }
     }
     Ensure-Winget
     Status 'Python 3.13 avtomatik o`rnatilmoqda...'
@@ -82,8 +94,7 @@ function Ensure-Python {
     Refresh-Path
     $p = Command-Path 'py.exe'
     if ($p) {
-        $null = & $p -3.13 -c 'import sys; print(sys.executable)' 2>$null
-        if ($LASTEXITCODE -eq 0) { return @($p,'-3.13') }
+        if ((Python-Sora $p @('-3.13','-c','import sys; print(sys.executable)')).Ok) { return @($p,'-3.13') }
     }
     $python = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python313\python.exe'
     if (Test-Path $python) { return @($python) }
@@ -231,6 +242,9 @@ function Login-And-Download([string]$base,[string]$username,[string]$password,[s
     $csrf = $match.Groups[1].Value
     $body = @{ username=$username; password=$password; csrfmiddlewaretoken=$csrf; next='/' }
     $null = Invoke-WebRequest -Uri ($base + '/kirish/') -Method POST -Body $body -WebSession $session -UseBasicParsing -TimeoutSec 25 -Headers @{Referer=($base+'/kirish/')}
+    # Django kirishda CSRF kalitini almashtiradi: yangisi cookie'da, eskisi 403 beradi.
+    $cookie = $session.Cookies.GetCookies([Uri]$base)['csrftoken']
+    if ($cookie) { $csrf = $cookie.Value }
     # For authenticated views, wrong passwords redirect back to /kirish/.
     $null = Invoke-WebRequest -Uri ($base + '/qurilmalar/kassa-agent/yukla/') -Method POST -Body @{csrfmiddlewaretoken=$csrf} -WebSession $session -UseBasicParsing -TimeoutSec 120 -Headers @{Referer=($base+'/qurilmalar/')} -OutFile $zip
     $stream = [IO.File]::OpenRead($zip)
