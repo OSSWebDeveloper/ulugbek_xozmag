@@ -25,13 +25,26 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # versiya.py --push tegni o'zi ham yuboradi: tegni yaratishdan oldin va
+          # push yiqilganda GitHub'dagi holatni tekshiramiz, bor bo'lsa o'tkazamiz.
+          remote_bor() { git ls-remote --exit-code --tags origin "refs/tags/$1" >/dev/null 2>&1; }
+          teg_qoy() {
+            local name="$1" sha="$2"
+            if git show-ref --verify --quiet "refs/tags/${name}" || remote_bor "${name}"; then
+              echo "${name} allaqachon bor"
+              return 0
+            fi
+            git tag -a "${name}" "${sha}" -m "BizaroPOS ${name}"
+            if ! git push origin "refs/tags/${name}"; then
+              sleep 3
+              remote_bor "${name}" || return 1
+              echo "${name} parallel yuborilgan"
+            fi
+          }
           # Backfill completed versions at their original commits, not HEAD.
           while read -r name sha; do
             git cat-file -e "${sha}^{commit}"
-            if ! git show-ref --verify --quiet "refs/tags/${name}"; then
-              git tag -a "${name}" "${sha}" -m "BizaroPOS ${name}"
-              git push origin "refs/tags/${name}"
-            fi
+            teg_qoy "${name}" "${sha}"
           done <<'HISTORY'
           v3.9.16 f8aa0e4e67ba41835e70c3e9d8e49b8368875e3c
           v3.9.17 206d0244bd6d39b1ffad5577bafa79b263ecdd04
@@ -45,7 +58,4 @@ jobs:
             echo "Invalid version: $current" >&2
             exit 1
           fi
-          if ! git show-ref --verify --quiet "refs/tags/v${current}"; then
-            git tag -a "v${current}" "$GITHUB_SHA" -m "BizaroPOS v${current}"
-            git push origin "refs/tags/v${current}"
-          fi
+          teg_qoy "v${current}" "$GITHUB_SHA"
