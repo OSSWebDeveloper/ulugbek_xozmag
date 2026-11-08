@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.28 — 2026-11-08
+
+Qarzdorlar → Hududlar sahifasida yangi hudud qo'shish maydoni
+
 ## 3.9.27 — 2026-11-06
 
 O'rnatuvchi tuzatildi: ikkinchi kassa paketini yuklashdagi 403 xatosi va Python 3.13 yo'qligida to'xtab qolish
