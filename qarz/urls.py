@@ -11,6 +11,7 @@ urlpatterns = [
     path("yangi/", views.yangi_qarzdor, name="yangi_qarzdor"),
     path("yangi/oyna/", views.qarzdor_json, name="qarzdor_json"),
     path("qarzdorlar/", views.qarzdorlar_royxati, name="qarzdorlar"),
+    path("hudud/qoshish/", views.hudud_qoshish, name="hudud_qoshish"),
     path("qarzdor/<int:pk>/", views.qarzdor_karta, name="qarzdor_karta"),
     path("qarzdor/<int:pk>/tahrir/", views.qarzdor_tahrir, name="qarzdor_tahrir"),
     path("qarzdor/<int:qarzdor_pk>/qarz/", views.qarz_boshlash, name="qarz_boshlash"),

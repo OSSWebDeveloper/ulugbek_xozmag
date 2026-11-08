@@ -16,6 +16,7 @@ from .models import Hudud, Qarz, QarzQator, Qarzdor, Tolov
 from config.kassa import hujjat
 from ombor.xizmat import hujjatni_ayir
 from django.db import transaction
+from django.db.models import Max
 
 
 
@@ -431,6 +432,25 @@ def tolov_ochirish(request, pk):
         tolov.delete()
         messages.success(request, "To'lov o'chirildi.")
     return redirect("qarz:qarzdor_karta", pk=qarzdor_pk)
+
+
+def hudud_qoshish(request):
+    """Hududlar sahifasidagi bitta matn maydonidan yangi hudud qo'shadi."""
+    orqaga = reverse("qarz:qarzdorlar") + "?korinish=hududlar"
+    if request.method != "POST":
+        return redirect(orqaga)
+    nom = " ".join(request.POST.get("nom", "").split())
+    if not nom:
+        messages.error(request, "Hudud nomini yozing.")
+    elif len(nom) > Hudud._meta.get_field("nom").max_length:
+        messages.error(request, "Hudud nomi juda uzun.")
+    elif Hudud.objects.filter(nom__iexact=nom).exists():
+        messages.error(request, f"«{nom}» hududi allaqachon bor.")
+    else:
+        oxirgi = Hudud.objects.aggregate(m=Max("tartib"))["m"] or 0
+        Hudud.objects.create(nom=nom, tartib=oxirgi + 1)
+        messages.success(request, f"«{nom}» hududi qo'shildi.")
+    return redirect(orqaga)
 
 
 def qarzdorlar_royxati(request):

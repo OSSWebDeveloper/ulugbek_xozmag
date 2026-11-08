@@ -327,6 +327,23 @@ class QarzdorlarKorinishiTest(KirganTest):
         self.assertNotContains(javob2, "Aliyev Vali")
         self.assertContains(javob2, "Bu hududda qarzdor yo'q")
 
+    def test_hududlar_sahifasida_qoshish_maydoni(self):
+        javob = self.client.get(reverse("qarz:qarzdorlar"), {"korinish": "hududlar"})
+        self.assertContains(javob, reverse("qarz:hudud_qoshish"))
+        self.assertContains(javob, 'name="nom"')
+
+    def test_hudud_qoshish(self):
+        javob = self.client.post(reverse("qarz:hudud_qoshish"), {"nom": "  Yangi   ariq  "})
+        self.assertRedirects(javob, reverse("qarz:qarzdorlar") + "?korinish=hududlar",
+                             fetch_redirect_response=False)
+        hudud = Hudud.objects.get(nom="Yangi ariq")
+        self.assertEqual(hudud.tartib, 3)
+
+    def test_hudud_qoshish_takror_va_bosh(self):
+        self.client.post(reverse("qarz:hudud_qoshish"), {"nom": "hudud 1"})
+        self.client.post(reverse("qarz:hudud_qoshish"), {"nom": "   "})
+        self.assertEqual(Hudud.objects.count(), 2)
+
     def test_toliq_royxat(self):
         javob = self.client.get(reverse("qarz:qarzdorlar"), {"korinish": "royxat"})
         self.assertContains(javob, "Aliyev Vali")

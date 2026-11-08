@@ -47,6 +47,15 @@
     {% endfor %}
   </div>
 
+  <form class="qator hudud-qoshish" method="post" action="{% url 'qarz:hudud_qoshish' %}">
+    {% csrf_token %}
+    <input class="kirish" type="text" name="nom" maxlength="80" required
+           placeholder="Yangi hudud nomi" autocomplete="off">
+    <button class="tugma yashil" type="submit">
+      <svg class="ikon"><use href="#i-plus"></use></svg> Hudud qo'shish
+    </button>
+  </form>
+
   <div class="qator" style="max-width:320px">
     <a class="tugma tinch" href="{% url 'qarz:qarzdorlar' %}">
       <svg class="ikon"><use href="#i-chap"></use></svg> Orqaga

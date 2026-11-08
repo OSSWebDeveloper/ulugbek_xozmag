@@ -1248,6 +1248,10 @@ body.kirish-sahifa {
 }
 .hudud-tugma.qarzli { border-color: var(--ogoh-chek); background: var(--ogoh-fon); }
 .hudud-tugma.qarzli:hover { border-color: var(--ogoh); }
+/* Hududlar sahifasi: yangi hudud qo'shish — bitta matn maydoni va tugma */
+.hudud-qoshish { width: 100%; max-width: 520px; flex-wrap: nowrap; }
+.hudud-qoshish .kirish { flex: 1; min-width: 0; }
+.hudud-qoshish .tugma { flex: none; }
 
 /* Ombor ro'yxatidan ochiladigan kirim oynasi */
 .oyna.kirim-oyna { max-width: 900px; }
