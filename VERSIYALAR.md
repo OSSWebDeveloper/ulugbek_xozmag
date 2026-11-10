@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.29 — 2026-11-10
+
+Printer ulanganda eski cheklar o'zi chiqib ketmaydi: navbatda 5 daqiqadan ko'p turgan chek qo'lda qayta chiqariladi; kassa yordamchisi etiketka yoki boshqa printerga chek yubormaydi; uzilgan printerga chek va yorliq Windows navbatiga tashlanmaydi
+
 ## 3.9.28 — 2026-11-08
 
 Qarzdorlar → Hududlar sahifasida yangi hudud qo'shish maydoni
