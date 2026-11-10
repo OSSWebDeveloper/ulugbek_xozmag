@@ -39,11 +39,15 @@ def printer_name(config, rows=None):
     preferred = config.get('printer', '')
     if preferred:
         return preferred if preferred in available else ''
+    # «Avtomatik» faqat nomidan chek printeri ekani ko'rinib turgan qurilmani
+    # oladi. Windows'ning standart yoki yagona printeriga o'tilmaydi: aks holda
+    # etiketka yoki ofis printeri ulansa, navbatdagi chek o'shanga chiqib ketadi.
+    import re
     for p in rows:
-        if 'xp-80' in p['nom'].lower():
+        nom = p['nom'].lower().strip()
+        if nom == 'xprinter' or re.search(r'xp-?80|80\s*mm|pos-?80|receipt', nom):
             return p['nom']
-    defaults = [p['nom'] for p in rows if p.get('default')]
-    return defaults[0] if defaults else (available[0] if len(available) == 1 else '')
+    return ''
 
 
 def exchange(config, data):

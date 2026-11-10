@@ -124,6 +124,10 @@ TIME_ZONE = "Asia/Tashkent"
 RONGTA_IP = "192.168.1.110"
 CHEK_PRINTER = os.environ.get('XOZMAG_CHEK_PRINTER', 'Xprinter XP-80')
 CHEK_AUTO_PRINT = 'test' not in sys.argv
+# Printer ulanmagan paytda navbatga tushgan chek shuncha soniyadan keyin o'zi
+# chiqmaydi: printer keyin ulanganda eski cheklar ketma-ket chiqib ketmasin.
+# Kerak bo'lsa kassir uni «Chek» tugmasi bilan qo'lda qayta chiqaradi.
+CHEK_NAVBAT_MUDDATI = 5 * 60
 USE_I18N = True
 USE_TZ = True
 

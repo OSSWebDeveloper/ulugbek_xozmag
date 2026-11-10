@@ -19,6 +19,9 @@ from django.views.decorators.http import require_POST
 from sotuv.models import KassaTerminal, ChekVazifa
 
 
+ESKIRGAN = 'O‘z vaqtida chiqmadi: printer ulanmagan edi. Kerak bo‘lsa qayta chiqaring.'
+
+
 def digest(token):
     return hashlib.sha256(token.encode('ascii')).hexdigest()
 
@@ -135,6 +138,12 @@ def almashish(request):
                 job.holat = 'tayyor' if ack.get('ok') is True else 'xato'
                 job.xato = str(ack.get('xato', ''))[:300]
                 job.save(update_fields=['holat', 'xato'])
+        # Printer yo'q paytda yig'ilib qolgan vazifalar printer ulanishi bilan
+        # ketma-ket chiqib ketmasin: eskirgani o'zi chop etilmaydi.
+        from datetime import timedelta
+        chegara = timezone.now() - timedelta(seconds=settings.CHEK_NAVBAT_MUDDATI)
+        terminal.cheklar.filter(holat='kutilmoqda', yaratilgan__lt=chegara).update(
+            holat='xato', xato=ESKIRGAN)
         result = {'ok': True, 'vazifa': None}
         if data.get('tayyor') is True and (terminal.printer or terminal.etiketka_tayyor):
             jobs = terminal.cheklar.filter(holat='kutilmoqda')

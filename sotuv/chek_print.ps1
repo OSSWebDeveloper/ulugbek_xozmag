@@ -101,6 +101,11 @@ try {
    $doc.PrinterSettings.PrinterName = 'Xprinter XP-80'
   }
   if (-not $doc.PrinterSettings.IsValid) { throw 'Printer topilmadi' }
+  # Uzilgan printerga yuborilsa Windows chekni navbatda saqlab, printer
+  # ulanganda chiqarib yuboradi. Shuning uchun avval ulanganini tekshiramiz.
+  $target = $doc.PrinterSettings.PrinterName
+  $state = Get-CimInstance Win32_Printer | Where-Object { $_.Name -eq $target } | Select-Object -First 1
+  if ($state -and $state.WorkOffline) { throw 'Printer ulanmagan' }
   $doc.DocumentName = 'BizaroPOS ' + $(if($data.test){'printer test'}else{'chek '+$data.barcode})
   $doc.PrintController = New-Object Drawing.Printing.StandardPrintController
   $doc.DefaultPageSettings.PaperSize = New-Object Drawing.Printing.PaperSize('Receipt 80mm',315,($height+15))

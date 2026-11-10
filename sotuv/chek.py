@@ -186,11 +186,15 @@ def yubor(request, s, qayta=False):
             job.holat = 'kutilmoqda'
             job.claim = ''
             job.xato = ''
+            # Navbat muddati qayta chiqarilgan paytdan sanaladi.
+            job.yaratilgan = timezone.now()
             job.save()
     if terminal.oxirgi_aloqa and (timezone.now() - terminal.oxirgi_aloqa).total_seconds() < 60:
         messages.success(request, f'Chek #{s.pk} shu kassa printerining navbatiga qo‘yildi.')
     else:
-        messages.warning(request, f'Savdo saqlandi. Chek #{s.pk} navbatda; Qurilmalar bo‘limidan shu kassada USB yordamchisini o‘rnating yoki oching.')
+        daqiqa = settings.CHEK_NAVBAT_MUDDATI // 60
+        messages.warning(request, f'Savdo saqlandi. Chek #{s.pk} navbatda; Qurilmalar bo‘limidan shu kassada USB yordamchisini o‘rnating yoki oching. '
+                                  f'{daqiqa} daqiqada chiqmasa o‘zi chop etilmaydi — «Chek» orqali qayta chiqarasiz.')
 
 
 def svg_kod(s):

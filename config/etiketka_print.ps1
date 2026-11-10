@@ -43,6 +43,10 @@ try {
     $doc = New-Object Drawing.Printing.PrintDocument
     $doc.PrinterSettings.PrinterName = [string]$data.printer
     if (-not $doc.PrinterSettings.IsValid) { throw 'Printer topilmadi' }
+    # Uzilgan printerga yuborilgan yorliq Windows navbatida qolib, keyin chiqib ketmasin.
+    $target = $doc.PrinterSettings.PrinterName
+    $state = Get-CimInstance Win32_Printer | Where-Object { $_.Name -eq $target } | Select-Object -First 1
+    if ($state -and $state.WorkOffline) { throw 'Printer ulanmagan' }
     $doc.DocumentName = 'BizaroPOS yorliq ' + $data.kod
     $doc.PrintController = New-Object Drawing.Printing.StandardPrintController
     $doc.DefaultPageSettings.PaperSize = New-Object Drawing.Printing.PaperSize('BizaroPOS yorliq', [int][Math]::Round($w/25.4*100), [int][Math]::Round($h/25.4*100))
