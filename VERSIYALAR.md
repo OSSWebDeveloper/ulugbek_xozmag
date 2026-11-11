@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.30 — 2026-11-11
+
+Server manzili routerda band qilinadi (DHCP reservation): Kassalar sahifasi MAC va joriy IP ni ko'rsatadi, band qilingan manzil kelganini tekshiradi; kassalarga qo'lda qo'shimcha IP yozilmaydi
+
 ## 3.9.29 — 2026-11-10
 
 Printer ulanganda eski cheklar o'zi chiqib ketmaydi: navbatda 5 daqiqadan ko'p turgan chek qo'lda qayta chiqariladi; kassa yordamchisi etiketka yoki boshqa printerga chek yubormaydi; uzilgan printerga chek va yorliq Windows navbatiga tashlanmaydi
