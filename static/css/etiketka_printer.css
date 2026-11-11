@@ -12,7 +12,7 @@
 #etiketka-tarozi-dialog p { margin: 14px 0; }
 #etiketka-tarozi-dialog ol { padding-left: 24px; line-height: 1.8; }
 .etiketkalar[data-olcham="56x40"] .etiketka {
-  width: 56mm; height: 40mm; --modul: .5mm; --shtrix-boy: 10mm; --nom: 10pt; --kod: 17pt;
+  width: 56mm; height: 40mm; padding: 3mm 2.5mm; --modul: .5mm; --shtrix-boy: 10mm; --nom: 10pt; --kod: 17pt;
 }
 .e-narx { width: 100%; text-align: center; white-space: nowrap; font-size: 12pt; line-height: 1.1; }
 .e-narx span { font-size: 8pt; }

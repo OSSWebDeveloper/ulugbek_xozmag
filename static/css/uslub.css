@@ -1486,14 +1486,16 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 
 .etiketka {
   --modul: .375mm; --shtrix-boy: 10mm; --nom: 8pt; --kod: 15pt;
-  width: 40mm; height: 30mm; padding: 1.5mm 2mm;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  /* Tepa va pastdan 2,5 mm bo'sh: printer rulonni 1–2 mm siljitsa ham matn
+     etiketkalar orasidagi oraliqqa tushmaydi va kesilmaydi */
+  width: 40mm; height: 30mm; padding: 2.5mm 2mm;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
   overflow: hidden; background: #fff; color: #000;
   font-family: Arial, "Segoe UI", sans-serif;
 }
 .etiketkalar[data-olcham="58x40"] .etiketka {
-  --modul: .5mm; --shtrix-boy: 14mm; --nom: 11pt; --kod: 22pt;
-  width: 58mm; height: 40mm; padding: 2mm 3mm;
+  --modul: .5mm; --shtrix-boy: 12mm; --nom: 11pt; --kod: 20pt;
+  width: 58mm; height: 40mm; padding: 3mm 3mm;
 }
 .etiketkalar[data-olcham="50x30"] .etiketka {
   --modul: .5mm; --shtrix-boy: 9mm; --nom: 8.5pt; --kod: 16pt;
@@ -1501,7 +1503,7 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
 }
 .etiketkalar[data-olcham="30x20"] .etiketka {
   --modul: .25mm; --shtrix-boy: 6mm; --nom: 6.5pt; --kod: 11pt;
-  width: 30mm; height: 20mm; padding: 1mm 1mm;
+  width: 30mm; height: 20mm; padding: 1.5mm 1mm;
 }
 .etiketka .e-brend {
   align-self: stretch; text-align: center; font-size: 5.5pt; font-weight: 700;
