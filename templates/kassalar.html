@@ -4,10 +4,23 @@
  <div class="sarlavha">Kassalar</div>
 
  <section class="quti">
-  <h2>Server va kassa IP manzillari</h2>
+  <h2>Server manzili — routerda band qilinadi (DHCP reservation)</h2>
 
-  {% if server_url %}
-    <p><b>Server:</b> <a href="{{ server_url }}/">{{ server_url }}/</a></p>
+  <p style="padding:10px 12px;border:1px solid var(--{% if holat == 'tayyor' %}tasdiq{% elif holat == 'belgilanmagan' %}ogoh{% else %}xato{% endif %}-chek);background:var(--{% if holat == 'tayyor' %}tasdiq{% elif holat == 'belgilanmagan' %}ogoh{% else %}xato{% endif %}-fon)" data-holat="{{ holat }}">{{ holat_xabar }}</p>
+
+  {% if live_ip %}
+  <table class="jadval" style="margin:14px 0">
+   <tr><td>Server kompyuterining MAC manzili</td><td><b>{{ karta.mac|default:'aniqlanmadi' }}</b></td></tr>
+   <tr><td>Hozirgi IP manzili</td><td><b>{{ live_ip }}</b>{% if karta %} — {% if karta.dhcp %}router bergan{% else %}qo‘lda yozilgan{% endif %}{% endif %}</td></tr>
+   {% if karta.router %}<tr><td>Router sozlamalari</td><td><a href="http://{{ karta.router }}/" target="_blank" rel="noopener">http://{{ karta.router }}/</a></td></tr>{% endif %}
+  </table>
+
+  <ol class="sust" style="margin:0 0 14px 18px;line-height:1.7">
+   <li>Router sozlamalarini oching (login va parol router ostidagi yorliqda).</li>
+   <li>DHCP bo‘limidan «Address Reservation» (manzilni band qilish) ni toping va yangi yozuv qo‘shing.</li>
+   <li>Yuqoridagi MAC va IP manzilni yozib saqlang.</li>
+   <li>Shu IP ni pastga yozib «Saqlash» ni bosing.</li>
+  </ol>
   {% endif %}
 
   <form method="post">
@@ -21,7 +34,10 @@
   <h2>2-kassa dasturi</h2>
 
   {% if server_url %}
-    <p><b>Server:</b> {{ server_url }}</p>
+    <p><b>Server:</b> <a href="{{ server_url }}/">{{ server_url }}/</a></p>
+  {% endif %}
+  {% if holat != 'tayyor' %}
+    <p class="ogoh-yozuv">Avval server manzilini band qiling: 2-kassa dasturi yuklab olingan paytdagi manzilni eslab qoladi.</p>
   {% endif %}
 
   <form method="post" action="{% url 'kassa_agent_yukla' %}">
@@ -30,7 +46,7 @@
     <button class="tugma yashil">2-kassa dasturini yuklab olish</button>
   </form>
 
-  <p class="sust">Login/parol: kassa</p>
+  <p class="sust">Login/parol: kassa. 2-kassaga alohida IP kerak emas — manzilni routerdan o‘zi oladi.</p>
  </section>
 </div>
 {% endblock %}

@@ -67,9 +67,6 @@ def paket(request):
     from .tarmoq import doimiy_manzil
     data = {'url': doimiy_manzil(request.get_port(), request.scheme), 'token': token,
             'kassir': cashier.username, 'printer': ''}
-    from .kassalar import config
-    from qarz.management.commands.standart_akkauntlar import KASSA_GURUH
-    data['client_ip']=config()['client_ip'] if cashier.groups.filter(name=KASSA_GURUH).exists() else ''
     output = io.BytesIO()
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('kassa.json', json.dumps(data, ensure_ascii=True))
@@ -77,7 +74,6 @@ def paket(request):
         for file in ('agent.py', 'tray.py', 'updater.py', 'ORNATISH.ps1', 'ORNATISH.bat', 'FOYDALANISH.txt'):
             archive.write(root / 'kassa_yordamchi' / file, file)
         archive.write(root / 'sotuv/chek_print.ps1', 'chek_print.ps1')
-        archive.write(root / 'config/kassa_ip.ps1', 'kassa_ip.ps1')
         archive.write(root / 'config/etiketka_print.ps1', 'etiketka_print.ps1')
         archive.write(root / 'static/img/bizaropos.ico', 'bizaropos.ico')
         archive.write(root / 'versiya.txt', 'versiya.txt')

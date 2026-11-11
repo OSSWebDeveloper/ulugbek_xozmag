@@ -1,9 +1,5 @@
 ﻿$ErrorActionPreference = 'Stop'
 $source = $PSScriptRoot
-$config = Get-Content -Raw -LiteralPath (Join-Path $source 'kassa.json') | ConvertFrom-Json
-if ($config.client_ip) {
- & (Join-Path $source 'kassa_ip.ps1') -Address $config.client_ip
-}
 $target = Join-Path $env:LOCALAPPDATA 'BizaroPOS-Kassa'
 New-Item -ItemType Directory -Path $target -Force | Out-Null
 $oldPython = Join-Path $target 'runtime\pythonw.exe'
