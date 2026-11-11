@@ -16,7 +16,7 @@ $ProgressPreference = 'SilentlyContinue'
 $repo = 'https://github.com/OSSWebDeveloper/ulugbek_xozmag.git'
 $gitWeb = 'https://git-scm.com/downloads/win'
 $serverPath = Join-Path $env:LOCALAPPDATA 'BizaroPOS-Server'
-$installerVersion = '3.9.20.1'
+$installerVersion = '3.9.20.2'
 
 function Status([string]$msg) { Write-Host ('  ' + $msg) -ForegroundColor Cyan }
 function Stop-Setup([string]$msg) { throw $msg }
@@ -234,6 +234,56 @@ print('SQLite backup OK')
         Write-Host '  Eslatma: kassir uchun maxsus ZIP paketni server yaratadi.'
     } finally { Pop-Location }
 }
+function Test-Server([string]$base) {
+    # Login so`rashdan oldin serverga ulanish tekshiriladi: "timed out" o`rniga aniq sabab aytiladi.
+    $uri = [Uri]$base
+    $serverHost = $uri.Host
+    $port = $uri.Port
+    Status ('Serverga ulanish tekshirilmoqda: ' + $serverHost + ':' + $port + ' ...')
+    $ok = $false
+    $client = New-Object Net.Sockets.TcpClient
+    try {
+        $async = $client.BeginConnect($serverHost, $port, $null, $null)
+        if ($async.AsyncWaitHandle.WaitOne(6000)) {
+            try { $client.EndConnect($async); $ok = $client.Connected } catch { $ok = $false }
+        }
+    } catch { $ok = $false } finally { $client.Close() }
+    if ($ok) { Status 'Server topildi.'; return }
+    $mine = @()
+    try {
+        $mine = @([Net.Dns]::GetHostAddresses([Net.Dns]::GetHostName()) |
+            Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
+            ForEach-Object { $_.ToString() } |
+            Where-Object { $_ -notlike '127.*' -and $_ -notlike '169.254.*' })
+    } catch { $mine = @() }
+    Write-Host ''
+    Write-Host ('  Serverga ulanib bo`lmadi: ' + $base) -ForegroundColor Red
+    if ($mine.Count -eq 0) {
+        Write-Host '  SABAB: bu kompyuter hech qanday tarmoqqa ulanmagan (IP manzil yo`q).' -ForegroundColor Yellow
+        Write-Host '  Kabel yoki Wi-Fi ni tekshiring.'
+    } else {
+        Write-Host ('  Bu kompyuter manzili: ' + ($mine -join ', '))
+        $sameNet = $true
+        if ($serverHost -match '^(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d{1,3}$') {
+            $prefix = $Matches[1] + '.'
+            $sameNet = @($mine | Where-Object { $_.StartsWith($prefix) }).Count -gt 0
+        }
+        if (-not $sameNet) {
+            Write-Host '  SABAB: server va bu kompyuter TURLI tarmoqda.' -ForegroundColor Yellow
+            Write-Host ('  Server ' + $prefix + 'x tarmog`ida, bu kompyuter esa boshqasida.')
+            Write-Host '  Ikkalasini bitta router/Wi-Fi ga ulang yoki server kompyuterida'
+            Write-Host '  ipconfig yozib, hozirgi IPv4 manzilini kiriting.'
+        } else {
+            Write-Host '  Ehtimoliy sabablar:' -ForegroundColor Yellow
+            Write-Host '   1) Server dasturi ishlamayapti - server kompyuterida BizaroPOS ni oching.'
+            Write-Host '   2) Server manzili o`zgargan - serverda ipconfig bilan IPv4 ni tekshiring.'
+            Write-Host '   3) Serverdagi xavfsizlik devori 5555-portni to`smoqda'
+            Write-Host '      (tarmoq "Obshedostupnaya" bo`lsa "Chastnaya" ga o`tkazing).'
+        }
+    }
+    Write-Host ('  Tekshirish: shu kompyuter brauzerida ' + $base + ' ochilishi kerak.')
+    Stop-Setup 'Server topilmadi. Yuqoridagi sababni bartaraf etib, qayta ishga tushiring.'
+}
 function Login-And-Download([string]$base,[string]$username,[string]$password,[string]$zip) {
     $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
     $login = Invoke-WebRequest -Uri ($base + '/kirish/') -WebSession $session -UseBasicParsing -TimeoutSec 20
@@ -264,6 +314,7 @@ function Cashier-Install {
     if ($base -notmatch '^https?://[A-Za-z0-9.\-]+(:\d{2,5})?$') {
         Stop-Setup 'Server manzilini to`liq yozing: http://SERVER-NOMI:5555'
     }
+    Test-Server $base
     Write-Host '  Faqat ishonchli mahalliy Wi-Fi/LAN tarmog`ida foydalaning.' -ForegroundColor Yellow
     Write-Host '  Birinchi martada server brauzeridan kassa / kassa bilan kiring va login/parolni yangilang.' -ForegroundColor Yellow
     Write-Host '  Endi shu yangilangan login/parolni kiriting. Dastlabki standart parol bilan printer paketini olish bloklanadi.' -ForegroundColor Yellow
