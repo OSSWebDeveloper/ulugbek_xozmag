@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.34 — 2026-11-11
+
+Har bir kompyuter faqat o'z printeridan chiqaradi: boshqa kompyuter server printeriga yubora olmaydi, yordamchisiz qurilmada yorliq brauzerning chop oynasi orqali o'z printeridan chiqadi (burilmasdan, printer qog'ozining tepasidan); server kompyuteridagi chek va sinov cheki server printeridan chiqadi; yorliq oynasida shtrix printer birinchi turadi va oxirgi tanlov eslab qolinadi
+
 ## 3.9.33 — 2026-11-11
 
 2-kassa o'rnatgichi serverga ulanishni oldindan tekshiradi: «The operation has timed out» o'rniga sababni aytadi (turli tarmoq, server o'chiq, manzil o'zgargan yoki xavfsizlik devori)
