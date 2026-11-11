@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.32 — 2026-11-11
+
+IP orqali ulangan har qanday kompyuter yordamchi o'rnatmasdan o'z printerida chop etadi: chek, sinov cheki va yorliq brauzerning chop oynasi orqali chiqadi
+
 ## 3.9.31 — 2026-11-11
 
 DHCP reservation vaqtincha o'chirildi: Kassalar sahifasi va 2-kassa paketi 3.9.29 dagi holatga qaytdi
