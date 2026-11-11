@@ -80,7 +80,7 @@ def local_printers(request):
     from django.utils import timezone
     terminal=KassaTerminal.objects.filter(kassir=request.user).first()
     if not terminal or not terminal.oxirgi_aloqa or (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
-        raise RuntimeError('Shu kassada BizaroPOS Kassa yordamchisini oching.')
+        raise RuntimeError('«Brauzerdan chop etish» ni bosing — yorliq shu kompyuterning printeriga chiqadi.')
     if not terminal.etiketka_tayyor:
         raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
     return terminal.printerlar

@@ -72,6 +72,13 @@
       return data;
     }
     document.getElementById('etiketka-printer-bekor').addEventListener('click', function () { printerDialog.close(); });
+    // Yordamchisiz qurilma: yorliqlar shu brauzerning chop oynasi orqali chiqadi.
+    // Sahifa o'lchami (@page) yorliq o'lchamida, har yorliq alohida sahifa.
+    document.getElementById('etiketka-brauzer').addEventListener('click', function () {
+      nusxala();
+      printerDialog.close();
+      window.print();
+    });
     printerForma.addEventListener('submit', async function(event) {
       event.preventDefault();
       if (busy || !printerSelect.value) return;

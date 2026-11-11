@@ -16,6 +16,7 @@ urlpatterns = [
     path("kassalar/", kassalar.sahifa, name="kassalar"),
     path('qurilmalar/printer/sinov/', printer_sinov.chop, name='printer_sinov'),
     path('qurilmalar/printer/sinov/<int:pk>/', printer_sinov.holat, name='printer_sinov_holat'),
+    path('qurilmalar/printer/sinov/bosma/', printer_sinov.bosma, name='printer_sinov_bosma'),
     path('qurilmalar/etiketka/printerlar/', etiketka_print.royxat, name='etiketka_printerlar'),
     path('ombor/<int:pk>/etiketka/chop/', etiketka_print.chop, name='etiketka_chop'),
     path('qurilmalar/etiketka/holat/<uuid:token>/', etiketka_print.holat, name='etiketka_chop_holat'),

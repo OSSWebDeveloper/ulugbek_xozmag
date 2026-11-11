@@ -135,8 +135,30 @@ def mahalliymi(request):
     return request.META.get('REMOTE_ADDR', '') in {'127.0.0.1', '127.0.0.55', '::1', *ip_manzillar()}
 
 
+def brauzerga(request, s):
+    """Yordamchi o'rnatilmagan qurilma: chek shu qurilmaning brauzeridan chiqadi.
+
+    Serverga IP orqali ulangan har qanday kompyuter (yoki telefon) o'ziga
+    ulangan printerda chop etadi — hech narsa o'rnatilmaydi. Keyingi sahifa
+    chekni yashirin ramkada ochib, brauzerning chop oynasini chaqiradi
+    (templates/base.html, `brauzer_chek`).
+    """
+    from django.contrib import messages
+    from .models import ChekVazifa
+    # Navbatda qolgan eski vazifa yordamchi keyin ochilganda ikkinchi marta chiqmasin.
+    ChekVazifa.objects.filter(sotuv=s, holat='kutilmoqda').update(
+        holat='xato', xato='Brauzer orqali chiqarildi.')
+    request.session['brauzer_chek'] = s.pk
+    messages.info(request, f'Chek #{s.pk} shu kompyuterning printeriga chiqarilmoqda. '
+                           'Chop oynasi ochilsa printerni tasdiqlang.')
+
+
 def yubor(request, s, qayta=False):
-    """USB chekni aynan so'rov yuborgan kassaning printeriga yo'naltiradi."""
+    """Chekni aynan so'rov yuborgan kassaning printeriga yo'naltiradi.
+
+    Server kompyuteri — asosiy USB printer; yordamchisi ishlab turgan kassa —
+    yordamchi navbati; qolgan hamma qurilma — o'z brauzeri orqali.
+    """
     from django.contrib import messages
     from django.db import transaction
     from .models import KassaTerminal, ChekVazifa
@@ -168,8 +190,9 @@ def yubor(request, s, qayta=False):
             ChekVazifa.objects.filter(pk=job.pk).update(holat='tayyor', xato='')
         messages.success(request, f'Chek #{s.pk} asosiy kassa printeriga yuborildi.')
         return
-    if terminal is None:
-        terminal = KassaTerminal.objects.create(kassir=request.user)
+    if not online:
+        brauzerga(request, s)
+        return
     with transaction.atomic():
         job, created = ChekVazifa.objects.get_or_create(sotuv=s, defaults={
             'terminal': terminal, 'malumot': malumot(s)})
@@ -189,12 +212,7 @@ def yubor(request, s, qayta=False):
             # Navbat muddati qayta chiqarilgan paytdan sanaladi.
             job.yaratilgan = timezone.now()
             job.save()
-    if terminal.oxirgi_aloqa and (timezone.now() - terminal.oxirgi_aloqa).total_seconds() < 60:
-        messages.success(request, f'Chek #{s.pk} shu kassa printerining navbatiga qo‘yildi.')
-    else:
-        daqiqa = settings.CHEK_NAVBAT_MUDDATI // 60
-        messages.warning(request, f'Savdo saqlandi. Chek #{s.pk} navbatda; Qurilmalar bo‘limidan shu kassada USB yordamchisini o‘rnating yoki oching. '
-                                  f'{daqiqa} daqiqada chiqmasa o‘zi chop etilmaydi — «Chek» orqali qayta chiqarasiz.')
+    messages.success(request, f'Chek #{s.pk} shu kassa printerining navbatiga qo‘yildi.')
 
 
 def svg_kod(s):

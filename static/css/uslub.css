@@ -1577,3 +1577,6 @@ body.kunduzgi .bosh-sahifa .tanlov .belgi { color: #245a99; background: #e1ecfb;
 body.kunduzgi .bosh-sahifa .tanlov.yangi .belgi { color: #176d55; background: #def3e9; }
 body.kunduzgi .bosh-sahifa .tanlov.qarz .belgi { color: #196b8e; background: #def1fa; }
 .shtrix-maydon .shtrix-och[hidden], .shtrix-maydon .shtrix-form[hidden] { display: none !important; }
+
+/* Chekni brauzerdan chiqaradigan yashirin ramka (js/brauzer_chek.js). */
+.brauzer-chek { position: fixed; right: 0; bottom: 0; width: 0; height: 0; border: 0; visibility: hidden; }

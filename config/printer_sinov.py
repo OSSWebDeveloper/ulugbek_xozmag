@@ -2,14 +2,25 @@
 import subprocess
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 from sotuv.models import KassaTerminal, ChekVazifa
 from sotuv.chek import mahalliymi, sinov_malumot, chop_malumot
 from django.conf import settings
+
+
+@require_GET
+@never_cache
+@xframe_options_sameorigin
+def bosma(request):
+    """Sinov chekining qog'ozi — brauzer chop oynasi uchun (yordamchisiz qurilma)."""
+    return render(request, 'sotuv/chek_bosma.html', {
+        'sarlavha': 'Printer sinovi',
+        'data': sinov_malumot(request.user, 'shu kompyuterning standart printeri')})
 
 
 @require_POST
@@ -24,7 +35,9 @@ def chop(request):
             return JsonResponse({'xato': 'Sinov cheki yuborilmadi. Printer ulanishini tekshiring.'}, status=503)
         return JsonResponse({'xabar': 'Sinov Windows printer navbatiga yuborildi. Qog‘oz chiqqanini tekshiring.'})
     if not online:
-        return JsonResponse({'xato': 'Shu kassaning USB yordamchisini oching va chek printerini tanlang.'}, status=503)
+        # Yordamchisiz qurilma: sinov cheki shu brauzerning chop oynasiga chiqadi.
+        return JsonResponse({'xabar': 'Sinov cheki shu kompyuterning printeriga chiqarilmoqda. Chop oynasida printerni tasdiqlang.',
+                             'bosma': reverse('printer_sinov_bosma')})
     with transaction.atomic():
         terminal = KassaTerminal.objects.select_for_update().get(pk=terminal.pk)
         # Repeated clicks cannot enqueue another still-pending test.

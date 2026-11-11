@@ -11,6 +11,7 @@ urlpatterns = [
     path("chek-qidir/", chek_views.qaytarish_cheki, name="chek_izla"),
     path("chek/<int:pk>/", chek_views.korish, name="chek"),
     path("chek/<int:pk>/chop/", chek_views.chiqarish, name="chek_chop"),
+    path("chek/<int:pk>/bosma/", chek_views.bosma, name="chek_bosma"),
     path("chek/<int:pk>/qaytarish/", chek_views.qaytarish_cheki, name="chek_qaytarish"),
     path("", views.royxat, name="royxat"),
     path("yangi/", views.sotuv_boshlash, name="boshlash"),

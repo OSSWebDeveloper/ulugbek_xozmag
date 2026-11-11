@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 from .models import Sotuv
 from . import chek
@@ -18,6 +19,16 @@ def korish(request, pk):
     return render(request, 'sotuv/chek.html', {'sotuv': sale, 'data': data,
                                              'barcode_svg': chek.svg_kod(sale),
                                              'vazifa': getattr(sale, 'chop_vazifa', None)})
+
+
+@require_GET
+@xframe_options_sameorigin
+def bosma(request, pk):
+    """Faqat chekning o'zi: yashirin ramkada ochiladi va brauzer chop oynasini chaqiradi."""
+    sale = yopilgan(pk)
+    return render(request, 'sotuv/chek_bosma.html', {
+        'sarlavha': f'Savdo cheki #{sale.pk}', 'data': chek.malumot(sale),
+        'barcode_svg': chek.svg_kod(sale)})
 
 
 @require_POST

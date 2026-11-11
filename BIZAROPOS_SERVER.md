@@ -40,6 +40,30 @@ Savdo tugmalarini bosayotgan paytda qayta yuklash/yangilashni boshlamang.
 Jurnallar: qurilmalar_data/server/server.log va boshqaruv.log.
 Rongta, printer, eski etiketka o‘lchamlari va mavjud ombor shu kompyuterda qoladi.
 
+## Yordamchisiz kassa: brauzer orqali chop etish
+
+Boshqa kompyuterga hech narsa o‘rnatish shart emas. Brauzerda serverning
+manzilini (http://<server IP>:5555/) ochib, o‘z akkaunti bilan kirgan har
+qanday kompyuter o‘ziga ulangan printerda chop etadi:
+
+- savdo yakunlanganda chek shu brauzerning chop oynasiga chiqadi;
+- Sotuvlar > «Chekni qayta chiqarish» va Qurilmalar > «Sinov cheki» ham shunday;
+- yorliq: Ombor > Etiketka > Chop etish > «Brauzerdan chop etish».
+
+Chek Windows’dagi standart (default) printerga chiqadi, shuning uchun har
+kompyuterda chek printerini standart qiling. Chop oynasida bir marta:
+qog‘oz o‘lchami 80 mm, hoshiyalar «Yo‘q», kolontitullar o‘chiq.
+
+Chop oynasi har safar chiqmasligi uchun brauzerni shu bayroq bilan oching
+(ish stolida yorliq yarating; Edge o‘rniga chrome.exe ham bo‘ladi):
+
+    msedge.exe --kiosk-printing http://<server IP>:5555/
+
+Shunda chek tasdiqsiz, to‘g‘ridan-to‘g‘ri standart printerga ketadi.
+Server kompyuterining o‘zi avvalgidek USB printerga bevosita chiqaradi.
+Yordamchi (keyingi bo‘lim) o‘rnatilgan va ishlab turgan kassada chek
+yordamchi orqali chiqadi; yordamchi yopiq bo‘lsa — brauzer orqali.
+
 ## Ikki kassa
 
 Har kassir alohida akkaunt bilan kiradi; ochiq savatlar bir-biriga aralashmaydi.

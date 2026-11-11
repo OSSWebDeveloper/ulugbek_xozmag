@@ -151,6 +151,7 @@ class UsbAgentTests(KirganTest):
         sale = Sotuv.objects.create(kassir=self.user)
         self.client.post(reverse('sotuv:qator_qoshish', args=[sale.pk]), {'mahsulot':product.pk, 'miqdor':2})
         self.assertFalse(ChekVazifa.objects.exists())
+        self.poll()  # yordamchi ishlab turibdi
         for _ in range(2):
             self.client.post(reverse('sotuv:yakunlash', args=[sale.pk]), {'jami':20000}, REMOTE_ADDR='192.168.100.41')
         self.assertEqual(ChekVazifa.objects.count(), 1)
@@ -162,6 +163,41 @@ class UsbAgentTests(KirganTest):
         ack = {'id':data['id'], 'claim':data['claim'], 'ok':True}
         self.poll(ack=ack); self.poll(ack=ack)
         self.assertEqual(ChekVazifa.objects.get().holat, 'tayyor')
+
+    @override_settings(CHEK_AUTO_PRINT=True)
+    @patch('sotuv.chek.chop_et')
+    def test_remote_sale_without_helper_prints_in_its_own_browser_once(self, printer):
+        # Yordamchi o'rnatilmagan qurilma: navbat ham, server printeri ham emas —
+        # keyingi sahifa chek qog'ozini shu brauzerda bir marta ochadi.
+        product = Mahsulot.objects.create(nom='Lampochka', qoldiq=10)
+        sale = Sotuv.objects.create(kassir=self.user)
+        remote = dict(REMOTE_ADDR='192.168.100.41')
+        self.client.post(reverse('sotuv:qator_qoshish', args=[sale.pk]), {'mahsulot':product.pk, 'miqdor':2})
+        response = self.client.post(reverse('sotuv:yakunlash', args=[sale.pk]), {'jami':20000}, follow=True, **remote)
+        printer.assert_not_called()
+        self.assertFalse(ChekVazifa.objects.exists())
+        bosma = reverse('sotuv:chek_bosma', args=[sale.pk])
+        self.assertContains(response, f'data-brauzer-chek="{bosma}"')
+        self.assertNotContains(self.client.get(reverse('sotuv:royxat'), **remote), 'data-brauzer-chek')
+        page = self.client.get(bosma, **remote)
+        self.assertContains(page, 'savdo_chek_bosma.js')
+        self.assertContains(page, 'Lampochka')
+        self.assertNotContains(page, 'yon-menyu')
+        self.assertEqual(page['X-Frame-Options'], 'SAMEORIGIN')
+        # «Chekni qayta chiqarish» ham shu brauzerga chiqadi.
+        response = self.client.post(reverse('sotuv:chek_chop', args=[sale.pk]), follow=True, **remote)
+        self.assertContains(response, f'data-brauzer-chek="{bosma}"')
+        printer.assert_not_called()
+
+    @override_settings(CHEK_AUTO_PRINT=True)
+    @patch('sotuv.chek.chop_et')
+    def test_browser_print_cancels_stale_helper_job(self, printer):
+        sale = Sotuv.objects.create(kassir=self.user, yakunlangan=True, jami=1000)
+        job = ChekVazifa.objects.create(sotuv=sale, terminal=self.terminal, malumot={})
+        self.client.post(reverse('sotuv:chek_chop', args=[sale.pk]), REMOTE_ADDR='192.168.100.41')
+        job.refresh_from_db()
+        self.assertEqual(job.holat, 'xato')
+        self.assertIsNone(self.poll().json()['vazifa'])
 
     def test_invalid_or_other_account_token_cannot_claim_jobs(self):
         self.assertEqual(self.unsigned.post(self.url, '{}', content_type='application/json').status_code, 401)

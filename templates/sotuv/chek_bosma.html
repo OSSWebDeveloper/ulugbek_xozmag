@@ -1,0 +1,13 @@
+{% load statik_versiya %}<!DOCTYPE html>
+{# Faqat chek qog'ozi: menyusiz. Yashirin ramkada ochiladi va yuklangach o'zi chop oynasini chaqiradi. #}
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <title>{{ sarlavha }}</title>
+  <link rel="stylesheet" href="{% statik 'css/savdo_chek.css' %}">
+</head>
+<body class="chek-bosma">
+  {% include 'sotuv/_chek_qogoz.html' %}
+  <script src="{% statik 'js/savdo_chek_bosma.js' %}"></script>
+</body>
+</html>

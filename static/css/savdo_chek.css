@@ -29,3 +29,6 @@
 .chek-title span::after { content: ' ***'; }
 .chek-item { text-transform: uppercase; }
 .chek-total { border: 0; border-top: 4px double #000; padding: 4mm 0 0; font-family: inherit; }
+/* Faqat chek qog'ozi (sotuv/chek_bosma.html) — yashirin ramkada ochiladi. */
+.chek-bosma { margin: 0; background: #fff; }
+.chek-bosma .savdo-chek { margin: 0; }

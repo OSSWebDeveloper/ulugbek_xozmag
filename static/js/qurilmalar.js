@@ -91,6 +91,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.xato || 'Sinov yuborilmadi.');
       message.textContent = data.xabar;
+      if (data.bosma) window.brauzerChek(data.bosma);
       if (data.url) {
         for (let i = 0; i < 20; i++) {
           await new Promise(resolve => setTimeout(resolve, 1500));

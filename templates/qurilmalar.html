@@ -12,11 +12,12 @@
     <form method="post" action="{% url 'kassa_agent_yukla' %}">{% csrf_token %}
       <button type="submit" class="tugma yashil">USB kassa yordamchisini yuklab olish</button>
     </form>
+    <p class="sust">Yordamchi majburiy emas: usiz ham chek va yorliq shu kompyuterning printeriga brauzerning chop oynasi orqali chiqadi. Yordamchi chop oynasisiz, to‘g‘ridan-to‘g‘ri chiqarish uchun kerak.</p>
     <p class="sust">Shu akkauntga tegishli paketni ZIP’dan ochib, ORNATISH.bat ni ishga tushiring. Windows’da chek printerini standart printer qiling. Qayta yuklab olish eski yordamchining ulanish kalitini bekor qiladi.</p>
   </section>
   <section class="quti qurilma-kirish">
     <h2>Chek printeri</h2>
-    <p>{% if terminal.printer %}{{ terminal.printer }}{% else %}Asosiy kassaning chek printeri{% endif %} · {{ request.user.username }}</p>
+    <p>{% if terminal.printer %}{{ terminal.printer }}{% elif server_kompyuteri %}Asosiy kassaning chek printeri{% else %}Shu kompyuterning standart printeri (brauzer orqali){% endif %} · {{ request.user.username }}</p>
     <form id="printer-sinov-form" action="{% url 'printer_sinov' %}" method="post">{% csrf_token %}
       <button class="tugma yashil" type="submit">Sinov cheki chiqarish</button>
     </form>

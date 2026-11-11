@@ -25,5 +25,10 @@ def _oqi():
 
 
 def versiya(request):
+    from django.utils.functional import SimpleLazyObject
     from sotuv.chek import mahalliymi
-    return {"versiya": _oqi(), "server_kompyuteri": mahalliymi(request)}
+    # Brauzerdan chiqariladigan chek: faqat base.html so'raganda va bir marta
+    # olinadi — sahifa yangilansa chek ikkinchi marta chiqmaydi.
+    chek = SimpleLazyObject(lambda: request.session.pop("brauzer_chek", None)
+                            if hasattr(request, "session") else None)
+    return {"versiya": _oqi(), "server_kompyuteri": mahalliymi(request), "brauzer_chek": chek}

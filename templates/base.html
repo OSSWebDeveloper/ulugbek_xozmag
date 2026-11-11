@@ -82,12 +82,15 @@
 
     <main class="sahifa">{% block tana %}{% endblock %}</main>
   </div>
+  {# Yordamchisiz qurilma: yangi chek shu brauzerning chop oynasiga chiqadi (js/brauzer_chek.js) #}
+  {% if brauzer_chek %}<span hidden data-brauzer-chek="{% url 'sotuv:chek_bosma' brauzer_chek %}"></span>{% endif %}
 
 {% endwith %}
   <script src="{% statik 'js/rejim.js' %}"></script>
   <script src="{% statik 'js/forma.js' %}"></script>
   <script src="{% statik 'js/bildirishnoma.js' %}"></script>
   <script src="{% statik 'js/klaviatura.js' %}"></script>
+  <script src="{% statik 'js/brauzer_chek.js' %}"></script>
   {% block skript %}{% endblock %}
 </body>
 </html>

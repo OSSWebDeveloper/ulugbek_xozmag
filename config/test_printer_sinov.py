@@ -47,9 +47,17 @@ class PrinterSinovTests(KirganTest):
     def test_remote_offline_never_prints_on_server(self, printer):
         self.terminal.oxirgi_aloqa = None
         self.terminal.save()
-        self.assertEqual(self.client.post(self.url, REMOTE_ADDR='192.168.100.41').status_code,503)
+        # Yordamchisiz qurilma sinov chekini o'z brauzeridan chiqaradi.
+        response = self.client.post(self.url, REMOTE_ADDR='192.168.100.41')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['bosma'], reverse('printer_sinov_bosma'))
         printer.assert_not_called()
         self.assertFalse(ChekVazifa.objects.exists())
+        page = self.client.get(response.json()['bosma'], REMOTE_ADDR='192.168.100.41')
+        self.assertContains(page, 'PRINTER SINOVI')
+        self.assertContains(page, 'savdo_chek_bosma.js')
+        self.assertNotContains(page, 'savdo-chek-shtrix')
+        self.assertEqual(page['X-Frame-Options'], 'SAMEORIGIN')
 
     @patch('config.printer_sinov.chop_malumot')
     def test_local_without_helper_uses_main_printer(self, printer):

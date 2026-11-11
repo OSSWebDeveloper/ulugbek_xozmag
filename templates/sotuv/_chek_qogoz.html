@@ -1,0 +1,11 @@
+<article class="savdo-chek">
+  {% for block in data.blocks %}
+    {% if block.kind == 'rule' %}<hr>
+    {% else %}<div class="savdo-chek-satr chek-{{ block.kind }}"><span>{{ block.text }}</span>{% if block.right %}<strong>{{ block.right }}</strong>{% endif %}</div>{% endif %}
+  {% endfor %}
+  {% if barcode_svg %}
+  <div class="savdo-chek-shtrix">{{ barcode_svg|safe }}</div>
+  <div class="savdo-chek-raqam">{{ data.barcode }}</div>
+  <p>Qaytarish uchun chekni saqlang.</p>
+  {% endif %}
+</article>

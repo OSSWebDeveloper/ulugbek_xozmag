@@ -14,15 +14,7 @@
     <a class="tugma tinch" href="{% url 'sotuv:royxat' %}">Sotuvlarga qaytish</a>
   </div>
   {% if vazifa %}<p class="chek-boshqaruv">Chop holati: {{ vazifa.holat }}{% if vazifa.xato %} · {{ vazifa.xato }}{% endif %}</p>{% endif %}
-  <article class="savdo-chek">
-    {% for block in data.blocks %}
-      {% if block.kind == 'rule' %}<hr>
-      {% else %}<div class="savdo-chek-satr chek-{{ block.kind }}"><span>{{ block.text }}</span>{% if block.right %}<strong>{{ block.right }}</strong>{% endif %}</div>{% endif %}
-    {% endfor %}
-    <div class="savdo-chek-shtrix">{{ barcode_svg|safe }}</div>
-    <div class="savdo-chek-raqam">{{ data.barcode }}</div>
-    <p>Qaytarish uchun chekni saqlang.</p>
-  </article>
+  {% include 'sotuv/_chek_qogoz.html' %}
 </div>
 {% endblock %}
 {% block skript %}<script src="{% statik 'js/savdo_chek.js' %}"></script>{% endblock %}
