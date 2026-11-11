@@ -8,43 +8,15 @@ rad etilganda ishga tushmaydi. Pythonw oynasiz ishlaydi, brauzer ochiladi.
 Takror bosish yangi server ochmaydi. Eski SERVERXOZMAG.bat va kuzatuvchi bilan birga ishlatmang.
 
 Asosiy kompyuter: http://127.0.0.55:5555/.
-Boshqa kassalar va telefonlar: http://<server IP>:5555/ — manzil Kassalar
-sahifasida va server ishga tushgandagi bildirishnomada yoziladi.
-Ikkala kassa bir xil routerga (Wi-Fi yoki kabel) ulangan bo'lishi kerak.
-127.x manzillar har qurilmaning o‘zini anglatadi.
+Boshqa Windows kassalari: http://WIN-HS2MGB9MV4U:5555/ (server kompyuter nomi).
+Yangi USB yordamchi paketlari ham server nomiga ulanadi; eski IP yozilgan
+paketni qayta yuklab o'rnatish kerak. Kompyuter nomi o'zgartirilmasin.
+Ikkala kassa bir xil Wi-Fi yoki bir xil hotspotda bo'lishi kerak.
+Tarmoq Windows kompyuter nomlarini aniqlashi va mijozlararo aloqani o'tkazishi
+kerak. Mijozlarni ajratadigan hotspotda nom orqali ham ulanish bo'lmaydi.
+127.x manzillar har qurilmaning o‘zini anglatadi. Wi-Fi manzili routerdan
+o‘zgarishi mumkin; barqaror manzil uchun routerda DHCP reservation qo‘ying.
 Guest Wi-Fi / client isolation boshqa qurilmalar ulanishini to‘sishi mumkin.
-
-## Doimiy manzil: DHCP reservation
-
-Server manzili o'zgarmasligi uchun u **routerda band qilinadi**. Dastur
-Windows'ning IP sozlamalariga tegmaydi: kassalarga qo'lda qo'shimcha IP
-(eski 192.168.153.x) endi yozilmaydi, 2-kassa manzilni routerdan o'zi oladi.
-
-1. Server kompyuterida Windows IP ni avtomatik (DHCP) oladigan bo'lsin.
-2. BizaroPOS → Kassalar sahifasini oching. U yerda server kompyuterining
-   MAC manzili, hozirgi IP si va router sozlamalari havolasi turadi.
-3. Routerga kiring (TP-Link XX530v: http://192.168.1.1, parol router
-   ostidagi yorliqda) → Advanced → Network → LAN Settings (yoki DHCP Server)
-   → Address Reservation → Add. MAC va IP ni yozing, saqlang.
-4. Kassalar sahifasida shu IP ni yozib «Saqlash» ni bosing. Sahifa yashil
-   «Tayyor» ni ko'rsatishi kerak.
-5. Shundan keyin 2-kassa dasturini yuklab oling: paket yuklangan paytdagi
-   server manzilini eslab qoladi. Manzil keyin o'zgargan bo'lsa paketni
-   qayta yuklab, ORNATISH.bat ni qayta bajaring.
-
-Sahifadagi ogohlantirishlar:
-- «Router … berdi, band qilingan manzil esa …» — band qilish routerda
-  saqlanmagan yoki kompyuter tarmoqqa qayta ulanmagan (Wi-Fi ni uzib-ulang).
-- «IP qo'lda yozilgan» — Windows'da statik IP turibdi; avtomatikka o'tkazing.
-
-Eslatmalar:
-- Reservation MAC manzilga bog'lanadi. Server Wi-Fi o'rniga kabel bilan
-  ulansa MAC boshqa bo'ladi — o'sha karta uchun alohida yozuv kerak.
-- Windows'dagi «Случайные аппаратные адреса» (tasodifiy MAC) o'chiq bo'lsin.
-- Router almashtirilsa yoki zavod holatiga qaytarilsa band qilish qaytadan
-  qo'yiladi.
-- Rongta tarozisi qo'lda yozilgan 192.168.1.110 manzilida. U ham shu
-  routerga ulansa, bu manzilni boshqa qurilmaga band qilmang.
 
 Tray belgisi ustiga chap yoki o‘ng bosilganda: serverni o‘chirish, qayta
 yuklash, GitHub’dan yangilash, versiya. O‘chirish kompyuterni o‘chirmaydi.

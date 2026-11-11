@@ -43,44 +43,8 @@ def ip_manzillar():
     return natija
 
 
-_KARTA = r"""
-$a = Get-NetIPAddress -IPAddress '{ip}' -AddressFamily IPv4 -ErrorAction Stop
-$n = Get-NetAdapter -InterfaceIndex $a.InterfaceIndex
-$g = (Get-NetRoute -InterfaceIndex $a.InterfaceIndex -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue |
-      Sort-Object RouteMetric | Select-Object -First 1).NextHop
-@{{mac = $n.MacAddress; dhcp = ($a.PrefixOrigin -eq 'Dhcp'); router = [string]$g}} | ConvertTo-Json -Compress
-"""
-
-
-def karta(ip):
-    """Shu IP turgan tarmoq kartasi: routerdagi DHCP reservation uchun ma'lumot.
-
-    {'mac': '80-30-…', 'dhcp': True, 'router': '192.168.1.1'} qaytaradi.
-    `dhcp` — manzilni router berganmi (False bo'lsa Windows'da qo'lda yozilgan,
-    reservation unga ta'sir qilmaydi). Aniqlab bo'lmasa bo'sh lug'at.
-    """
-    import json
-    import subprocess
-    if not _ichkimi(ip):
-        return {}
-    try:
-        natija = subprocess.run(
-            ['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', _KARTA.format(ip=ip)],
-            capture_output=True, text=True, timeout=20,
-            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        data = json.loads(natija.stdout)
-        return {'mac': str(data['mac']), 'dhcp': data['dhcp'] is True,
-                'router': data['router'] if _ichkimi(data.get('router') or '') else ''}
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
-        return {}
-
-
 def doimiy_manzil(port=5555, scheme='http'):
-    """Kassalar ulanadigan manzil: routerda band qilingan (DHCP reservation) IP.
-
-    Band qilingan IP hozir tarmoq kartasida bo'lmasa (router boshqasini bergan)
-    mavjud bo'lmagan manzil reklama qilinmaydi — joriy IP olinadi.
-    """
+    """Ishlayotgan LAN IPni tanlash: mavjud bo'lmagan statik IPni reklama qilmaydi."""
     import json
     from pathlib import Path
     file = Path(__file__).resolve().parent.parent / 'qurilmalar_data/kassalar.json'

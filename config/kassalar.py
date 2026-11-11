@@ -1,9 +1,4 @@
-"""Kassalar tarmog'i: server manzili routerda band qilinadi (DHCP reservation).
-
-Dastur Windows'ning IP sozlamalariga tegmaydi. Router server kompyuteriga
-har doim bir xil manzil beradi; bu sahifa routerga yoziladigan ma'lumotni
-(MAC, joriy IP) ko'rsatadi va band qilingan manzil amalda kelganini tekshiradi.
-"""
+"""Local-server cashier network setup; changes only extra IPv4 addresses."""
 import ipaddress
 import json
 from pathlib import Path
@@ -13,7 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from sotuv.chek import mahalliymi
-from config.tarmoq import ip_manzillar, doimiy_manzil, karta
+from config.tarmoq import ip_manzillar, doimiy_manzil
 
 
 def path():
@@ -22,63 +17,44 @@ def path():
 
 def config():
     try:
-        data = json.loads(path().read_text(encoding='utf-8'))
-        return {'server_ip': str(data.get('server_ip', ''))}
-    except (OSError, ValueError, AttributeError):
-        return {'server_ip': ''}
+        return json.loads(path().read_text(encoding='utf-8'))
+    except FileNotFoundError:
+        return {'server_ip':'192.168.153.25','client_ip':'192.168.153.26','interface':13}
 
 
 class KassaForm(forms.Form):
-    server_ip = forms.GenericIPAddressField(label='Routerda band qilingan server IP', protocol='IPv4')
-
-    def clean_server_ip(self):
-        ip = ipaddress.ip_address(self.cleaned_data['server_ip'])
-        if not ip.is_private or ip.is_loopback or ip.is_link_local:
-            raise forms.ValidationError('Mahalliy tarmoq IPv4 manzilini kiriting.')
-        if ip.packed[-1] in (0, 255):
-            raise forms.ValidationError('.0 va .255 bilan tugaydigan manzil ishlatilmaydi.')
-        return str(ip)
-
-
-def holat(saved, live, info):
-    """Reservation holati: (kod, xabar). Kod — yoq / qolda / belgilanmagan / farq / tayyor."""
-    if not live:
-        return 'yoq', 'Kompyuter tarmoqqa ulanmagan.'
-    if info and not info['dhcp']:
-        return 'qolda', ('Bu kompyuterda IP qo‘lda yozilgan. Windows tarmoq sozlamasida '
-                         'IP olishni avtomatik (DHCP) qiling — aks holda routerdagi band qilish ishlamaydi.')
-    if not saved:
-        return 'belgilanmagan', 'Routerda manzilni band qiling, so‘ng uni shu yerga yozib saqlang.'
-    if saved not in live:
-        return 'farq', (f'Router {live[0]} berdi, band qilingan manzil esa {saved}. '
-                        'Routerda band qilish saqlanmagan yoki kompyuter tarmoqqa qayta ulanmagan.')
-    return 'tayyor', f'Tayyor: router shu kompyuterga band qilingan {saved} manzilini berdi.'
+    server_ip=forms.GenericIPAddressField(label='Server IP',protocol='IPv4')
+    client_ip=forms.GenericIPAddressField(label='2-kassa IP',protocol='IPv4')
+    interface=forms.IntegerField(label='Tarmoq kartasi indeksi',min_value=1)
+    def clean(self):
+        data=super().clean()
+        a,b=data.get('server_ip'),data.get('client_ip')
+        if a and b:
+            network=ipaddress.ip_network(a+'/24',strict=False)
+            if not network.is_private or any(ipaddress.ip_address(v).is_loopback or ipaddress.ip_address(v).is_link_local for v in (a,b)):
+                raise forms.ValidationError('Mahalliy tarmoq IPv4 manzilini kiriting.')
+            if a==b or ipaddress.ip_address(b) not in network or any(ipaddress.ip_address(v) in (network.network_address,network.broadcast_address) for v in (a,b)):
+                raise forms.ValidationError('IP lar bir /24 tarmoqda, turlicha bo‘lsin; .0 va .255 ishlatilmaydi.')
+        return data
 
 
 def sahifa(request):
     if not mahalliymi(request):
         return HttpResponseForbidden('Kassalar sozlamasi faqat server kompyuterida ochiladi.')
-    saved = config()['server_ip']
-    live = ip_manzillar()
-    form = KassaForm(request.POST or None, initial={'server_ip': saved or (live[0] if live else '')})
-    if request.method == 'POST' and form.is_valid():
+    saved=config()
+    form=KassaForm(request.POST or None,initial=saved)
+    if request.method=='POST' and form.is_valid():
         try:
-            # Faqat yozib qo'yiladi: Windows IP sozlamasi o'zgartirilmaydi,
-            # server qayta ishga tushirilmaydi.
-            target = path()
+            # Faqat konfiguratsiyani yozamiz: IP o'zgartirish va server
+            # ishga tushirish saytning POST so'rovi orqali bajarilmaydi.
+            target=path()
             target.parent.mkdir(parents=True, exist_ok=True)
-            temp = target.with_suffix('.tmp')
+            temp=target.with_suffix('.tmp')
             temp.write_text(json.dumps(form.cleaned_data), encoding='utf-8')
             temp.replace(target)
-            messages.success(request, 'Band qilingan manzil saqlandi.')
+            messages.success(request, 'Sozlamalar saqlandi. Server qayta ishga tushirilmadi.')
             return redirect('kassalar')
         except OSError as exc:
             form.add_error(None, 'Sozlamalarni saqlab bo‘lmadi: ' + str(exc))
-    for field in form.fields.values():
-        field.widget.attrs['class'] = 'kirish'
-    asosiy = saved if saved in live else (live[0] if live else '')
-    info = karta(asosiy) if asosiy else {}
-    kod, xabar = holat(saved, live, info)
-    return render(request, 'kassalar.html', {
-        'form': form, 'live_ip': asosiy, 'karta': info, 'holat': kod, 'holat_xabar': xabar,
-        'server_url': doimiy_manzil(request.get_port(), request.scheme)})
+    for field in form.fields.values():field.widget.attrs['class']='kirish'
+    return render(request,'kassalar.html',{'form':form,'network':saved, 'live_ips':ip_manzillar(), 'server_url':doimiy_manzil()})
