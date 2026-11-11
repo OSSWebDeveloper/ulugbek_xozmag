@@ -47,8 +47,16 @@ class NativeLabelTests(KirganTest):
         response = self.client.get(reverse('etiketka_chop_holat', args=[self.id]))
         self.assertEqual(response.json()['holat'], 'yuborilmoqda')
 
-    def test_remote_cashier_cannot_print_on_server_printer(self):
-        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code, 503)
+    def test_lan_device_without_helper_prints_on_server_printer(self):
+        response = self.client.get(reverse('etiketka_printerlar'), REMOTE_ADDR='192.168.100.88')
+        self.assertEqual([p['nom'] for p in response.json()['printerlar']], ['Xprinter XP-80'])
+        self.assertTrue(response.json()['serverda'])
+        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code, 202)
+        self.thread.assert_called_once()
+
+    def test_tunnel_visitor_cannot_print_on_server_printer(self):
+        self.assertEqual(self.post(REMOTE_ADDR='127.0.0.1', HTTP_HOST='abc.ngrok-free.app').status_code, 503)
+        self.assertEqual(self.post(REMOTE_ADDR='8.8.8.8').status_code, 503)
         self.thread.assert_not_called()
 
     def test_remote_helper_lists_and_queues_its_own_label_once(self):

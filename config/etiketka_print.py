@@ -1,4 +1,5 @@
 """Native shelf-label printing on the main cashier's Windows printers."""
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,7 @@ from django.views.decorators.cache import never_cache
 from ombor.models import Mahsulot
 from ombor.shtrix import chiziqlar
 from qarz.templatetags.xozmag import narxi
-from sotuv.chek import mahalliymi
+from sotuv.chek import TUNNEL_DOMENLARI, mahalliymi
 
 SIZES = {'40x30': (40,30), '56x40': (56,40), '58x40': (58,40), '50x30': (50,30), '30x20': (30,20)}
 
@@ -73,24 +74,41 @@ def work(path, data):
     save(path, data)
 
 
-def local_printers(request):
+def ichki_tarmoq(request):
+    """Do'kon Wi-Fi'idagi qurilma: tunnel yoki proksi orqali emas, xususiy IP dan."""
+    host = request.META.get('HTTP_HOST', '').split(':')[0].lower()
+    if host.endswith(TUNNEL_DOMENLARI) or request.META.get('HTTP_X_FORWARDED_FOR'):
+        return False
+    try:
+        return ipaddress.ip_address(request.META.get('REMOTE_ADDR', '')).is_private
+    except ValueError:
+        return False
+
+
+def printer_source(request):
+    """(printerlar, terminal). terminal None — yorliq server kompyuterining printeridan chiqadi."""
     if mahalliymi(request):
-        return printers()
+        return printers(), None
     from sotuv.models import KassaTerminal
     from django.utils import timezone
     terminal=KassaTerminal.objects.filter(kassir=request.user).first()
-    if not terminal or not terminal.oxirgi_aloqa or (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
+    fresh = bool(terminal and terminal.oxirgi_aloqa and (timezone.now()-terminal.oxirgi_aloqa).total_seconds()<=60)
+    if fresh and terminal.etiketka_tayyor:
+        return terminal.printerlar, terminal
+    # Yordamchisiz do'kon kompyuteri yoki telefoni server printeriga yuboradi.
+    if ichki_tarmoq(request):
+        return printers(), None
+    if not fresh:
         raise RuntimeError('«Brauzerdan chop etish» ni bosing — yorliq shu kompyuterning printeriga chiqadi.')
-    if not terminal.etiketka_tayyor:
-        raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
-    return terminal.printerlar
+    raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
 
 
 @require_GET
 @never_cache
 def royxat(request):
     try:
-        return JsonResponse({'printerlar': local_printers(request)})
+        rows, terminal = printer_source(request)
+        return JsonResponse({'printerlar': rows, 'serverda': terminal is None and not mahalliymi(request)})
     except RuntimeError as exc:
         return JsonResponse({'xato': str(exc)},status=503)
     except Exception:
@@ -110,21 +128,21 @@ def chop(request, pk):
             raise ValueError
     except (ValueError, TypeError, KeyError):
         return JsonResponse({'xato': 'Nusxalar soni yoki o‘lcham noto‘g‘ri.'}, status=400)
-    if not mahalliymi(request):
-        from sotuv.models import ChekVazifa, KassaTerminal
-        from django.db import IntegrityError
-        try:
-            rows=local_printers(request)
-            if printer not in {p['nom'] for p in rows}:
-                return JsonResponse({'xato':'Tanlangan kassa printeri topilmadi.'},status=400)
-            terminal=KassaTerminal.objects.get(kassir=request.user)
-            data=payload(product,printer,size,copies);data['kind']='etiketka'
-            job,created=ChekVazifa.objects.get_or_create(request_key=token,defaults={'terminal':terminal,'malumot':data})
-            if job.terminal_id!=terminal.pk:
-                return JsonResponse({'xato':'Boshqa kassa vazifasi.'},status=403)
-            return JsonResponse({'id':token},status=202)
-        except RuntimeError as exc:
-            return JsonResponse({'xato':str(exc)},status=503)
+    try:
+        rows, terminal = printer_source(request)
+    except RuntimeError as exc:
+        return JsonResponse({'xato':str(exc)},status=503)
+    except Exception:
+        return JsonResponse({'xato': 'Windows printerlari ro‘yxatini olib bo‘lmadi.'}, status=503)
+    if printer not in {p['nom'] for p in rows}:
+        return JsonResponse({'xato': 'Tanlangan printer topilmadi.'}, status=400)
+    if terminal:
+        from sotuv.models import ChekVazifa
+        data=payload(product,printer,size,copies);data['kind']='etiketka'
+        job,created=ChekVazifa.objects.get_or_create(request_key=token,defaults={'terminal':terminal,'malumot':data})
+        if job.terminal_id!=terminal.pk:
+            return JsonResponse({'xato':'Boshqa kassa vazifasi.'},status=403)
+        return JsonResponse({'id':token},status=202)
     path = folder() / (token + '.json')
     if path.exists():
         current = json.loads(path.read_text(encoding='ascii'))
@@ -132,9 +150,7 @@ def chop(request, pk):
             return JsonResponse({'xato': 'Boshqa kassa vazifasi.'}, status=403)
         return JsonResponse({'id': token}, status=202)
     try:
-        if printer not in {p['nom'] for p in printers()}:
-            return JsonResponse({'xato': 'Tanlangan printer topilmadi.'}, status=400)
-        initial = {'user': request.user.pk, 'mahsulot': product.pk, 'holat': 'yuborilmoqda',
+        initial ={'user': request.user.pk, 'mahsulot': product.pk, 'holat': 'yuborilmoqda',
                    'xabar': 'Yorliq printerga yuborilmoqda…'}
         # Same click/request ID can only launch one Windows print job.
         try:

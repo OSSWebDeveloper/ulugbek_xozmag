@@ -6,6 +6,10 @@
   "use strict";
 
   var KALIT = "ux_etiketka_olcham";
+  var PRINTER_KALIT = "ux_etiketka_printer";
+  // Shtrix (etiketka) printeri birinchi, chek printeri oxirida — oxirgi tanlov esa eng tepada.
+  var ETIKETKA_PRINTER = /label|barcode|shtrix|etiket|zebra|tsc|godex|xp-?(3\d\d|4\d\d|dt|tt)/i;
+  var CHEK_PRINTER = /xp-?(58|80)|pos-?(58|80)|receipt|chek/i;
   var OLCHAMLAR = { "40x30": [40, 30], "58x40": [58, 40], "56x40": [56, 40], "50x30": [50, 30], "30x20": [30, 20] };
 
   var joy, namuna, soniEl, olchamEl, sahifaUslubi, engKop;
@@ -14,8 +18,14 @@
     try { return localStorage.getItem(KALIT); } catch (e) { return null; }
   }
 
-  function yoz(qiymat) {
-    try { localStorage.setItem(KALIT, qiymat); } catch (e) { /* yopiq bo'lsa ham ishlayversin */ }
+  function yoz(qiymat, kalit) {
+    try { localStorage.setItem(kalit || KALIT, qiymat); } catch (e) { /* yopiq bo'lsa ham ishlayversin */ }
+  }
+
+  function printerOchko(nom, oxirgi) {
+    if (nom === oxirgi) return 3;
+    if (ETIKETKA_PRINTER.test(nom)) return 2;
+    return CHEK_PRINTER.test(nom) ? 0 : 1;
   }
 
   function olchamQoy(nomi) {
@@ -82,6 +92,7 @@
     printerForma.addEventListener('submit', async function(event) {
       event.preventDefault();
       if (busy || !printerSelect.value) return;
+      yoz(printerSelect.value, PRINTER_KALIT);
       busy = true; submit.disabled = true;
       status.textContent = 'Printerga yuborilmoqda…';
       if (!jobId) jobId = newId();
@@ -112,14 +123,17 @@
       try {
         var data = await readResponse(await fetch(printerForma.dataset.list, {cache: 'no-store'}));
         printerSelect.replaceChildren();
-        data.printerlar.sort(function(a,b) { return Number(/xprinter xp-80/i.test(b.nom)) - Number(/xprinter xp-80/i.test(a.nom)); });
+        var oxirgi = null;
+        try { oxirgi = localStorage.getItem(PRINTER_KALIT); } catch (e) { /* yopiq */ }
+        data.printerlar.sort(function(a,b) { return printerOchko(b.nom, oxirgi) - printerOchko(a.nom, oxirgi); });
         data.printerlar.forEach(function(printer) {
           var option = document.createElement('option');
           option.value = printer.nom; option.textContent = printer.nom + ' · ' + printer.port;
           printerSelect.appendChild(option);
         });
         submit.disabled = !data.printerlar.length;
-        status.textContent = data.printerlar.length ? 'Printerni tanlang va yuboring.' : 'Windows’da printer topilmadi.';
+        status.textContent = !data.printerlar.length ? 'Windows’da printer topilmadi.'
+          : data.serverda ? 'Server kompyuterining printerlari — yorliq o‘sha yerda chiqadi.' : 'Printerni tanlang va yuboring.';
       } catch (error) { status.textContent = error.message; }
     });
   });
