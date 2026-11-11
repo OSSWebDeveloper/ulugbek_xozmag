@@ -1,6 +1,9 @@
 /* Etiketka sahifasi: nechta nusxa va qaysi o'lchamda — chop etish brauzerning
-   o'z oynasida. Har bir etiketka alohida sahifa, sahifa o'lchami (@page) —
-   etiketka o'lchami: printer rulonni aynan shunday kesadi.
+   o'z oynasida. Har bir etiketka alohida sahifa. Sahifa o'lchami (@page size)
+   berilmaydi: brauzer printerning o'z qog'ozini oladi va yorliqni uning yuqori
+   chap burchagiga 1:1 qo'yadi. O'lcham berilsa, brauzer yorliq sahifasini
+   printer qog'ozining o'rtasiga joylaydi, rulonli printerda 90° burib yuboradi
+   va bo'sh chetiga sahifa raqamini («1/1») qo'shadi.
    O'lcham brauzerda eslab qolinadi — do'konda printer ham, rulon ham bitta. */
 (function () {
   "use strict";
@@ -12,7 +15,7 @@
   var CHEK_PRINTER = /xp-?(58|80)|pos-?(58|80)|receipt|chek/i;
   var OLCHAMLAR = { "40x30": [40, 30], "58x40": [58, 40], "56x40": [56, 40], "50x30": [50, 30], "30x20": [30, 20] };
 
-  var joy, namuna, soniEl, olchamEl, sahifaUslubi, engKop;
+  var joy, namuna, soniEl, olchamEl, engKop;
 
   function oqi() {
     try { return localStorage.getItem(KALIT); } catch (e) { return null; }
@@ -30,10 +33,8 @@
 
   function olchamQoy(nomi) {
     if (!OLCHAMLAR[nomi]) nomi = "40x30";
-    var o = OLCHAMLAR[nomi];
     olchamEl.value = nomi;
     joy.dataset.olcham = nomi;          // etiketka ichidagi o'lchamlar CSS da (uslub.css)
-    sahifaUslubi.textContent = "@page { size: " + o[0] + "mm " + o[1] + "mm; margin: 0; }";
   }
 
   function nusxala() {
@@ -49,8 +50,11 @@
     if (!joy || !namuna) return;
     soniEl = document.getElementById("etiketka-soni");
     olchamEl = document.getElementById("etiketka-olcham");
-    sahifaUslubi = document.getElementById("etiketka-sahifa-uslubi");
     engKop = parseInt(soniEl.max, 10) || 500;
+    // Server qayta ishga tushmaguncha eski shablonda sahifa o'lchami yozilgan
+    // bo'lishi mumkin — uni olib tashlaymiz (yuqoridagi izohga qarang).
+    var sahifaUslubi = document.getElementById("etiketka-sahifa-uslubi");
+    if (sahifaUslubi) sahifaUslubi.textContent = "@page { margin: 0; }";
 
     olchamQoy(oqi());
     nusxala();
@@ -83,7 +87,7 @@
     }
     document.getElementById('etiketka-printer-bekor').addEventListener('click', function () { printerDialog.close(); });
     // Yordamchisiz qurilma: yorliqlar shu brauzerning chop oynasi orqali chiqadi.
-    // Sahifa o'lchami (@page) yorliq o'lchamida, har yorliq alohida sahifa.
+    // Har yorliq alohida sahifa; qog'oz o'lchami — printerning o'ziniki.
     document.getElementById('etiketka-brauzer').addEventListener('click', function () {
       nusxala();
       printerDialog.close();

@@ -271,8 +271,10 @@ Chop etish — **brauzerning o'z chop etish oynasi** (`/ombor/<id>/etiketka/`):
 
 - printer Windows'da o'rnatilgan bo'lsa bas, modeli muhim emas;
 - etiketka o'lchami tanlanadi (40×30, 58×40, 50×30, 30×20 mm) va shu kompyuterda
-  eslab qolinadi; har bir etiketka alohida sahifa, sahifa o'lchami (`@page`) —
-  etiketka o'lchami;
+  eslab qolinadi; har bir etiketka alohida sahifa. Sahifa o'lchami (`@page size`)
+  berilmaydi — brauzer printerning o'z qog'ozini oladi va yorliqni uning yuqori
+  chap burchagiga 1:1 qo'yadi (o'lcham berilsa, rulonli printerda yorliq 90°
+  burilib, qog'oz o'rtasiga tushadi);
 - shtrix moduli 0,25 / 0,375 mm — 203 dpi printerda aniq 2 / 3 nuqta, chiziqlar
   buzilmaydi. Chrome chiqargan PDF 203 va 300 dpi da rasmga aylantirilib, shtrix
   qaytadan o'qib tekshirilgan;
@@ -861,7 +863,7 @@ Python fayllari o'zgarsa baribir qayta ishga tushirish kerak.
 - `static/js/ombor.js` — ombor ekranlaridagi jonli hisob va kirim numpadi
 - `static/js/skaner.js` — skanerni klaviaturadan ajratadi va `/ombor/kod/` ga so'raydi
 - `templates/ombor/etiketka.html`, `static/js/etiketka.js` — etiketka chop etish
-  (o'lcham, nusxalar soni, `@page`)
+  (o'lcham, nusxalar soni)
 - `static/js/sotuv_qarz.js`, `templates/sotuv/qarz_oyna.html` — «Jami» ni
   to'langan va qarz qismga bo'lish (autosplit) va yangi qarzdor oynachasi
 - `static/js/forma.js` — pul maydonlarida raqamlarni guruhlash, `data-tasdiq`,

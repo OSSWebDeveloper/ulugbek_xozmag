@@ -9,7 +9,7 @@ va ostida kod, oxirgi 4 raqami yirik. Skaner shtrixni o'qisa kassaga to'liq
 kod tushadi, kassir esa yirik 4 raqamni uradi — ikkalasi bitta tovarni topadi.
 
 Ekranda sozlash va ko'rinish, chop etishda faqat etiketkalar qoladi: har biri
-alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
+alohida sahifa, qog'oz o'lchami — printerning o'ziniki (sababi js/etiketka.js da).
 {% endcomment %}
 
 {% block sarlavha %}Etiketka — {{ mahsulot.nom }}{% endblock %}
@@ -84,7 +84,7 @@ alohida sahifa, sahifa o'lchami etiketka o'lchamida (@page — js/etiketka.js).
     </div>
   </form>
 </dialog>
-<style id="etiketka-sahifa-uslubi">@page { size: 40mm 30mm; margin: 0; }</style>
+<style id="etiketka-sahifa-uslubi">@page { margin: 0; }</style>
 {% endblock %}
 
 {% block skript %}<script src="{% statik 'js/etiketka.js' %}"></script>{% endblock %}
