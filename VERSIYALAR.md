@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.33 — 2026-11-11
+
+2-kassa o'rnatgichi serverga ulanishni oldindan tekshiradi: «The operation has timed out» o'rniga sababni aytadi (turli tarmoq, server o'chiq, manzil o'zgargan yoki xavfsizlik devori)
+
 ## 3.9.32 — 2026-11-11
 
 IP orqali ulangan har qanday kompyuter yordamchi o'rnatmasdan o'z printerida chop etadi: chek, sinov cheki va yorliq brauzerning chop oynasi orqali chiqadi
