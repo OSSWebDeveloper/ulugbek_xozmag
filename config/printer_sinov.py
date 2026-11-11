@@ -5,11 +5,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_sameorigin
-from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 from sotuv.models import KassaTerminal, ChekVazifa
-from sotuv.chek import mahalliymi, sinov_malumot, chop_malumot
+from sotuv.chek import mahalliymi, sinov_malumot, chop_malumot, yordamchi_onlayn
 from django.conf import settings
 
 
@@ -26,8 +25,7 @@ def bosma(request):
 @require_POST
 def chop(request):
     terminal = KassaTerminal.objects.filter(kassir=request.user).first()
-    online = bool(terminal and terminal.printer and terminal.oxirgi_aloqa
-                  and (timezone.now() - terminal.oxirgi_aloqa).total_seconds() < 60)
+    online = yordamchi_onlayn(request, terminal)
     if mahalliymi(request) and not online:
         try:
             chop_malumot(sinov_malumot(request.user, settings.CHEK_PRINTER))

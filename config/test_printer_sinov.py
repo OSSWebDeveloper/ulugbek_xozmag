@@ -67,6 +67,16 @@ class PrinterSinovTests(KirganTest):
         printer.assert_called_once()
         self.assertTrue(printer.call_args.args[0]['test'])
 
+    @patch('config.printer_sinov.chop_malumot')
+    def test_server_computer_tests_its_own_printer_even_if_helper_is_online_elsewhere(self, printer):
+        # Yordamchi boshqa kompyuterda (KASSA2) ishlab turibdi — serverdan bosilgan
+        # sinov server printeridan chiqadi, yordamchi navbatiga tushmaydi.
+        self.terminal.nom = 'KASSA2'
+        self.terminal.save()
+        self.assertEqual(self.client.post(self.url).status_code, 200)
+        printer.assert_called_once()
+        self.assertFalse(ChekVazifa.objects.exists())
+
     def test_status_is_account_scoped_and_hides_sale_jobs(self):
         job = ChekVazifa.objects.create(terminal=self.terminal)
         other = get_user_model().objects.create_user(username='another')

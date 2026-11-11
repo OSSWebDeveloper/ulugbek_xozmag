@@ -1,6 +1,7 @@
 """Savdo cheki va uning qaytarish uchun ajratilgan Code 128 kodi."""
 import json
 import os
+import socket
 import subprocess
 import uuid
 from pathlib import Path
@@ -135,6 +136,20 @@ def mahalliymi(request):
     return request.META.get('REMOTE_ADDR', '') in {'127.0.0.1', '127.0.0.55', '::1', *ip_manzillar()}
 
 
+def yordamchi_onlayn(request, terminal):
+    """Shu so'rovning cheki kassa yordamchisi navbatiga ketadimi.
+
+    Har bir kompyuter o'z printeridan chiqaradi: server kompyuteridan kelgan
+    so'rov boshqa kompyuterda ishlayotgan yordamchiga yuborilmaydi — shu
+    akkaunt bilan serverda qilingan savdo cheki server printeridan chiqadi.
+    """
+    online = bool(terminal and terminal.printer and terminal.oxirgi_aloqa
+                  and (timezone.now() - terminal.oxirgi_aloqa).total_seconds() < 60)
+    if online and mahalliymi(request):
+        return terminal.nom.strip().lower() == socket.gethostname().lower()
+    return online
+
+
 def brauzerga(request, s):
     """Yordamchi o'rnatilmagan qurilma: chek shu qurilmaning brauzeridan chiqadi.
 
@@ -154,7 +169,7 @@ def brauzerga(request, s):
 
 
 def yubor(request, s, qayta=False):
-    """Chekni aynan so'rov yuborgan kassaning printeriga yo'naltiradi.
+    """Chekni aynan so'rov yuborgan kompyuterning printeriga yo'naltiradi.
 
     Server kompyuteri — asosiy USB printer; yordamchisi ishlab turgan kassa —
     yordamchi navbati; qolgan hamma qurilma — o'z brauzeri orqali.
@@ -163,8 +178,7 @@ def yubor(request, s, qayta=False):
     from django.db import transaction
     from .models import KassaTerminal, ChekVazifa
     terminal = KassaTerminal.objects.filter(kassir=request.user).first()
-    online = bool(terminal and terminal.printer and terminal.oxirgi_aloqa
-                  and (timezone.now() - terminal.oxirgi_aloqa).total_seconds() < 60)
+    online = yordamchi_onlayn(request, terminal)
     if mahalliymi(request) and not online:
         # Downloading an unused helper package must not disable the main USB
         # printer. Claim an existing queued receipt before direct printing so a

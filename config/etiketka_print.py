@@ -1,5 +1,4 @@
 """Native shelf-label printing on the main cashier's Windows printers."""
-import ipaddress
 import json
 import os
 from pathlib import Path
@@ -14,7 +13,7 @@ from django.views.decorators.cache import never_cache
 from ombor.models import Mahsulot
 from ombor.shtrix import chiziqlar
 from qarz.templatetags.xozmag import narxi
-from sotuv.chek import TUNNEL_DOMENLARI, mahalliymi
+from sotuv.chek import mahalliymi
 
 SIZES = {'40x30': (40,30), '56x40': (56,40), '58x40': (58,40), '50x30': (50,30), '30x20': (30,20)}
 
@@ -74,41 +73,37 @@ def work(path, data):
     save(path, data)
 
 
-def ichki_tarmoq(request):
-    """Do'kon Wi-Fi'idagi qurilma: tunnel yoki proksi orqali emas, xususiy IP dan."""
-    host = request.META.get('HTTP_HOST', '').split(':')[0].lower()
-    if host.endswith(TUNNEL_DOMENLARI) or request.META.get('HTTP_X_FORWARDED_FOR'):
-        return False
-    try:
-        return ipaddress.ip_address(request.META.get('REMOTE_ADDR', '')).is_private
-    except ValueError:
-        return False
+class BrauzerKerak(RuntimeError):
+    """Yordamchisiz qurilma: yorliq shu qurilmaning brauzeri orqali o'z printeridan chiqadi."""
 
 
 def printer_source(request):
-    """(printerlar, terminal). terminal None — yorliq server kompyuterining printeridan chiqadi."""
+    """(printerlar, terminal) — har bir kompyuter faqat o'z printerlaridan chiqaradi.
+
+    Server kompyuteri — o'zining Windows printerlari (terminal None); yordamchisi
+    ishlab turgan kassa — yordamchi yuborgan printerlar. Boshqa qurilmaga server
+    printeri hech qachon berilmaydi (BrauzerKerak).
+    """
     if mahalliymi(request):
         return printers(), None
     from sotuv.models import KassaTerminal
     from django.utils import timezone
     terminal=KassaTerminal.objects.filter(kassir=request.user).first()
-    fresh = bool(terminal and terminal.oxirgi_aloqa and (timezone.now()-terminal.oxirgi_aloqa).total_seconds()<=60)
-    if fresh and terminal.etiketka_tayyor:
-        return terminal.printerlar, terminal
-    # Yordamchisiz do'kon kompyuteri yoki telefoni server printeriga yuboradi.
-    if ichki_tarmoq(request):
-        return printers(), None
-    if not fresh:
-        raise RuntimeError('«Brauzerdan chop etish» ni bosing — yorliq shu kompyuterning printeriga chiqadi.')
-    raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
+    if not terminal or not terminal.oxirgi_aloqa or (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
+        raise BrauzerKerak('«Brauzerdan chop etish» ni bosing — yorliq shu kompyuterning printeriga chiqadi.')
+    if not terminal.etiketka_tayyor:
+        raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
+    return terminal.printerlar, terminal
 
 
 @require_GET
 @never_cache
 def royxat(request):
     try:
-        rows, terminal = printer_source(request)
-        return JsonResponse({'printerlar': rows, 'serverda': terminal is None and not mahalliymi(request)})
+        return JsonResponse({'printerlar': printer_source(request)[0]})
+    except BrauzerKerak:
+        # Sahifa brauzerning chop oynasini ochadi — u shu qurilmaning printerlarini ko'rsatadi.
+        return JsonResponse({'printerlar': [], 'brauzer': True})
     except RuntimeError as exc:
         return JsonResponse({'xato': str(exc)},status=503)
     except Exception:

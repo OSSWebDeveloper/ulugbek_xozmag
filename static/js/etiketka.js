@@ -122,6 +122,13 @@
       status.textContent = 'Printerlar olinmoqda…';
       try {
         var data = await readResponse(await fetch(printerForma.dataset.list, {cache: 'no-store'}));
+        if (data.brauzer) {
+          // Yordamchisiz qurilma server printerini ishlatmaydi: brauzerning chop
+          // oynasi ochiladi — unda shu kompyuterning o'z printerlari turadi.
+          printerDialog.close();
+          window.print();
+          return;
+        }
         printerSelect.replaceChildren();
         var oxirgi = null;
         try { oxirgi = localStorage.getItem(PRINTER_KALIT); } catch (e) { /* yopiq */ }
@@ -132,8 +139,7 @@
           printerSelect.appendChild(option);
         });
         submit.disabled = !data.printerlar.length;
-        status.textContent = !data.printerlar.length ? 'Windows’da printer topilmadi.'
-          : data.serverda ? 'Server kompyuterining printerlari — yorliq o‘sha yerda chiqadi.' : 'Printerni tanlang va yuboring.';
+        status.textContent = data.printerlar.length ? 'Printerni tanlang va yuboring.' : 'Windows’da printer topilmadi.';
       } catch (error) { status.textContent = error.message; }
     });
   });

@@ -47,17 +47,28 @@ class NativeLabelTests(KirganTest):
         response = self.client.get(reverse('etiketka_chop_holat', args=[self.id]))
         self.assertEqual(response.json()['holat'], 'yuborilmoqda')
 
-    def test_lan_device_without_helper_prints_on_server_printer(self):
-        response = self.client.get(reverse('etiketka_printerlar'), REMOTE_ADDR='192.168.100.88')
-        self.assertEqual([p['nom'] for p in response.json()['printerlar']], ['Xprinter XP-80'])
-        self.assertTrue(response.json()['serverda'])
-        self.assertEqual(self.post(REMOTE_ADDR='192.168.100.88').status_code, 202)
-        self.thread.assert_called_once()
-
-    def test_tunnel_visitor_cannot_print_on_server_printer(self):
-        self.assertEqual(self.post(REMOTE_ADDR='127.0.0.1', HTTP_HOST='abc.ngrok-free.app').status_code, 503)
-        self.assertEqual(self.post(REMOTE_ADDR='8.8.8.8').status_code, 503)
+    def test_other_device_without_helper_never_uses_server_printer(self):
+        # Har bir kompyuter o'z printeridan chiqaradi: yordamchisiz qurilma server
+        # printerini ko'rmaydi ham, unga yubora olmaydi ham — o'z brauzeridan chiqaradi.
+        for extra in (dict(REMOTE_ADDR='192.168.100.88'), dict(REMOTE_ADDR='8.8.8.8'),
+                      dict(REMOTE_ADDR='127.0.0.1', HTTP_HOST='abc.ngrok-free.app')):
+            response = self.client.get(reverse('etiketka_printerlar'), **extra)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json(), {'printerlar': [], 'brauzer': True})
+            self.assertEqual(self.post(**extra).status_code, 503)
         self.thread.assert_not_called()
+
+    def test_server_computer_uses_its_own_printers_even_if_helper_is_online_elsewhere(self):
+        from sotuv.models import KassaTerminal, ChekVazifa
+        from django.utils import timezone
+        user = get_user_model().objects.get(username=self.LOGIN)
+        KassaTerminal.objects.create(kassir=user, nom='KASSA2', etiketka_tayyor=True,
+            printerlar=[{'nom':'USB label','port':'USB003','drayver':'label'}], oxirgi_aloqa=timezone.now())
+        response = self.client.get(reverse('etiketka_printerlar'))
+        self.assertEqual(response.json(), {'printerlar': [{'nom':'Xprinter XP-80','port':'USB001','drayver':'Xprinter XP-80'}]})
+        self.assertEqual(self.post().status_code, 202)
+        self.thread.assert_called_once()
+        self.assertFalse(ChekVazifa.objects.exists())
 
     def test_remote_helper_lists_and_queues_its_own_label_once(self):
         from sotuv.models import KassaTerminal,ChekVazifa

@@ -233,6 +233,32 @@ class UsbAgentTests(KirganTest):
         # The stale agent cannot claim a directly printed job later.
         self.assertIsNone(self.poll().json()['vazifa'])
 
+    def local_sale(self):
+        product = Mahsulot.objects.create(nom='Lampochka', qoldiq=10)
+        sale = Sotuv.objects.create(kassir=self.user)
+        self.client.post(reverse('sotuv:qator_qoshish', args=[sale.pk]), {'mahsulot':product.pk, 'miqdor':2})
+        self.client.post(reverse('sotuv:yakunlash', args=[sale.pk]), {'jami':20000})
+
+    @override_settings(CHEK_AUTO_PRINT=True)
+    @patch('sotuv.chek.chop_et')
+    def test_server_computer_prints_on_its_own_printer_even_if_helper_is_online_elsewhere(self, printer):
+        # Har bir kompyuter o'z printeridan chiqaradi: shu akkauntning yordamchisi
+        # boshqa kompyuterda ishlab tursa ham, serverda qilingan savdo cheki
+        # server printeridan chiqadi.
+        self.poll()  # yordamchi KASSA2 kompyuterida ishlab turibdi
+        self.local_sale()
+        printer.assert_called_once()
+        self.assertFalse(ChekVazifa.objects.exists())
+
+    @override_settings(CHEK_AUTO_PRINT=True)
+    @patch('sotuv.chek.chop_et')
+    def test_helper_on_server_computer_itself_keeps_its_queue(self, printer):
+        import socket
+        self.poll(nom=socket.gethostname())
+        self.local_sale()
+        printer.assert_not_called()
+        self.assertEqual(ChekVazifa.objects.get().terminal, self.terminal)
+
     @patch('config.kassa_agent.Path.exists', return_value=True)
     @patch('config.kassa_agent.zipfile.ZipFile.write')
     def test_package_has_no_database_and_requires_authenticated_post(self, write, exists):
