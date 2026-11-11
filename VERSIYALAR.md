@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.31 — 2026-11-11
+
+DHCP reservation vaqtincha o'chirildi: Kassalar sahifasi va 2-kassa paketi 3.9.29 dagi holatga qaytdi
+
 ## 3.9.30 — 2026-11-11
 
 Server manzili routerda band qilinadi (DHCP reservation): Kassalar sahifasi MAC va joriy IP ni ko'rsatadi, band qilingan manzil kelganini tekshiradi; kassalarga qo'lda qo'shimcha IP yozilmaydi
