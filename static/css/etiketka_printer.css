@@ -8,16 +8,6 @@
 #etiketka-printer-dialog h2, #etiketka-tarozi-dialog h2 { margin-bottom: 18px; }
 .etiketka-printer-tanlov { display: flex; align-items: center; gap: 10px; padding: 15px 10px; border: 1px solid var(--chegara); border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
 .etiketka-printer-tanlov:has(input:checked) { border-color: #54cfa1; }
-.etiketka-printer-qator { display: flex; gap: 10px; align-items: stretch; }
-.etiketka-printer-qator select { flex: 1; min-width: 0; }
-.etiketka-printer-qator .tugma { flex-shrink: 0; white-space: nowrap; }
-#etiketka-drayver-quti { margin-top: 14px; padding: 14px; border: 1px solid var(--chegara); border-radius: 8px; }
-#etiketka-drayver-quti[hidden] { display: none; }
-#etiketka-drayver-quti label { display: block; margin: 0 0 6px; }
-#etiketka-drayver-quti select { width: 100%; margin-bottom: 12px; }
-#etiketka-drayver { height: auto; padding: 4px; }
-#etiketka-drayver option { padding: 6px 8px; }
-#etiketka-printer-qosh[hidden] { display: none; }
 #etiketka-printer-izoh { min-height: 44px; margin: 14px 0; }
 #etiketka-tarozi-dialog p { margin: 14px 0; }
 #etiketka-tarozi-dialog ol { padding-left: 24px; line-height: 1.8; }

@@ -68,26 +68,11 @@ alohida sahifa, qog'oz o'lchami — printerning o'ziniki (sababi js/etiketka.js 
 <dialog id="etiketka-printer-dialog" class="etiketka-boshqaruv" aria-labelledby="etiketka-printer-sarlavha">
   <form id="etiketka-printer-forma" data-list="{% url 'etiketka_printerlar' %}"
         data-print="{% url 'etiketka_chop' mahsulot.pk %}"
-        data-drivers="{% url 'etiketka_drayverlar' %}" data-add="{% url 'etiketka_printer_qosh' %}"
         data-status="{% url 'etiketka_chop_holat' token='00000000-0000-0000-0000-000000000000' %}">
     {% csrf_token %}
     <h2 id="etiketka-printer-sarlavha">BizaroPOS · Yorliq chiqarish</h2>
     <label for="etiketka-native-printer">Printer</label>
-    <div class="etiketka-printer-qator">
-      <select class="kirish" id="etiketka-native-printer" required></select>
-      <button type="button" class="tugma tinch" id="etiketka-printer-qosh" hidden>Printer qo‘shish</button>
-    </div>
-    {# Ro'yxatda yo'q printer: shu kompyuterda o'rnatilgan drayverlardan yangi Windows printeri yaratiladi #}
-    <div id="etiketka-drayver-quti" hidden>
-      <label for="etiketka-drayver">O‘rnatilgan drayverlar</label>
-      <select class="kirish" id="etiketka-drayver" size="6"></select>
-      <label for="etiketka-port">Port</label>
-      <select class="kirish" id="etiketka-port"></select>
-      <div class="qator">
-        <button type="button" class="tugma tinch" id="etiketka-drayver-bekor">Bekor</button>
-        <button type="button" class="tugma yashil" id="etiketka-drayver-tasdiq" disabled>Qo‘shish</button>
-      </div>
-    </div>
+    <select class="kirish" id="etiketka-native-printer" required></select>
     <p id="etiketka-printer-summary"></p>
     <p class="maydon-izoh">Nom, sotish narxi, kod va shtrix kod chiqariladi. Brauzerning sana va sahifa manzili qo‘shilmaydi. Xprinter chek qog‘oziga chiqaradi.</p>
     <p class="maydon-izoh">RLS1100C ichki printeriga erkin rasta yorlig‘i yuborish hozircha ulanmagan.</p>

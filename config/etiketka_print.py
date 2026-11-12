@@ -38,48 +38,6 @@ def printers():
             if not any(n in p['Name'].lower() for n in ('pdf', 'xps', 'onenote', 'fax'))]
 
 
-def _ps_json(command, env=None, timeout=20):
-    result = subprocess.run([powershell(), '-NoProfile', '-NonInteractive', '-Command',
-        '[Console]::OutputEncoding=[Text.Encoding]::UTF8; $ErrorActionPreference="Stop"; ' + command],
-        capture_output=True, encoding='utf-8', errors='replace', timeout=timeout,
-        env={**os.environ, **(env or {})},
-        creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise RuntimeError((result.stderr or '').strip())
-    return json.loads(result.stdout.lstrip('﻿') or 'null')
-
-
-def drivers():
-    """Shu kompyuterda o'rnatilgan barcha printer drayverlari va printer portlari."""
-    data = _ps_json('ConvertTo-Json -Compress -InputObject @{'
-        'drayverlar=@(Get-PrinterDriver | ForEach-Object { $_.Name });'
-        'portlar=@(Get-PrinterPort | ForEach-Object { $_.Name })}')
-    names = sorted(set(data['drayverlar']), key=str.lower)
-    # USB portlar birinchi: yorliq va chek printerlari odatda shularga ulanadi.
-    ports = sorted(set(data['portlar']), key=lambda p: (not p.upper().startswith('USB'), p.lower()))
-    return names, ports
-
-
-def add_printer(driver, port):
-    """Tanlangan drayver bilan Windows printerini yaratadi; yangi printer nomini qaytaradi.
-
-    Qiymatlar buyruq matniga qo'shilmaydi — muhit o'zgaruvchilari orqali uzatiladi.
-    """
-    try:
-        data = _ps_json(
-            '$n=$env:BP_DRAYVER; $i=2; '
-            'while (Get-Printer -Name $n -ErrorAction SilentlyContinue) { $n=$env:BP_DRAYVER+" ("+$i+")"; $i++ }; '
-            'Add-Printer -Name $n -DriverName $env:BP_DRAYVER -PortName $env:BP_PORT; '
-            'ConvertTo-Json -Compress -InputObject @{nom=$n}',
-            env={'BP_DRAYVER': driver, 'BP_PORT': port}, timeout=60)
-    except RuntimeError as exc:
-        text = str(exc).lower()
-        if 'denied' in text or 'отказано' in text or '0x80070005' in text:
-            raise RuntimeError('Printer qo‘shish uchun dasturni administrator nomidan ishga tushiring.')
-        raise RuntimeError('Printer qo‘shilmadi. Drayver va portni tekshiring.')
-    return data['nom']
-
-
 def payload(product, printer, size, copies):
     bars, width = chiziqlar(product.etiketka_kodi)
     return {'printer': printer, 'nom': product.nom, 'kod': product.kod,
@@ -142,9 +100,7 @@ def printer_source(request):
 @never_cache
 def royxat(request):
     try:
-        rows, terminal = printer_source(request)
-        # «Printer qo'shish» faqat server kompyuterining o'zida (terminal None) ko'rinadi.
-        return JsonResponse({'printerlar': rows, **({} if terminal else {'qoshish': True})})
+        return JsonResponse({'printerlar': printer_source(request)[0]})
     except BrauzerKerak:
         # Sahifa brauzerning chop oynasini ochadi — u shu qurilmaning printerlarini ko'rsatadi.
         return JsonResponse({'printerlar': [], 'brauzer': True})
@@ -152,42 +108,6 @@ def royxat(request):
         return JsonResponse({'xato': str(exc)},status=503)
     except Exception:
         return JsonResponse({'xato': 'Windows printerlari ro‘yxatini olib bo‘lmadi.'}, status=503)
-
-
-@require_GET
-@never_cache
-def drayverlar(request):
-    """«Printer qo'shish»: shu (server) kompyuterida o'rnatilgan drayverlar ro'yxati."""
-    if not mahalliymi(request):
-        return JsonResponse({'xato': 'Printer faqat server kompyuterining o‘zida qo‘shiladi.'}, status=403)
-    try:
-        names, ports = drivers()
-    except Exception:
-        return JsonResponse({'xato': 'Windows drayverlari ro‘yxatini olib bo‘lmadi.'}, status=503)
-    return JsonResponse({'drayverlar': names, 'portlar': ports})
-
-
-@require_POST
-def printer_qosh(request):
-    if not mahalliymi(request):
-        return JsonResponse({'xato': 'Printer faqat server kompyuterining o‘zida qo‘shiladi.'}, status=403)
-    try:
-        body = json.loads(request.body)
-        driver, port = body['drayver'], body['port']
-        names, ports = drivers()
-    except (ValueError, TypeError, KeyError):
-        return JsonResponse({'xato': 'Drayver va portni tanlang.'}, status=400)
-    except Exception:
-        return JsonResponse({'xato': 'Windows drayverlari ro‘yxatini olib bo‘lmadi.'}, status=503)
-    # Faqat Windows'ning o'zi ko'rsatgan drayver va port qabul qilinadi.
-    if driver not in names or port not in ports:
-        return JsonResponse({'xato': 'Tanlangan drayver yoki port topilmadi.'}, status=400)
-    try:
-        return JsonResponse({'nom': add_printer(driver, port)})
-    except RuntimeError as exc:
-        return JsonResponse({'xato': str(exc)}, status=503)
-    except Exception:
-        return JsonResponse({'xato': 'Printer qo‘shilmadi.'}, status=503)
 
 
 @require_POST
