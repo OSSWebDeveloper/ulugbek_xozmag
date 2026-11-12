@@ -117,11 +117,60 @@
       } catch (error) { status.textContent = error.message; }
       finally { busy = false; submit.disabled = false; }
     });
-    document.getElementById('chop-et').addEventListener('click', async function () {
+    // «Printer qo'shish»: shu kompyuterda o'rnatilgan drayverlardan yangi Windows
+    // printeri yaratiladi — ro'yxatda yo'q (hali qo'shilmagan) printer uchun.
+    var qoshTugma = document.getElementById('etiketka-printer-qosh');
+    var drayverQuti = document.getElementById('etiketka-drayver-quti');
+    var drayverSelect = document.getElementById('etiketka-drayver');
+    var portSelect = document.getElementById('etiketka-port');
+    var drayverTasdiq = document.getElementById('etiketka-drayver-tasdiq');
+    function toldir(select, qiymatlar) {
+      select.replaceChildren();
+      qiymatlar.forEach(function (q) {
+        var option = document.createElement('option');
+        option.value = q; option.textContent = q;
+        select.appendChild(option);
+      });
+    }
+    qoshTugma.addEventListener('click', async function () {
+      drayverQuti.hidden = false;
+      drayverTasdiq.disabled = true;
+      status.textContent = 'Drayverlar olinmoqda…';
+      try {
+        var data = await readResponse(await fetch(printerForma.dataset.drivers, {cache: 'no-store'}));
+        toldir(drayverSelect, data.drayverlar);
+        toldir(portSelect, data.portlar);
+        status.textContent = data.drayverlar.length ? 'Drayver va portni tanlab, «Qo‘shish» ni bosing.'
+          : 'Bu kompyuterda printer drayveri o‘rnatilmagan.';
+      } catch (error) { status.textContent = error.message; }
+    });
+    drayverSelect.addEventListener('change', function () { drayverTasdiq.disabled = !drayverSelect.value; });
+    document.getElementById('etiketka-drayver-bekor').addEventListener('click', function () { drayverQuti.hidden = true; });
+    drayverTasdiq.addEventListener('click', async function () {
+      if (!drayverSelect.value || !portSelect.value) return;
+      drayverTasdiq.disabled = true;
+      status.textContent = 'Printer qo‘shilmoqda…';
+      try {
+        var data = await readResponse(await fetch(printerForma.dataset.add, {
+          method: 'POST', headers: {'Content-Type': 'application/json',
+            'X-CSRFToken': printerForma.querySelector('[name=csrfmiddlewaretoken]').value},
+          body: JSON.stringify({drayver: drayverSelect.value, port: portSelect.value})
+        }));
+        drayverQuti.hidden = true;
+        yoz(data.nom, PRINTER_KALIT);            // yangi printer ro'yxatda birinchi turadi
+        await printerlarniOl();
+        status.textContent = '«' + data.nom + '» qo‘shildi. Printerga yuborishingiz mumkin.';
+      } catch (error) { status.textContent = error.message; drayverTasdiq.disabled = false; }
+    });
+    document.getElementById('chop-et').addEventListener('click', function () {
       nusxala();
       printerDialog.showModal();
+      drayverQuti.hidden = true;
       document.getElementById('etiketka-printer-summary').textContent = soniEl.value + ' nusxa · ' + olchamEl.options[olchamEl.selectedIndex].text;
       if (busy) return;
+      printerlarniOl();
+    });
+    async function printerlarniOl() {
       submit.disabled = true;
       status.textContent = 'Printerlar olinmoqda…';
       try {
@@ -143,8 +192,9 @@
           printerSelect.appendChild(option);
         });
         submit.disabled = !data.printerlar.length;
+        qoshTugma.hidden = !data.qoshish;      // faqat server kompyuterining o'zida
         status.textContent = data.printerlar.length ? 'Printerni tanlang va yuboring.' : 'Windows’da printer topilmadi.';
       } catch (error) { status.textContent = error.message; }
-    });
+    }
   });
 })();

@@ -65,7 +65,7 @@ class NativeLabelTests(KirganTest):
         KassaTerminal.objects.create(kassir=user, nom='KASSA2', etiketka_tayyor=True,
             printerlar=[{'nom':'USB label','port':'USB003','drayver':'label'}], oxirgi_aloqa=timezone.now())
         response = self.client.get(reverse('etiketka_printerlar'))
-        self.assertEqual(response.json(), {'printerlar': [{'nom':'Xprinter XP-80','port':'USB001','drayver':'Xprinter XP-80'}]})
+        self.assertEqual(response.json(), {'printerlar': [{'nom':'Xprinter XP-80','port':'USB001','drayver':'Xprinter XP-80'}], 'qoshish': True})
         self.assertEqual(self.post().status_code, 202)
         self.thread.assert_called_once()
         self.assertFalse(ChekVazifa.objects.exists())
@@ -102,6 +102,31 @@ class NativeLabelTests(KirganTest):
         self.client.force_login(user)
         self.assertEqual(self.post().status_code, 403)
         self.assertEqual(self.client.get(reverse('etiketka_chop_holat', args=[self.id])).status_code, 403)
+
+    def test_add_printer_lists_installed_drivers_and_creates_only_known_ones(self):
+        drivers = patch.object(printing, 'drivers', return_value=(['Xprinter XP-365B'], ['USB001', 'COM1:']))
+        add = patch.object(printing, 'add_printer', return_value='Xprinter XP-365B')
+        drivers.start(); self.addCleanup(drivers.stop)
+        add = add.start(); self.addCleanup(patch.stopall)
+        url = reverse('etiketka_printer_qosh')
+        post = lambda data, **kw: self.client.post(url, json.dumps(data), content_type='application/json', **kw)
+        self.assertEqual(self.client.get(reverse('etiketka_drayverlar')).json(),
+                         {'drayverlar': ['Xprinter XP-365B'], 'portlar': ['USB001', 'COM1:']})
+        # Windows ko'rsatmagan drayver yoki port qabul qilinmaydi.
+        self.assertEqual(post({'drayver': 'Fake', 'port': 'USB001'}).status_code, 400)
+        self.assertEqual(post({'drayver': 'Xprinter XP-365B', 'port': 'x; calc'}).status_code, 400)
+        self.assertEqual(post({'drayver': 'Xprinter XP-365B'}).status_code, 400)
+        add.assert_not_called()
+        self.assertEqual(post({'drayver': 'Xprinter XP-365B', 'port': 'USB001'}).json(), {'nom': 'Xprinter XP-365B'})
+        add.assert_called_once_with('Xprinter XP-365B', 'USB001')
+
+    def test_add_printer_is_only_for_server_computer(self):
+        add = patch.object(printing, 'add_printer').start(); self.addCleanup(patch.stopall)
+        for extra in (dict(REMOTE_ADDR='192.168.100.88'), dict(REMOTE_ADDR='127.0.0.1', HTTP_HOST='abc.ngrok-free.app')):
+            self.assertEqual(self.client.get(reverse('etiketka_drayverlar'), **extra).status_code, 403)
+            self.assertEqual(self.client.post(reverse('etiketka_printer_qosh'), json.dumps({'drayver': 'A', 'port': 'USB001'}),
+                                              content_type='application/json', **extra).status_code, 403)
+        add.assert_not_called()
 
     def test_csrf_is_required(self):
         client = Client(enforce_csrf_checks=True)
