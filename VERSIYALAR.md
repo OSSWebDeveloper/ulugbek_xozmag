@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.37 — 2026-11-12
+
+«Printer qo'shish» tugmasi olib tashlandi: yorliq oynasi 3.9.35 dagi holatga qaytdi
+
 ## 3.9.36 — 2026-11-12
 
 Yorliq oynasida «Printer qo'shish» tugmasi: server kompyuterida o'rnatilgan barcha printer drayverlari chiqadi, tanlangan drayver va portdan yangi Windows printeri yaratiladi
