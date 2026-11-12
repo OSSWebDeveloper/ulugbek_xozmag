@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.38 — 2026-11-12
+
+Brauzerdan chop etishda stiker printerda tik turgan bo'lsa, yorliq siqilmaydi: 90° burilib stikerni to'liq egallaydi
+
 ## 3.9.37 — 2026-11-12
 
 «Printer qo'shish» tugmasi olib tashlandi: yorliq oynasi 3.9.35 dagi holatga qaytdi
