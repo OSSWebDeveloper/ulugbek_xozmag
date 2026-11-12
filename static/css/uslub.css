@@ -1556,6 +1556,40 @@ body.kunduzgi .xato-yozuv { color: var(--xato); }
   .etiketka { box-shadow: none; max-width: 100vw; max-height: 100vh; break-inside: avoid; }
   .etiketka:not(:last-child) { break-after: page; }
 }
+/* Stiker printerda tik turgan bo'lsa (qog'oz yorliqdan tor, lekin bo'yi yorliq
+   eniga yetadi — masalan 40×30 yorliq uchun 30×40 qog'oz), yorliq siqilmaydi:
+   90° burilib, stikerni to'liq egallaydi. Chegara yorliq enidan 3 mm kam —
+   qog'oz yorliqdan 1–2 mm kichik bo'lgan oddiy holat burilmaydi. */
+@media print and (max-width: 37mm) and (min-height: 37mm) {
+  .etiketkalar[data-olcham="40x30"] .etiketka {
+    max-width: 100vh; max-height: 100vw; transform-origin: 0 0;
+    transform: translateX(min(30mm, 100vw)) rotate(90deg);
+  }
+}
+@media print and (max-width: 55mm) and (min-height: 55mm) {
+  .etiketkalar[data-olcham="58x40"] .etiketka {
+    max-width: 100vh; max-height: 100vw; transform-origin: 0 0;
+    transform: translateX(min(40mm, 100vw)) rotate(90deg);
+  }
+}
+@media print and (max-width: 53mm) and (min-height: 53mm) {
+  .etiketkalar[data-olcham="56x40"] .etiketka {
+    max-width: 100vh; max-height: 100vw; transform-origin: 0 0;
+    transform: translateX(min(40mm, 100vw)) rotate(90deg);
+  }
+}
+@media print and (max-width: 47mm) and (min-height: 47mm) {
+  .etiketkalar[data-olcham="50x30"] .etiketka {
+    max-width: 100vh; max-height: 100vw; transform-origin: 0 0;
+    transform: translateX(min(30mm, 100vw)) rotate(90deg);
+  }
+}
+@media print and (max-width: 27mm) and (min-height: 27mm) {
+  .etiketkalar[data-olcham="30x20"] .etiketka {
+    max-width: 100vh; max-height: 100vw; transform-origin: 0 0;
+    transform: translateX(min(20mm, 100vw)) rotate(90deg);
+  }
+}
 
 /* ---------- Ombor: Excel orqali yangilash (v3.0.0) ---------- */
 .ombor-belgilar { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
