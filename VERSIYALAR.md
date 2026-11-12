@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.36 — 2026-11-12
+
+Yorliq oynasida «Printer qo'shish» tugmasi: server kompyuterida o'rnatilgan barcha printer drayverlari chiqadi, tanlangan drayver va portdan yangi Windows printeri yaratiladi
+
 ## 3.9.35 — 2026-11-12
 
 Brauzerdan chop etishda yorliq ikkita stikerga bo'linmaydi: printer qog'ozi yorliqdan kichik bo'lsa ham nom, narx, shtrix va KOD bitta stikerga sig'adi
