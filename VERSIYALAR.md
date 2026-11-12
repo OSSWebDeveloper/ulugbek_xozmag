@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.35 — 2026-11-12
+
+Brauzerdan chop etishda yorliq ikkita stikerga bo'linmaydi: printer qog'ozi yorliqdan kichik bo'lsa ham nom, narx, shtrix va KOD bitta stikerga sig'adi
+
 ## 3.9.34 — 2026-11-11
 
 Har bir kompyuter faqat o'z printeridan chiqaradi: boshqa kompyuter server printeriga yubora olmaydi, yordamchisiz qurilmada yorliq brauzerning chop oynasi orqali o'z printeridan chiqadi (burilmasdan, printer qog'ozining tepasidan); server kompyuteridagi chek va sinov cheki server printeridan chiqadi; yorliq oynasida shtrix printer birinchi turadi va oxirgi tanlov eslab qolinadi
