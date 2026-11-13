@@ -290,6 +290,13 @@ class QatorForm(forms.Form):
     qoldiq = forms.CharField(label="Qoldiq", required=False, max_length=30)
     narx = forms.CharField(label="Narxi", required=False, max_length=30)
     valyuta = forms.ChoiceField(label="Valyuta", choices=Valyuta.choices)
+    kelish_narxi = forms.CharField(label="Kelish narxi", required=False, max_length=30,
+                                   help_text="Bo'sh — kelish narxi noma'lum")
+    kelish_valyutasi = forms.ChoiceField(label="Kelish valyutasi", required=False,
+                                         choices=[("", "— tovar valyutasi —")] + Valyuta.choices)
+
+    MAYDONLAR = ("kod", "nom", "birlik", "qoldiq", "narx", "valyuta", "kelish_narxi",
+                 "kelish_valyutasi")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -302,10 +309,12 @@ class QatorForm(forms.Form):
         d = super().clean()
         if self.errors:
             return d
-        holat, xato, ogoh = qatorni_tekshir({m: d.get(m) for m in
-                                             ("kod", "nom", "birlik", "qoldiq", "narx", "valyuta")})
+        holat, xato, ogoh = qatorni_tekshir({m: d.get(m) for m in self.MAYDONLAR})
         if xato:
             raise forms.ValidationError(xato)
+        # Ko'rinish (faol) qatorning o'zida qanday bo'lsa shunday qoladi: xarid narxi
+        # faylidagi qatorni tuzatish yashirilgan tovarni ochib yubormasin
+        holat["faol"] = self.initial.get("faol", True)
         d["holat"], d["ogohlantirish"] = holat, ogoh
         return d
 

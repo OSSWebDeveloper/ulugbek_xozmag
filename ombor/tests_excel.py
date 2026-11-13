@@ -70,6 +70,77 @@ class ExcelTest(KirganTest):
         self.assertEqual((k.nom, k.qoldiq, k.narx, k.valyuta),
                          ("Kran", 9, 15, Valyuta.DOLLAR))
 
+    def test_kelish_narxi_fayli_faqat_xarid_narxini_yozadi(self):
+        excel.qollash(self.yukla([SHABLON, ["0001", "Mix", "kg", 4, 28000, "UZS"],
+                                  ["0002", "Kran", "dona", 2, 15, "USD"],
+                                  ["0003", "Yashirin", "dona", 0, 1, "UZS"]]))
+        Mahsulot.objects.filter(kod="0003").update(faol=False)
+        y = self.yukla([["Kod", "Tovar nomi", "Kelish narxi", "Kelish valyutasi"],
+                        ["0001", "Mix", 1.9556, "USD"],
+                        ["0002", "Kran", "12", None],             # valyuta — tovarniki
+                        ["0003", "Yashirin", "800 UZS", None]])   # valyuta narx ichida
+        self.assertEqual(y.sanoq()["ozgardi"], 3)
+        excel.qollash(y)
+        mix, kran, yashirin = self.m("0001"), self.m("0002"), self.m("0003")
+        self.assertEqual((mix.kelish_narxi, mix.kelish_valyutasi), (Decimal("1.9556"), Valyuta.DOLLAR))
+        self.assertEqual((mix.qoldiq, mix.narx, mix.valyuta), (4, 28000, Valyuta.SOM))
+        self.assertEqual((kran.kelish_narxi, kran.kelish_valyutasi), (12, Valyuta.DOLLAR))
+        self.assertEqual((yashirin.kelish_narxi, yashirin.kelish_valyutasi), (800, Valyuta.SOM))
+        self.assertFalse(yashirin.faol)                           # yashirinligicha qoldi
+        # Bekor qilish xarid narxini ham qaytaradi
+        excel.bekor_qil(y)
+        self.assertIsNone(self.m("0001").kelish_narxi)
+        self.assertEqual(self.m("0001").kelish_valyutasi, "")
+
+    def test_kelish_narxi_xatolari_va_eksport(self):
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 1, 10, "UZS"]]))
+        y = self.yukla([["Kod", "Kelish narxi", "Kelish valyutasi"],
+                        ["0001", -5, "UZS"], ["0001", 5, "EUR"]])
+        self.assertEqual(y.sanoq()["xato"], 2)
+        excel.qollash(self.yukla([["Kod", "Xarid narxi"], ["0001", "8,5"]]))
+        a = self.m("0001")
+        self.assertEqual((a.kelish_narxi, a.kelish_valyutasi), (Decimal("8.5"), Valyuta.SOM))
+        baytlar = excel.excel_yoz(excel.tovarlar())
+        ws = load_workbook(io.BytesIO(baytlar)).active
+        self.assertEqual(list(next(ws.iter_rows(min_row=1, max_row=1, values_only=True))),
+                         SHABLON + ["Kelish narxi", "Kelish valyutasi"])
+        self.assertEqual(list(next(ws.iter_rows(min_row=2, max_row=2, values_only=True)))[6:],
+                         [8.5, "UZS"])
+        y = excel.fayldan_qoralama(SimpleUploadedFile("q.xlsx", baytlar))
+        self.assertEqual(y.ozgarmagan, 1)
+        # Bo'sh katak — kelish narxi o'chadi
+        excel.qollash(self.yukla([["Kod", "Narxi", "Kelish narxi"], ["0001", 10, None]]))
+        self.assertIsNone(self.m("0001").kelish_narxi)
+
+    def test_eski_versiya_qatorini_bekor_qilish_mumkin(self):
+        """Kelish narxi qo'shilishidan oldin qo'llangan yangilanishda bu maydonlar yo'q."""
+        y = self.yukla([SHABLON, ["0001", "A", "dona", 5, 10, "UZS"]])
+        excel.qollash(y)
+        for q in y.qatorlar.all():
+            for k in ("kelish_narxi", "kelish_valyutasi"):
+                q.yangi.pop(k, None)
+            q.save()
+        self.assertEqual(excel.bekor_toqnashuvlari(y), [])
+        excel.bekor_qil(y)
+        self.assertEqual(Mahsulot.objects.count(), 0)
+
+    def test_qator_formasi_kelish_narxi_va_faol(self):
+        from .forms import QatorForm
+        excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 1, 10, "USD"]]))
+        Mahsulot.objects.filter(kod="0001").update(faol=False)
+        y = self.yukla([["Kod", "Kelish narxi"], ["0001", "abc"]])
+        q = y.qatorlar.get()
+        self.assertEqual(q.amal, Qator.XATO)
+        boshi = excel.qator_formasi_uchun(q)
+        f = QatorForm(dict(boshi, kelish_narxi="7"), initial=boshi)
+        self.assertTrue(f.is_valid(), f.errors)
+        self.assertIsNone(excel.qatorni_yangila(q, f.cleaned_data["holat"]))
+        excel.qollash(y)
+        a = self.m("0001")
+        self.assertEqual((a.kelish_narxi, a.kelish_valyutasi, a.faol), (7, Valyuta.DOLLAR, False))
+        self.assertContains(self.client.get(reverse("ombor:yangilanish", args=[y.pk])),
+                            "Kelish narxi")
+
     def test_bekor_qilish_hammasini_qaytaradi(self):
         excel.qollash(self.yukla([SHABLON, ["0001", "A", "dona", 5, 10, "USD"],
                                   ["0002", "B", "kg", 1, 3, "UZS"]]))

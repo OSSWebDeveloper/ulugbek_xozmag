@@ -96,7 +96,7 @@
       <thead>
         <tr>
           <th class="son" style="width:1%">Qator</th><th>Amal</th><th class="son" style="width:1%">Kod</th>
-          <th>Tovar</th><th class="son">Qoldiq</th><th class="son">Narxi</th><th style="width:1%"></th>
+          <th>Tovar</th><th class="son">Qoldiq</th><th class="son">Narxi</th><th class="son">Kelish narxi</th><th style="width:1%"></th>
         </tr>
       </thead>
       <tbody>
@@ -126,8 +126,8 @@
             {% for k in q.katakchalar %}
               <td class="son ozg-katak">
                 {% if k.ozgardi %}
-                  <span class="eski">{{ k.eski|tekis }} {{ k.eski_qoshimcha }}</span>
-                  <b class="yangi">{{ k.yangi|tekis }} {{ k.qoshimcha }}</b>
+                  <span class="eski">{% if k.eski != "" %}{{ k.eski|tekis }} {{ k.eski_qoshimcha }}{% else %}—{% endif %}</span>
+                  <b class="yangi">{% if k.yangi != "" %}{{ k.yangi|tekis }} {{ k.qoshimcha }}{% else %}—{% endif %}</b>
                 {% elif k.yangi != "" %}{{ k.yangi|tekis }} <span class="sust">{{ k.qoshimcha }}</span>
                 {% else %}—{% endif %}
               </td>
@@ -153,7 +153,7 @@
           </tr>
           {% endwith %}
         {% empty %}
-          <tr><td colspan="7"><div class="bosh-holat">
+          <tr><td colspan="8"><div class="bosh-holat">
             <svg class="ikon"><use href="#i-belgi"></use></svg>
             <b>Bu bo'limda qator yo'q{% if y.ozgarmagan and not turi %} — fayldagi tovarlar ombordagi bilan bir xil{% endif %}</b>
           </div></td></tr>

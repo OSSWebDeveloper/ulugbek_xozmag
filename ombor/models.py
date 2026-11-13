@@ -367,16 +367,22 @@ class OmborHarakati(models.Model):
 # ---------- Excel orqali yangilash (v3.0.0) ----------
 
 # Yangilanish qatorida saqlanadigan tovar maydonlari — Excel ustunlari bilan bir xil
-HOLAT_MAYDONLARI = ["kod", "nom", "birlik", "qoldiq", "narx", "valyuta", "faol"]
+HOLAT_MAYDONLARI = ["kod", "nom", "birlik", "qoldiq", "narx", "valyuta", "faol",
+                    "kelish_narxi", "kelish_valyutasi"]
 SON_MAYDONLARI = {"qoldiq", "narx"}
 
 
 def mahsulot_holati(m):
-    """Tovarning qoralama/tarix uchun ko'rinishi — hammasi matn (faol — bool)."""
+    """Tovarning qoralama/tarix uchun ko'rinishi — hammasi matn (faol — bool).
+
+    Kelish narxi yo'q bo'lsa — bo'sh matn (0 emas: «narxi noma'lum» va «tekin» farqli).
+    """
     return {
         "kod": m.kod or "", "nom": m.nom, "birlik": m.birlik,
         "qoldiq": tekis_son(m.qoldiq), "narx": tekis_son(m.narx),
         "valyuta": m.valyuta, "faol": bool(m.faol),
+        "kelish_narxi": "" if m.kelish_narxi is None else tekis_son(m.kelish_narxi),
+        "kelish_valyutasi": m.kelish_valyutasi or "",
     }
 
 
@@ -387,7 +393,17 @@ def holatni_qoy(m, holat):
         qiymat = holat[maydon]
         if maydon in SON_MAYDONLARI:
             qiymat = Decimal(qiymat or "0")
+        elif maydon == "kelish_narxi":
+            qiymat = Decimal(qiymat) if qiymat not in (None, "") else None
+        elif maydon == "kelish_valyutasi":
+            qiymat = qiymat or ""
         setattr(m, maydon, qiymat)
+
+
+def holat_mosmi(holat, kutilgan):
+    """`kutilgan` dagi har maydon `holat` da ham shunday. Eski versiyada yozilgan
+    qatorlarda yangi maydonlar (kelish narxi) yo'q — ular solishtirilmaydi."""
+    return all(holat.get(k) == v for k, v in kutilgan.items())
 
 
 class OmborYangilanish(models.Model):
@@ -466,7 +482,7 @@ class YangilanishQatori(models.Model):
         return {m for m in HOLAT_MAYDONLARI if self.eski.get(m) != self.yangi.get(m)}
 
     def katakchalar(self):
-        """Shablon uchun: qoldiq va narx ustunlari (valyuta narx yonida)."""
+        """Shablon uchun: qoldiq, narx va kelish narxi ustunlari (valyuta narx yonida)."""
         ozg = self.ozgargan_maydonlar()
         eski = self.eski or {}
         yangi = eski if self.amal == self.YASHIRILDI else (self.yangi or {})
@@ -478,4 +494,13 @@ class YangilanishQatori(models.Model):
              "ozgardi": bool(ozg & {"narx", "valyuta"}),
              "qoshimcha": "$" if yangi.get("valyuta") == Valyuta.DOLLAR else "so'm",
              "eski_qoshimcha": "$" if eski.get("valyuta") == Valyuta.DOLLAR else "so'm"},
+            {"maydon": "kelish_narxi", "eski": eski.get("kelish_narxi", ""),
+             "yangi": yangi.get("kelish_narxi", ""),
+             "ozgardi": bool(ozg & {"kelish_narxi", "kelish_valyutasi"}),
+             "qoshimcha": _valyuta_belgisi(yangi.get("kelish_valyutasi")),
+             "eski_qoshimcha": _valyuta_belgisi(eski.get("kelish_valyutasi"))},
         ]
+
+
+def _valyuta_belgisi(valyuta):
+    return {Valyuta.DOLLAR: "$", Valyuta.SOM: "so'm"}.get(valyuta, "")

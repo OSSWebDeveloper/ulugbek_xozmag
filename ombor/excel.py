@@ -28,7 +28,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from .models import (HOLAT_MAYDONLARI, KOD_MAX, Birlik, HarakatTuri, Mahsulot, OmborHarakati,
                      OmborYangilanish, Valyuta, YangilanishQatori, holatni_qoy, kod_yasa,
-                     mahsulot_holati, tekis_son)
+                     holat_mosmi, mahsulot_holati, tekis_son)
 
 Qator = YangilanishQatori
 
@@ -43,10 +43,16 @@ class ExcelXatosi(Exception):
 
 # ---------- Ustunlar ----------
 
-USTUNLAR = ["kod", "nom", "birlik", "qoldiq", "narx", "valyuta"]
+USTUNLAR = ["kod", "nom", "birlik", "qoldiq", "narx", "valyuta", "kelish_narxi",
+            "kelish_valyutasi"]
 USTUN_NOMI = {"kod": "Kod", "nom": "Tovar nomi", "birlik": "Birlik", "qoldiq": "Qoldiq",
-              "narx": "Narxi", "valyuta": "Valyuta"}
-USTUN_ENI = {"kod": 9, "nom": 60, "birlik": 10, "qoldiq": 12, "narx": 14, "valyuta": 10}
+              "narx": "Narxi", "valyuta": "Valyuta", "kelish_narxi": "Kelish narxi",
+              "kelish_valyutasi": "Kelish valyutasi"}
+USTUN_ENI = {"kod": 9, "nom": 60, "birlik": 10, "qoldiq": 12, "narx": 14, "valyuta": 10,
+             "kelish_narxi": 14, "kelish_valyutasi": 16}
+# Faqat shu ustunlar (+ kod/nom) bor fayl — «xarid narxlari fayli»: yashirilgan
+# tovarni ochmaydi, chunki u ombordagi tovarlar ro'yxati emas.
+KELISH_USTUNLARI = {"kelish_narxi", "kelish_valyutasi"}
 
 
 def _norm(matn):
@@ -62,6 +68,10 @@ SARLAVHALAR = {
     "qoldiq": ["qoldiq", "остаток", "soni", "miqdori", "количество"],
     "narx": ["narxi", "narx", "sotish narxi", "цена", "цена продажи"],
     "valyuta": ["valyuta", "валюта"],
+    "kelish_narxi": ["kelish narxi", "kelish narx", "xarid narxi", "xarid narx",
+                     "olish narxi", "закупочная цена", "цена закупки", "себестоимость"],
+    "kelish_valyutasi": ["kelish valyutasi", "kelish valyuta", "xarid valyutasi",
+                         "валюта закупки"],
 }
 _SARLAVHA = {_norm(s): m for m, ss in SARLAVHALAR.items() for s in ss}
 
@@ -144,7 +154,9 @@ def qatorni_tekshir(xom):
     Holatda faqat faylda bor ustunlar bo'ladi (+ `faol`: faylda bor tovar
     ko'rinadi). Qiymatlar `mahsulot_holati()` dagi ko'rinishda.
     """
-    holat, xatolar, ogoh = {"faol": True}, [], []
+    holat, xatolar, ogoh = {}, [], []
+    if not (set(xom) & KELISH_USTUNLARI) or set(xom) - KELISH_USTUNLARI - {"kod", "nom"}:
+        holat["faol"] = True
     if "kod" in xom:
         try:
             holat["kod"] = _kod(xom["kod"])
@@ -194,7 +206,39 @@ def qatorni_tekshir(xom):
             ogoh.append("narx yonidagi valyuta «Valyuta» ustunidan farq qiladi — ustundagisi olindi")
     elif narx_valyutasi:
         holat["valyuta"] = narx_valyutasi
+
+    kelish_valyutasi = None
+    if "kelish_narxi" in xom:
+        try:
+            d, kelish_valyutasi = _son(xom["kelish_narxi"], 4)
+            if d is not None and d < 0:
+                raise ValueError(f"«{xom['kelish_narxi']}» manfiy")
+            holat["kelish_narxi"] = "" if d is None else tekis_son(d)   # bo'sh = noma'lum
+        except ValueError as e:
+            xatolar.append(f"{USTUN_NOMI['kelish_narxi']}: {e}")
+            holat["kelish_narxi"] = str(xom["kelish_narxi"])
+    if "kelish_valyutasi" in xom and str(xom["kelish_valyutasi"] or "").strip():
+        val = valyutani_ani(xom["kelish_valyutasi"])
+        if not val:
+            xatolar.append(f"kelish valyutasi «{xom['kelish_valyutasi']}» noma'lum — "
+                           f"UZS yoki USD yozing")
+        holat["kelish_valyutasi"] = val or str(xom["kelish_valyutasi"])
+        if val and kelish_valyutasi and kelish_valyutasi != val:
+            ogoh.append("kelish narxi yonidagi valyuta «Kelish valyutasi» ustunidan farq "
+                        "qiladi — ustundagisi olindi")
+    elif kelish_valyutasi:
+        holat["kelish_valyutasi"] = kelish_valyutasi
     return holat, "; ".join(xatolar), "; ".join(ogoh)
+
+
+def kelishni_tekisla(holat):
+    """Kelish narxi bor-u valyutasi aytilmagan bo'lsa — tovarning o'z valyutasi
+    (tovar formasidagi qoida bilan bir xil); narxi yo'q bo'lsa valyutasi ham yo'q."""
+    if holat.get("kelish_narxi", "") == "":
+        holat["kelish_valyutasi"] = ""
+    elif not holat.get("kelish_valyutasi"):
+        holat["kelish_valyutasi"] = holat.get("valyuta") or Valyuta.SOM
+    return holat
 
 
 def fayldan_oqi(fayl):
@@ -236,7 +280,7 @@ def fayldan_oqi(fayl):
 
 def _bosh_holat():
     return {"kod": "", "nom": "", "birlik": Birlik.DONA, "qoldiq": "0", "narx": "0",
-            "valyuta": Valyuta.SOM, "faol": True}
+            "valyuta": Valyuta.SOM, "faol": True, "kelish_narxi": "", "kelish_valyutasi": ""}
 
 
 class _KodBeruvchi:
@@ -308,7 +352,7 @@ def tahlil_qil(yangilanish, xom_qatorlar):
             if mahsulot is not None:
                 ishlatilgan.add(mahsulot.pk)
                 eski = mahsulot_holati(mahsulot)
-                yangi = eski | holat
+                yangi = kelishni_tekisla(eski | holat)
                 if not kod:
                     yangi["kod"] = eski["kod"]
                 if yangi == eski:
@@ -323,7 +367,7 @@ def tahlil_qil(yangilanish, xom_qatorlar):
                                     yangi=holat, xato=f"{kod} kodli tovar omborda yo'q, "
                                                       f"yangi tovar uchun nomi kerak")
             else:
-                yangi = _bosh_holat() | holat
+                yangi = kelishni_tekisla(_bosh_holat() | holat)
                 if not kod:
                     yangi["kod"] = kodlar.ber()
                     if not yangi["kod"]:
@@ -399,12 +443,12 @@ def qatorni_yangila(qator, holat, ogoh=""):
             joy = f" ({band.excel_qator}-qator)" if band.excel_qator else ""
             return f"Bu tovar ({mahsulot.kod}) qoralamaning boshqa qatorida ham bor{joy}."
         eski = mahsulot_holati(mahsulot)
-        yangi = eski | holat
+        yangi = kelishni_tekisla(eski | holat)
         if not holat.get("kod"):
             yangi["kod"] = eski["kod"]
         amal = Qator.OZGARDI
     else:
-        eski, yangi, amal = None, _bosh_holat() | holat, Qator.YANGI
+        eski, yangi, amal = None, kelishni_tekisla(_bosh_holat() | holat), Qator.YANGI
         if not yangi["kod"]:
             yangi["kod"] = _KodBeruvchi(set(Mahsulot.objects.values_list("kod", flat=True))
                                         | set(boshqalar.values_list("kod", flat=True))).ber()
@@ -546,7 +590,7 @@ def bekor_toqnashuvlari(yangilanish):
     for q in qatorlar:
         if q.mahsulot is None:
             toqnash.append((q.kod, "tovar keyinroq o'chirilgan"))
-        elif mahsulot_holati(q.mahsulot) != q.yangi:
+        elif not holat_mosmi(mahsulot_holati(q.mahsulot), q.yangi):
             toqnash.append((q.mahsulot.kod, "tovar keyin yana o'zgargan (sotuv, kirim yoki tahrir)"))
     # Eski kod/nomga qaytishda uni boshqa tovar egallab olgan bo'lmasin
     qaytadigan = {q.mahsulot_id for q in qatorlar}
@@ -651,17 +695,20 @@ def excel_yoz(mahsulotlar):
     ws.freeze_panes = "C2"
     n = 1
     for m in mahsulotlar:
-        ws.append([m.kod, m.nom, m.birlik, m.qoldiq, m.narx, valyuta_yozuvi(m.valyuta)])
+        ws.append([m.kod, m.nom, m.birlik, m.qoldiq, m.narx, valyuta_yozuvi(m.valyuta),
+                   m.kelish_narxi,
+                   valyuta_yozuvi(m.kelish_valyutasi) if m.kelish_narxi is not None else None])
         n += 1
     oxiri = max(n, 2) + 2000
     for (katak,) in ws.iter_rows(min_row=2, max_row=oxiri, max_col=1):
         katak.number_format = "@"             # 00001 boshidagi nollar yo'qolmasin
-    for ustun, fmt in (("qoldiq", "#,##0.###"), ("narx", "#,##0.####")):
+    for ustun, fmt in (("qoldiq", "#,##0.###"), ("narx", "#,##0.####"),
+                       ("kelish_narxi", "#,##0.####")):
         j = USTUNLAR.index(ustun) + 1
         for (katak,) in ws.iter_rows(min_row=2, max_row=n, min_col=j, max_col=j):
             katak.number_format = fmt
     ws.auto_filter.ref = f"A1:{_harf(len(USTUNLAR) - 1)}{n}"
-    for maydon, royxat in (("valyuta", '"UZS,USD"'),
+    for maydon, royxat in (("valyuta", '"UZS,USD"'), ("kelish_valyutasi", '"UZS,USD"'),
                            ("birlik", '"' + ",".join(b.value for b in Birlik) + '"')):
         dv = DataValidation(type="list", formula1=royxat, allow_blank=True)
         ws.add_data_validation(dv)
@@ -688,6 +735,9 @@ def _yoriqnoma(wb):
                    "tarixiga «Tuzatish» bo'lib yoziladi."),
         ("Narxi", "Faqat son (180726 yoki 2,65)."),
         ("Valyuta", "UZS (so'm) yoki USD (dollar)."),
+        ("Kelish narxi", "Xarid narxi, 1 sotuv birligi uchun (2,2 yoki «2.2 USD»). Bo'sh "
+                         "katak — kelish narxi noma'lum."),
+        ("Kelish valyutasi", "UZS yoki USD. Bo'sh bo'lsa tovarning valyutasi olinadi."),
         ("", ""),
         ("Qanday ishlaydi", "1) Fayl yuklanadi — ombor hali o'zgarmaydi."),
         ("", "2) Nima o'zgarishi ko'rsatiladi: yangi, o'zgargan, xato qatorlar."),
@@ -696,6 +746,8 @@ def _yoriqnoma(wb):
         ("", ""),
         ("Muhim", "Faylda yo'q ustun o'zgarmaydi: faqat «Kod» va «Qoldiq» ustunli fayl faqat "
                   "qoldiqni yangilaydi."),
+        ("", "Faqat «Kod» (yoki «Tovar nomi») va «Kelish narxi» ustunli fayl faqat xarid "
+             "narxini yangilaydi — yashirilgan tovarlar yashirinligicha qoladi."),
         ("", "Do'kon dasturining «Products …xlsx» faylini ham to'g'ridan-to'g'ri yuklash mumkin."),
     ]:
         ws.append([a, b])
