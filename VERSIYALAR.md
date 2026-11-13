@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.39 — 2026-11-13
+
+Ombor Excel'da «Kelish narxi» va «Kelish valyutasi» ustunlari: fayl orqali xarid narxini yuklash mumkin, faqat xarid narxi bor fayl yashirilgan tovarlarni ochmaydi
+
 ## 3.9.38 — 2026-11-12
 
 Brauzerdan chop etishda stiker printerda tik turgan bo'lsa, yorliq siqilmaydi: 90° burilib stikerni to'liq egallaydi
