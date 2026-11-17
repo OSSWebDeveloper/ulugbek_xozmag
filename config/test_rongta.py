@@ -64,3 +64,7 @@ class RongtaTests(KirganTest):
         with patch.object(rongta, 'folders', return_value=(None, rongta.Path('Z:/yoq/rongta'))):
             with self.assertRaisesRegex(RuntimeError, 'yoq'):
                 rongta.bridge()
+
+    def test_ombor_page_links_to_scale_panel(self):
+        response = self.client.get('/ombor/')
+        self.assertContains(response, 'href="/qurilmalar/#rongta-panel"')

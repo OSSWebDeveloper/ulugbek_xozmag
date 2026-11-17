@@ -47,6 +47,9 @@
         {% if qoralamalar %}<span class="nishon ogoh">{{ qoralamalar }} qoralama</span>{% endif %}
       </a>
       <a class="tugma kichik tinch" href="{% url 'ombor:shablon' %}">Bo'sh shablon</a>
+      {# Tarozi boshqaruvi Qurilmalar sahifasida; bu yerdan to'g'ri o'sha bo'limga #}
+      <a class="tugma kichik tinch" href="{% url 'qurilmalar' %}#rongta-panel"
+         title="Sotish birligi kg bo'lgan tovarlarni Rongta tarozisiga yuborish">Taroziga yuborish</a>
     </div>
     {% if tugagan %}
       <div class="xabar warning" style="margin-top:var(--oraliq)">
