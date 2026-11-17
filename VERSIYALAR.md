@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.42 — 2026-11-17
+
+Ombor sahifasida «Taroziga yuborish» kirim oynasi kabi ichki oyna bo'lib ochiladi: nechta kg tovar ketadi, aloqa holati, ro'yxatlar va yuborish shu yerda
+
 ## 3.9.41 — 2026-11-17
 
 Ombor sahifasida «Taroziga yuborish» tugmasi — Qurilmalar sahifasidagi Rongta tarozi bo'limiga olib boradi
