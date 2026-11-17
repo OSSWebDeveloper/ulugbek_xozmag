@@ -11,7 +11,4 @@
 .qurilma-izoh { margin-top: 20px; }
 #rongta-panel, #skaner-test-form { margin-bottom: 18px; }
 #rongta-panel h2, .qurilma-kirish h2 { font-size: 20px; margin: 0 0 12px; }
-#rongta-progress { width: 100%; margin: 12px 0; }
-.rongta-royxat { margin: 0 0 12px; }
-.rongta-royxat summary { cursor: pointer; padding: 6px 0; }
-.rongta-royxat .jadval-quti { max-height: 360px; overflow: auto; margin-top: 8px; }
+

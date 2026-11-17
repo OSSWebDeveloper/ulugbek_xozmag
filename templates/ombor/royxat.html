@@ -47,9 +47,9 @@
         {% if qoralamalar %}<span class="nishon ogoh">{{ qoralamalar }} qoralama</span>{% endif %}
       </a>
       <a class="tugma kichik tinch" href="{% url 'ombor:shablon' %}">Bo'sh shablon</a>
-      {# Tarozi boshqaruvi Qurilmalar sahifasida; bu yerdan to'g'ri o'sha bo'limga #}
-      <a class="tugma kichik tinch" href="{% url 'qurilmalar' %}#rongta-panel"
-         title="Sotish birligi kg bo'lgan tovarlarni Rongta tarozisiga yuborish">Taroziga yuborish</a>
+      {# Kirim kabi shu yerda ichki oyna bo'lib ochiladi (pastdagi #tarozi-oyna) #}
+      <button type="button" class="tugma kichik tinch" data-tarozi-och
+              title="Sotish birligi kg bo'lgan tovarlarni Rongta tarozisiga yuborish">Taroziga yuborish</button>
     </div>
     {% if tugagan %}
       <div class="xabar warning" style="margin-top:var(--oraliq)">
@@ -189,12 +189,53 @@
     <div class="oyna-tana" id="kirim-oyna-tana"></div>
   </div>
 </div>
+
+{# Taroziga yuborish — Qurilmalar sahifasidagi Rongta paneli bilan bir xil ish (rongta.js) #}
+<div class="oyna-fon" id="tarozi-oyna">
+  <div class="oyna tarozi-oyna">
+    <div class="oyna-bosh">
+      <span>Taroziga yuborish · Rongta RLS1100C</span>
+      <button type="button" class="tugma tinch kichik" data-yop>
+        <svg class="ikon"><use href="#i-yopish"></use></svg> Yopish (Esc)
+      </button>
+    </div>
+    <div class="oyna-tana" id="rongta-panel" data-kechiktir
+         data-status="{% url 'tarozi_status' %}" data-sync="{% url 'tarozi_sync' %}"
+         data-progress="{% url 'tarozi_progress' token='00000000-0000-0000-0000-000000000000' %}"
+         data-royxat="{% url 'tarozi_royxat' %}">
+      <div class="tarozi-korsatkichlar">
+        <div class="korsatkich">
+          <div class="nomi">Yuborishga tayyor</div>
+          <div class="qiymati" id="rongta-tayyor-katta">…</div>
+        </div>
+        <div class="korsatkich">
+          <div class="nomi">O'tkaziladi</div>
+          <div class="qiymati" id="rongta-otkaz-katta">…</div>
+        </div>
+      </div>
+      <p id="rongta-holat" role="status" aria-live="polite">Aloqa tekshirilmoqda…</p>
+      <p id="rongta-hisob" class="sust"></p>
+      <progress id="rongta-progress" max="100" value="0" hidden aria-label="Mahsulotlarni taroziga yuklash"></progress>
+      <form hidden id="rongta-csrf">{% csrf_token %}</form>
+      {% include "_rongta_royxat.html" %}
+      <p class="sust" style="margin:0 0 var(--oraliq)">Faqat sotish birligi kg bo'lgan tovarlar ketadi: kod, nom, sotish narxi (so'm/kg). Tarozidagi boshqa tovarlar yashiriladi, oldin zaxira olinadi.</p>
+      <div class="qator">
+        <button type="button" class="tugma tinch" style="flex:1" data-yop>Bekor qilish</button>
+        <button type="button" class="tugma yashil" style="flex:2" id="rongta-yukla" disabled>
+          <svg class="ikon"><use href="#i-yuklash"></use></svg> Taroziga yuborish
+        </button>
+        <button type="button" class="tugma" style="flex:2" id="rongta-test">Aloqani tekshirish</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block skript %}
 <script src="{% statik 'js/skaner.js' %}"></script>
 <script src="{% statik 'js/ombor.js' %}"></script>
 <script src="{% statik 'js/shtrix_tahrir.js' %}"></script>
+<script src="{% statik 'js/rongta.js' %}"></script>
 <script>
 /* Belgilar va valyuta darhol qo'llanadi */
 document.querySelectorAll("#ombor-filtr select, .ombor-belgi input").forEach(function (el) {

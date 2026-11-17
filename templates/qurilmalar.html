@@ -36,24 +36,7 @@
     </div>
     <progress id="rongta-progress" max="100" value="0" hidden aria-label="Mahsulotlarni taroziga yuklash"></progress>
     <form hidden id="rongta-csrf">{% csrf_token %}</form>
-    <details class="rongta-royxat">
-      <summary>Taroziga ketadigan tovarlar: <span id="rongta-tayyor-soni">…</span></summary>
-      <div class="jadval-quti">
-        <table class="jadval">
-          <thead><tr><th>Kod</th><th>Tarozidagi nomi</th><th class="son">Narx, so‘m/kg</th><th>Shtrix boshi</th></tr></thead>
-          <tbody id="rongta-tayyor"></tbody>
-        </table>
-      </div>
-    </details>
-    <details class="rongta-royxat">
-      <summary>O‘tkaziladigan kg tovarlar: <span id="rongta-otkaz-soni">…</span></summary>
-      <div class="jadval-quti">
-        <table class="jadval">
-          <thead><tr><th>Kod</th><th>Nomi</th><th>Sabab</th></tr></thead>
-          <tbody id="rongta-otkaz"></tbody>
-        </table>
-      </div>
-    </details>
+    {% include "_rongta_royxat.html" %}
     <p class="sust">Faqat sotish birligi kg bo‘lgan mahsulotlar yuboriladi. Kodlar ombordagidek. Sotish narxi yuboriladi, kelish narxi yuborilmaydi. Tarozidagi boshqa mahsulotlar yashiriladi. Yuborishdan oldin zaxira olinadi va tugagach ma’lumotlar qayta o‘qib tekshiriladi.</p>
     <p class="sust">Tarozi nomi 32 belgigacha qisqartiriladi. Narxsiz, moslanmagan birlikdagi yoki 999 999,99 so‘mdan qimmat mahsulotlar o‘tkazib yuboriladi. Tarozi sotish narxida 2 kasr xonasi bilan sozlangan bo‘lishi kerak.</p>
     <p class="sust">«Shtrix boshi» — tarozi etiketkasidagi shtrixning birinchi 7 raqami: 2 + tarozi PLU. Keyin og‘irlik grammda va nazorat raqami keladi.</p>

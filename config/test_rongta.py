@@ -67,4 +67,7 @@ class RongtaTests(KirganTest):
 
     def test_ombor_page_links_to_scale_panel(self):
         response = self.client.get('/ombor/')
-        self.assertContains(response, 'href="/qurilmalar/#rongta-panel"')
+        self.assertContains(response, 'data-tarozi-och')
+        self.assertContains(response, 'id="tarozi-oyna"')
+        self.assertContains(response, 'data-royxat="/qurilmalar/tarozi/royxat/"')
+        self.assertContains(self.client.get('/qurilmalar/'), 'id="rongta-tayyor"')

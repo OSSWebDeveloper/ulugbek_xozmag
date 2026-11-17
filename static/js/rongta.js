@@ -52,6 +52,11 @@
       }
       document.getElementById('rongta-tayyor-soni').textContent = data.tayyor.length + ' ta';
       document.getElementById('rongta-otkaz-soni').textContent = data.otkazildi.length + ' ta';
+      // Ombordagi oynada katta ko'rsatkichlar ham bor
+      const big = document.getElementById('rongta-tayyor-katta');
+      if (big) big.textContent = data.tayyor.length + ' ta kg tovar';
+      const bigSkip = document.getElementById('rongta-otkaz-katta');
+      if (bigSkip) bigSkip.textContent = data.otkazildi.length + ' ta';
     } catch (e) {
       document.getElementById('rongta-tayyor-soni').textContent = e.message;
     }
@@ -120,7 +125,7 @@
   const form = document.getElementById('skaner-test-form');
   const input = document.getElementById('skaner-test-kod');
   const result = document.getElementById('skaner-test-natija');
-  form.addEventListener('submit', async e => {
+  if (form) form.addEventListener('submit', async e => {
     e.preventDefault();
     const code = input.value.trim();
     if (!code) return;
@@ -132,6 +137,26 @@
     } catch (err) { result.textContent = err.message; }
     input.select();
   });
-  check();
-  list();
+  // Ombor sahifasida panel oyna ichida: tarozi faqat oyna ochilganda so'raladi,
+  // har sahifa ochilishida emas (aloqa tekshiruvi 15 soniyagacha cho'ziladi).
+  const modal = document.getElementById('tarozi-oyna');
+  if (modal) {
+    const open = () => {
+      modal.classList.add('ochiq');
+      check();
+      list();
+    };
+    const close = () => modal.classList.remove('ochiq');
+    document.querySelectorAll('[data-tarozi-och]').forEach(b => b.addEventListener('click', open));
+    modal.addEventListener('click', e => {
+      if (e.target === modal || e.target.closest('[data-yop]')) close();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.classList.contains('ochiq')) close();
+    });
+  }
+  if (!('kechiktir' in panel.dataset)) {
+    check();
+    list();
+  }
 })();
