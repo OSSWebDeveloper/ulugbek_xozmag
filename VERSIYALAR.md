@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.41 — 2026-11-17
+
+Ombor sahifasida «Taroziga yuborish» tugmasi — Qurilmalar sahifasidagi Rongta tarozi bo'limiga olib boradi
+
 ## 3.9.40 — 2026-11-17
 
 Qurilmalar sahifasida taroziga ketadigan kg tovarlar ro'yxati (kod, nom, narx, shtrix boshi) va o'tkazilganlar sababi tarozisiz ham ko'rinadi; drayver topilmasa DLL qo'yiladigan papka aytiladi
