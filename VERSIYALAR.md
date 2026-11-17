@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.40 — 2026-11-17
+
+Qurilmalar sahifasida taroziga ketadigan kg tovarlar ro'yxati (kod, nom, narx, shtrix boshi) va o'tkazilganlar sababi tarozisiz ham ko'rinadi; drayver topilmasa DLL qo'yiladigan papka aytiladi
+
 ## 3.9.39 — 2026-11-13
 
 Ombor Excel'da «Kelish narxi» va «Kelish valyutasi» ustunlari: fayl orqali xarid narxini yuklash mumkin, faqat xarid narxi bor fayl yashirilgan tovarlarni ochmaydi
