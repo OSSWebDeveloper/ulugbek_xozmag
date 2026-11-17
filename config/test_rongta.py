@@ -41,3 +41,26 @@ class RongtaTests(KirganTest):
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.json()['id'], 'job')
         start.assert_called_once()
+
+    def test_list_shows_ready_and_skipped_without_scale(self):
+        m = Mahsulot.objects.create(nom='Mix', birlik='kg', narx=Decimal('32000'))
+        Mahsulot.objects.create(nom='Narxsiz', birlik='kg', narx=0)
+        Mahsulot.objects.create(nom='Dona', birlik='dona', narx=100)
+        data = self.client.get('/qurilmalar/tarozi/royxat/').json()
+        m.refresh_from_db()
+        self.assertEqual(data['tayyor'], [{'kod': m.kod, 'nom': 'Mix', 'narx': 32000.0,
+                                           'shtrix': '2' + m.tarozi_kodi}])
+        self.assertEqual([r['nom'] for r in data['otkazildi']], ['Narxsiz'])
+
+    @patch.object(rongta, 'bridge', side_effect=RuntimeError('Rongta drayveri topilmadi.'))
+    def test_status_keeps_counts_when_driver_missing(self, bridge):
+        Mahsulot.objects.create(nom='Mix', birlik='kg', narx=Decimal('32000'))
+        response = self.client.get('/qurilmalar/tarozi/')
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()['tayyor'], 1)
+        self.assertIn('drayveri', response.json()['xato'])
+
+    def test_missing_driver_message_names_folder(self):
+        with patch.object(rongta, 'folders', return_value=(None, rongta.Path('Z:/yoq/rongta'))):
+            with self.assertRaisesRegex(RuntimeError, 'yoq'):
+                rongta.bridge()

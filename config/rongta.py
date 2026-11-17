@@ -22,7 +22,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import never_cache
 
-from ombor.models import Mahsulot, KOD_MAX
+from ombor.kod import PREFIKS
+from ombor.models import Mahsulot, KOD_MAX, KOD_UZUNLIK
 
 
 def folders():
@@ -95,7 +96,9 @@ def prepare():
 def bridge(mode='probe', **paths):
     _, driver = folders()
     if os.name != 'nt' or not (driver / 'rtslabelscale.dll').is_file():
-        raise RuntimeError('Rongta drayveri o‘rnatilmagan.')
+        raise RuntimeError(
+            'Rongta drayveri topilmadi. RLS_setup_V2.0.19.37 o‘rnatilgan papkadan '
+            f'rtslabelscale.dll va yonidagi .dll fayllarni shu papkaga ko‘chiring: {driver}')
     executable = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'SysWOW64/WindowsPowerShell/v1.0/powershell.exe'
     command = [str(executable), '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
                '-File', str(Path(__file__).with_name('rongta_bridge.ps1')),
@@ -160,6 +163,11 @@ def start_sync(background=True):
     return token
 
 
+def counts(rows, skipped):
+    return {'tayyor': len(rows), 'otkazildi': len(skipped),
+            'sabablar': dict(Counter(r['sabab'] for r in skipped))}
+
+
 @login_required
 @require_GET
 @never_cache
@@ -173,14 +181,29 @@ def status(request):
                                  'address': settings.RONGTA_IP, 'tayyor': len(rows),
                                  'otkazildi': len(skipped)})
         result = bridge()
-        result.update({'model': 'RLS1100C', 'tayyor': len(rows), 'otkazildi': len(skipped),
-                       'sabablar': dict(Counter(r['sabab'] for r in skipped))})
+        result.update({'model': 'RLS1100C', **counts(rows, skipped)})
         last = data / 'rongta_last_sync.json'
         if last.exists():
             result['oxirgi'] = json.loads(last.read_text(encoding='ascii'))
         return JsonResponse(result)
     except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as exc:
-        return JsonResponse({'ok': False, 'xato': str(exc)}, status=503)
+        # Tarozi yoki drayver bo'lmasa ham nechta tovar ketishi ko'rinib tursin.
+        return JsonResponse({'ok': False, 'xato': str(exc), 'address': settings.RONGTA_IP,
+                             **counts(rows, skipped)}, status=503)
+
+
+@login_required
+@require_GET
+@never_cache
+def royxat(request):
+    """Taroziga ketadigan va o'tkaziladigan tovarlar — tarozisiz ham ko'rinadi."""
+    rows, skipped = prepare()
+    tayyor = [{
+        'kod': f"{r['LFCode']:0{KOD_UZUNLIK}d}", 'nom': r['PluName'],
+        'narx': r['UnitPrice'] / 100,
+        'shtrix': PREFIKS + f"{int(r['Code']):06d}",
+    } for r in rows]
+    return JsonResponse({'tayyor': tayyor, 'otkazildi': skipped})
 
 
 @login_required

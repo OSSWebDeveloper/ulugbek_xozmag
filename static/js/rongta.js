@@ -12,8 +12,49 @@
     const response = await fetch(url, {cache: 'no-store', ...options});
     if (response.redirected) throw new Error('Hisobingizga qayta kiring.');
     const data = await response.json();
-    if (!response.ok) throw new Error(data.xato || 'Tarozi javob bermadi.');
+    if (!response.ok) {
+      const error = new Error(data.xato || 'Tarozi javob bermadi.');
+      error.data = data;
+      throw error;
+    }
     return data;
+  }
+  function counts(data) {
+    let text = `${data.tayyor} ta mahsulot yuborishga tayyor; ${data.otkazildi} ta o‘tkaziladi.`;
+    if (data.sabablar && Object.keys(data.sabablar).length)
+      text += ' Sabablar: ' + Object.entries(data.sabablar).map(([k, v]) => `${k}: ${v}`).join('; ') + '.';
+    return text;
+  }
+  function cell(row, text, cls) {
+    const td = row.insertCell();
+    td.textContent = text;
+    if (cls) td.className = cls;
+  }
+  async function list() {
+    try {
+      const data = await json(panel.dataset.royxat);
+      const ready = document.getElementById('rongta-tayyor');
+      const skipped = document.getElementById('rongta-otkaz');
+      ready.replaceChildren();
+      skipped.replaceChildren();
+      for (const r of data.tayyor) {
+        const row = ready.insertRow();
+        cell(row, r.kod);
+        cell(row, r.nom);
+        cell(row, r.narx.toLocaleString('ru-RU', {maximumFractionDigits: 2}), 'son');
+        cell(row, r.shtrix);
+      }
+      for (const r of data.otkazildi) {
+        const row = skipped.insertRow();
+        cell(row, r.kod);
+        cell(row, r.nom);
+        cell(row, r.sabab);
+      }
+      document.getElementById('rongta-tayyor-soni').textContent = data.tayyor.length + ' ta';
+      document.getElementById('rongta-otkaz-soni').textContent = data.otkazildi.length + ' ta';
+    } catch (e) {
+      document.getElementById('rongta-tayyor-soni').textContent = e.message;
+    }
   }
   async function check() {
     if (syncing) return;
@@ -24,12 +65,13 @@
       const data = await json(panel.dataset.status);
       if (data.band) { watch(data.id); return; }
       status.textContent = `Aloqa bor: ${data.address}. Tarozi protokoli javob berdi.`;
-      count.textContent = `${data.tayyor} ta mahsulot yuborishga tayyor; ${data.otkazildi} ta o‘tkaziladi. ` +
+      count.textContent = counts(data) + ' ' +
         (data.oxirgi ? `Oxirgi yuklash: ${data.oxirgi.tekshirildi} ta mahsulot qayta o‘qib tekshirilgan (${new Date(data.oxirgi.vaqt).toLocaleString()}).` : 'Hali to‘liq yuklash tekshirilmagan.');
-      if (data.sabablar) count.textContent += ' Sabablar: ' + Object.entries(data.sabablar).map(([k,v]) => `${k}: ${v}`).join('; ');
       send.disabled = false;
     } catch (e) {
       status.textContent = e.message;
+      // Tarozi yoki drayver yo'q bo'lsa ham nechta tovar ketishini ko'rsatamiz.
+      if (e.data && e.data.tayyor !== undefined) count.textContent = counts(e.data);
     } finally {
       if (!syncing) test.disabled = false;
     }
@@ -49,6 +91,7 @@
         syncing = false;
         test.disabled = false;
         send.disabled = false;
+        list();
       } else {
         status.textContent = data.holat === 'tekshirilmoqda' ? 'Tarozidan qayta o‘qib tekshirilmoqda…' : `Tarozi katalogi yangilanmoqda: ${data.yuborildi || 0} / ${data.jami} amal. Tarozini o‘chirmang.`;
         setTimeout(() => watch(id), 2000);
@@ -90,4 +133,5 @@
     input.select();
   });
   check();
+  list();
 })();

@@ -12,6 +12,10 @@ uzun nomning oxiridagi variant belgisi saqlanadi. Asl nom omborda o'zgarmaydi.
 Narxsiz, lotin shriftiga mos kelmaydigan yoki 999999.99 dan katta narxlar o'tkaziladi.
 
 Qurilmalar sahifasida aloqa sinovi, katalog yuborish va etiketkani tekshirish bor.
+Tarozi yoki drayver topilmasa ham sahifa taroziga ketadigan tovarlar ro'yxatini
+(kod, tarozidagi nom, so'm/kg narx, shtrix boshi 2+PLU) va o'tkaziladiganlarni
+sababi bilan ko'rsatadi. Drayver xabarida DLL qo'yiladigan papka yoziladi.
+Tarozi boshqa IP'da bo'lsa `XOZMAG_RONGTA_IP` muhit o'zgaruvchisi bilan beriladi.
 Sinovning 'aloqa bor' natijasi faqat SDK protokoli javobini anglatadi.
 Etiketkaning bosilishi va skanerlash jismoniy tekshiruvni talab qiladi.
 RLS1100C etiketka tarozisi sifatida ishlaydi; vazn kassaga etiketka ichidan keladi.
