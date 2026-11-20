@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.43 — 2026-11-20
+
+Kassa yordamchisi (2-kassa dasturi): server IP manzilini o'zgartirish — traydagi «Server IP manzilini o'zgartirish», aloqa uzilsa yangi IP o'zi so'raladi, paketni qayta yuklash shart emas
+
 ## 3.9.42 — 2026-11-17
 
 Ombor sahifasida «Taroziga yuborish» kirim oynasi kabi ichki oyna bo'lib ochiladi: nechta kg tovar ketadi, aloqa holati, ro'yxatlar va yuborish shu yerda
