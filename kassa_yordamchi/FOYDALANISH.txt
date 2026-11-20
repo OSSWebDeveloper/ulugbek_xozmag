@@ -27,6 +27,15 @@ Yangilash: eski yordamchini qo‘lda o‘chirmang. Yangi ZIPni alohida papkaga
 chiqaring va ORNATISH.bat ni administrator sifatida ishga tushiring.
 O‘rnatuvchi eski yordamchini to‘xtatadi va yarlikni yangilaydi.
 Traydagi BizaroPOS belgisini chap tugma bilan bosing: kassani ochish,
-chek printerini tanlash, printerlarni yangilash, qayta ishga tushirish,
-yordamchini yopish va dastur versiyasi.
+chek printerini tanlash, printerlarni yangilash, server IP manzilini
+o'zgartirish, qayta ishga tushirish, yordamchini yopish va dastur versiyasi.
 Yorliq printeri esa chop etish oynasida har bir vazifa uchun tanlanadi.
+
+Server IP manzili o'zgarsa (router boshqa manzil bergan bo'lsa):
+paketni qayta yuklash shart emas. Traydagi menyuda «Server IP manzilini
+o'zgartirish» ni bosing va server kompyuterining yangi IP manzilini yozing
+(masalan 192.168.1.5 yoki 192.168.1.5:5555). Yordamchi manzilni shu
+kassaning kaliti bilan tekshiradi, saqlaydi va kassani yangi manzilda ochadi.
+Server 15 soniyadan ko'p javob bermasa, yordamchi bu oynani o'zi ochadi;
+«Bekor qilish» bosilsa, aloqa tiklangunicha qayta so'ramaydi. Menyudagi
+«Server: …» qatorida joriy manzil va aloqa holati ko'rinadi.

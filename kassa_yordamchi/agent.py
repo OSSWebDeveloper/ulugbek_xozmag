@@ -8,6 +8,7 @@ import socket
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 import webbrowser
 
@@ -121,8 +122,20 @@ def run_loop(config, stop, state):
                 # the same job automatically a second time.
                 ack = {'id': stored['id'], 'claim': stored['claim'], 'ok': stored.get('ok', False),
                        'xato': stored.get('xato', 'Oldingi chop holati noma’lum; chekni tekshirib qo‘lda qayta chiqaring.')}
-            result = exchange(config, {'nom': socket.gethostname(), 'printer': printer,
-                'qurilmalar': devices, 'printerlar': printers, 'etiketka': True, 'tayyor': bool(printers) and not pending.exists(), 'ack': ack})
+            state['printer'] = printer
+            try:
+                result = exchange(config, {'nom': socket.gethostname(), 'printer': printer,
+                    'qurilmalar': devices, 'printerlar': printers, 'etiketka': True, 'tayyor': bool(printers) and not pending.exists(), 'ack': ack})
+            except urllib.error.HTTPError:
+                state['uzildi'] = None  # Server javob berdi: manzil to'g'ri, xato boshqa.
+                raise
+            except OSError:
+                # Server javob bermayapti: tray biroz kutib yangi IP manzilni so'raydi.
+                if not state.get('uzildi'):
+                    state['uzildi'] = time.monotonic()
+                raise
+            state['uzildi'] = None
+            state['soraldi'] = False
             if ack:
                 pending.unlink(missing_ok=True)
             job = result.get('vazifa')
