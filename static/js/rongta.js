@@ -137,6 +137,29 @@
     } catch (err) { result.textContent = err.message; }
     input.select();
   });
+  // Tarozi IP manzili: saqlangach aloqa yangi manzilda darhol tekshiriladi.
+  const ipForm = document.getElementById('rongta-ip-form');
+  if (ipForm) ipForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const note = document.getElementById('rongta-ip-natija');
+    const field = document.getElementById('rongta-ip');
+    const button = ipForm.querySelector('button');
+    button.disabled = true;
+    note.classList.remove('xato');
+    note.textContent = 'Saqlanmoqda…';
+    try {
+      const data = await json(ipForm.dataset.url, {method: 'POST', body: new FormData(ipForm)});
+      field.value = data.ip;
+      note.textContent = `Saqlandi: ${data.ip}. Aloqa shu manzilda tekshirilmoqda.`;
+      check();
+    } catch (err) {
+      note.classList.add('xato');
+      note.textContent = err.message;
+      field.focus();
+    } finally {
+      button.disabled = false;
+    }
+  });
   // Ombor sahifasida panel oyna ichida: tarozi faqat oyna ochilganda so'raladi,
   // har sahifa ochilishida emas (aloqa tekshiruvi 15 soniyagacha cho'ziladi).
   const modal = document.getElementById('tarozi-oyna');

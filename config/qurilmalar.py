@@ -109,7 +109,9 @@ def aniqlash():
 @require_GET
 def sahifa(request):
     from sotuv.models import KassaTerminal
-    return render(request, 'qurilmalar.html', {'terminal': KassaTerminal.objects.filter(kassir=request.user).first()})
+    from config.rongta import tarozi_ip
+    return render(request, 'qurilmalar.html', {'terminal': KassaTerminal.objects.filter(kassir=request.user).first(),
+                                               'tarozi_ip': tarozi_ip()})
 
 
 @login_required

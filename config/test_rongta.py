@@ -1,4 +1,6 @@
+import tempfile
 from decimal import Decimal
+from pathlib import Path
 from unittest.mock import patch
 
 from config.sinov import KirganTest
@@ -64,6 +66,35 @@ class RongtaTests(KirganTest):
         with patch.object(rongta, 'folders', return_value=(None, rongta.Path('Z:/yoq/rongta'))):
             with self.assertRaisesRegex(RuntimeError, 'yoq'):
                 rongta.bridge()
+
+    def test_ip_leading_zeros_removed_and_bad_rejected(self):
+        self.assertEqual(rongta.toza_ip(' 192.168.001.050 '), '192.168.1.50')
+        for bad in ('192.168.1', '192.168.1.256', '127.0.0.1', '192.168.1.255', 'abc', '1.2.3.4.5', '192.168.1.0'):
+            with self.assertRaises(ValueError, msg=bad):
+                rongta.toza_ip(bad)
+
+    def test_ip_saved_from_page_used_by_bridge_and_status(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        with self.settings(MALUMOT_DIR=tmp.name):
+            self.assertEqual(rongta.tarozi_ip(), rongta.settings.RONGTA_IP)
+            self.assertContains(self.client.get('/qurilmalar/'), 'id="rongta-ip"')
+            bad = self.client.post('/qurilmalar/tarozi/ip/', {'ip': '192.168.1.300'})
+            self.assertEqual(bad.status_code, 400)
+            ok = self.client.post('/qurilmalar/tarozi/ip/', {'ip': '192.168.001.050'})
+            self.assertEqual(ok.json(), {'ip': '192.168.1.50'})
+            self.assertEqual(rongta.tarozi_ip(), '192.168.1.50')
+            self.assertContains(self.client.get('/qurilmalar/'), 'value="192.168.1.50"')
+            with patch.object(rongta, 'bridge', side_effect=RuntimeError('x')):
+                self.assertEqual(self.client.get('/qurilmalar/tarozi/').json()['address'], '192.168.1.50')
+            (Path(tmp.name) / 'qurilmalar_data' / 'rongta_sync.lock').write_text('job')
+            busy = self.client.post('/qurilmalar/tarozi/ip/', {'ip': '192.168.1.60'})
+            self.assertEqual(busy.status_code, 409)
+            self.assertEqual(rongta.tarozi_ip(), '192.168.1.50')
+
+    def test_ip_change_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.client.post('/qurilmalar/tarozi/ip/', {'ip': '192.168.1.50'}).status_code, 302)
 
     def test_ombor_page_links_to_scale_panel(self):
         response = self.client.get('/ombor/')

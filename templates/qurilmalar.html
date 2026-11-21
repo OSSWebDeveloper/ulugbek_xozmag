@@ -31,6 +31,16 @@
     <h2>Rongta RLS1100C · Ethernet</h2>
     <p id="rongta-holat" role="status" aria-live="polite">Aloqa tekshirilmoqda…</p>
     <p id="rongta-hisob" class="sust"></p>
+    <form id="rongta-ip-form" class="maydon" data-url="{% url 'tarozi_ip' %}">
+      {% csrf_token %}
+      <label for="rongta-ip">Tarozi IP manzili</label>
+      <div class="qator tarozi-ip-qator">
+        <input id="rongta-ip" name="ip" class="kirish" type="text" inputmode="decimal" autocomplete="off"
+               value="{{ tarozi_ip }}" placeholder="192.168.1.50" aria-describedby="rongta-ip-natija">
+        <button class="tugma" type="submit">IP ni saqlash</button>
+      </div>
+      <p id="rongta-ip-natija" class="sust" role="status" aria-live="polite">Tarozi ekranidagi IP ni yozing. 192.168.001.050 ko‘rinishi ham qabul qilinadi.</p>
+    </form>
     <div class="qator">
       <button type="button" class="tugma" id="rongta-test">Aloqani tekshirish</button>
       <button type="button" class="tugma yashil" id="rongta-yukla" disabled>Omborni taroziga yuborish</button>

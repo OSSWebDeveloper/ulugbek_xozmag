@@ -15,7 +15,11 @@ Qurilmalar sahifasida aloqa sinovi, katalog yuborish va etiketkani tekshirish bo
 Tarozi yoki drayver topilmasa ham sahifa taroziga ketadigan tovarlar ro'yxatini
 (kod, tarozidagi nom, so'm/kg narx, shtrix boshi 2+PLU) va o'tkaziladiganlarni
 sababi bilan ko'rsatadi. Drayver xabarida DLL qo'yiladigan papka yoziladi.
-Tarozi boshqa IP'da bo'lsa `XOZMAG_RONGTA_IP` muhit o'zgaruvchisi bilan beriladi.
+Tarozi IP manzili Qurilmalar sahifasidagi «Tarozi IP manzili» maydonida o'zgartiriladi.
+U `qurilmalar_data/rongta_ip.json` ga yoziladi va serverni qayta ishga tushirish shart emas.
+Tarozi ekranidagi 192.168.001.050 kabi yozuvning boshidagi nollari olib tashlanadi,
+chunki Windows 050 ni sakkizlik son deb o'qiydi. Saqlangan IP bo'lmasa
+`XOZMAG_RONGTA_IP` muhit o'zgaruvchisi, u ham bo'lmasa 192.168.1.110 ishlatiladi.
 Sinovning 'aloqa bor' natijasi faqat SDK protokoli javobini anglatadi.
 Etiketkaning bosilishi va skanerlash jismoniy tekshiruvni talab qiladi.
 RLS1100C etiketka tarozisi sifatida ishlaydi; vazn kassaga etiketka ichidan keladi.

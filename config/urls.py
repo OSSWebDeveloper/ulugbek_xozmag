@@ -27,6 +27,7 @@ urlpatterns = [
     path("qurilmalar/tarozi/", rongta.status, name="tarozi_status"),
     path("qurilmalar/tarozi/yukla/", rongta.sync, name="tarozi_sync"),
     path("qurilmalar/tarozi/royxat/", rongta.royxat, name="tarozi_royxat"),
+    path("qurilmalar/tarozi/ip/", rongta.ip_saqla, name="tarozi_ip"),
     path("qurilmalar/tarozi/holat/<uuid:token>/", rongta.progress, name="tarozi_progress"),
     path("kirish/", auth_views.LoginView.as_view(
         template_name="kirish.html", redirect_authenticated_user=True), name="kirish"),

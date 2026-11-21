@@ -11,4 +11,8 @@
 .qurilma-izoh { margin-top: 20px; }
 #rongta-panel, #skaner-test-form { margin-bottom: 18px; }
 #rongta-panel h2, .qurilma-kirish h2 { font-size: 20px; margin: 0 0 12px; }
+.tarozi-ip-qator input { flex: 1 1 200px; max-width: 280px; }
+.tarozi-ip-qator .tugma { flex: none; }
+#rongta-ip-natija { margin: 8px 0 0; }
+#rongta-ip-natija.xato { color: #f59e0b; }
 

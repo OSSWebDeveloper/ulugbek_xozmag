@@ -33,6 +33,31 @@ def folders():
     return data, driver
 
 
+def tarozi_ip():
+    """Qurilmalar sahifasida saqlangan IP; bo'lmasa XOZMAG_RONGTA_IP yoki standart."""
+    data, _ = folders()
+    try:
+        ip = json.loads((data / 'rongta_ip.json').read_text(encoding='ascii'))['ip']
+        return toza_ip(ip)
+    except (OSError, ValueError, KeyError, TypeError):
+        return settings.RONGTA_IP
+
+
+def toza_ip(matn):
+    """IPv4 ni tekshiradi va boshidagi nollarsiz qaytaradi: 192.168.001.050 -> 192.168.1.50.
+
+    Tarozi ekrani IP ni 001.050 ko'rinishida ko'rsatadi; Windows esa 050 ni sakkizlik
+    son deb o'qiydi, shuning uchun nollar olib tashlanadi.
+    """
+    qism = str(matn).strip().split('.')
+    if len(qism) != 4 or not all(q.isdigit() and len(q) <= 3 and int(q) <= 255 for q in qism):
+        raise ValueError('IP manzil noto‘g‘ri. To‘rtta son nuqta bilan: 192.168.1.50.')
+    son = [int(q) for q in qism]
+    if son[0] in (0, 127) or son[0] >= 224 or son[:2] == [169, 254] or son[3] in (0, 255):
+        raise ValueError('Bu manzil tarozi bo‘la olmaydi. Tarozi ekranidagi IP manzilni yozing.')
+    return '.'.join(map(str, son))
+
+
 def save(path, data):
     temp = path.with_suffix('.tmp')
     temp.write_text(json.dumps(data, ensure_ascii=True, indent=2), encoding='ascii')
@@ -102,7 +127,7 @@ def bridge(mode='probe', **paths):
     executable = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'SysWOW64/WindowsPowerShell/v1.0/powershell.exe'
     command = [str(executable), '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
                '-File', str(Path(__file__).with_name('rongta_bridge.ps1')),
-               '-DriverDir', str(driver), '-Address', settings.RONGTA_IP, '-Mode', mode]
+               '-DriverDir', str(driver), '-Address', tarozi_ip(), '-Mode', mode]
     for key, value in paths.items():
         command.extend(['-' + key, str(value)])
     result = subprocess.run(command, capture_output=True, encoding='utf-8', errors='replace',
@@ -178,7 +203,7 @@ def status(request):
         lock = data / 'rongta_sync.lock'
         if lock.exists():
             return JsonResponse({'ok': True, 'band': True, 'id': lock.read_text(encoding='ascii'),
-                                 'address': settings.RONGTA_IP, 'tayyor': len(rows),
+                                 'address': tarozi_ip(), 'tayyor': len(rows),
                                  'otkazildi': len(skipped)})
         result = bridge()
         result.update({'model': 'RLS1100C', **counts(rows, skipped)})
@@ -188,7 +213,7 @@ def status(request):
         return JsonResponse(result)
     except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as exc:
         # Tarozi yoki drayver bo'lmasa ham nechta tovar ketishi ko'rinib tursin.
-        return JsonResponse({'ok': False, 'xato': str(exc), 'address': settings.RONGTA_IP,
+        return JsonResponse({'ok': False, 'xato': str(exc), 'address': tarozi_ip(),
                              **counts(rows, skipped)}, status=503)
 
 
@@ -225,3 +250,18 @@ def progress(request, token):
     if not path.exists():
         return JsonResponse({'xato': 'Yuklash topilmadi'}, status=404)
     return JsonResponse(json.loads(path.read_text(encoding='ascii')))
+
+
+@login_required
+@require_POST
+def ip_saqla(request):
+    """Tarozi IP manzilini saytdan o'zgartirish: server qayta ishga tushirilmaydi."""
+    data, _ = folders()
+    if (data / 'rongta_sync.lock').exists():
+        return JsonResponse({'xato': 'Yuklash davom etmoqda. Tugagach IP ni o‘zgartiring.'}, status=409)
+    try:
+        ip = toza_ip(request.POST.get('ip', ''))
+    except ValueError as exc:
+        return JsonResponse({'xato': str(exc)}, status=400)
+    save(data / 'rongta_ip.json', {'ip': ip})
+    return JsonResponse({'ip': ip})
