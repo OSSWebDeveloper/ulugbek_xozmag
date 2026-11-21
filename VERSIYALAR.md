@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.44 — 2026-11-21
+
+Qurilmalar sahifasida «Tarozi IP manzili» maydoni: tarozi IP si saytdan o'zgartiriladi, 192.168.001.050 ko'rinishi ham qabul qilinadi, serverni qayta ishga tushirish shart emas
+
 ## 3.9.43 — 2026-11-20
 
 Kassa yordamchisi (2-kassa dasturi): server IP manzilini o'zgartirish — traydagi «Server IP manzilini o'zgartirish», aloqa uzilsa yangi IP o'zi so'raladi, paketni qayta yuklash shart emas
