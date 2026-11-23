@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.45 — 2026-11-23
+
+Yorliq chiqarishda 2-kassa yordamchisi ulanmagan bo'lsa brauzer oynasi o'zi ochilmaydi: BizaroPOS oynasida sababi va oxirgi aloqa vaqti ko'rsatiladi
+
 ## 3.9.44 — 2026-11-21
 
 Qurilmalar sahifasida «Tarozi IP manzili» maydoni: tarozi IP si saytdan o'zgartiriladi, 192.168.001.050 ko'rinishi ham qabul qilinadi, serverni qayta ishga tushirish shart emas
