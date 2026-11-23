@@ -126,14 +126,13 @@
       status.textContent = 'Printerlar olinmoqda…';
       try {
         var data = await readResponse(await fetch(printerForma.dataset.list, {cache: 'no-store'}));
+        printerSelect.replaceChildren();
         if (data.brauzer) {
-          // Yordamchisiz qurilma server printerini ishlatmaydi: brauzerning chop
-          // oynasi ochiladi — unda shu kompyuterning o'z printerlari turadi.
-          printerDialog.close();
-          window.print();
+          // Kassa yordamchisi ulanmagan: brauzer oynasi o'zi ochilmaydi, sababi
+          // ko'rsatiladi. Kerak bo'lsa «Brauzerdan chop etish» tugmasi bor.
+          status.textContent = data.sabab || 'Kassa yordamchisi ulanmagan.';
           return;
         }
-        printerSelect.replaceChildren();
         var oxirgi = null;
         try { oxirgi = localStorage.getItem(PRINTER_KALIT); } catch (e) { /* yopiq */ }
         data.printerlar.sort(function(a,b) { return printerOchko(b.nom, oxirgi) - printerOchko(a.nom, oxirgi); });

@@ -54,9 +54,27 @@ class NativeLabelTests(KirganTest):
                       dict(REMOTE_ADDR='127.0.0.1', HTTP_HOST='abc.ngrok-free.app')):
             response = self.client.get(reverse('etiketka_printerlar'), **extra)
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.json(), {'printerlar': [], 'brauzer': True})
+            data = response.json()
+            self.assertEqual((data['printerlar'], data['brauzer']), ([], True))
+            self.assertIn('akkaunti uchun kassa yordamchisi o‘rnatilmagan', data['sabab'])
             self.assertEqual(self.post(**extra).status_code, 503)
         self.thread.assert_not_called()
+
+    def test_stale_or_new_helper_explains_why_instead_of_opening_browser_print(self):
+        from sotuv.models import KassaTerminal
+        from django.utils import timezone
+        from datetime import timedelta
+        user = get_user_model().objects.get(username=self.LOGIN)
+        terminal = KassaTerminal.objects.create(kassir=user, etiketka_tayyor=True,
+            printerlar=[{'nom':'USB label','port':'USB003','drayver':'label'}])
+        remote = dict(REMOTE_ADDR='192.168.100.88')
+        sabab = self.client.get(reverse('etiketka_printerlar'), **remote).json()['sabab']
+        self.assertIn('hali serverga ulanmagan', sabab)
+        terminal.oxirgi_aloqa = timezone.now() - timedelta(minutes=5); terminal.save()
+        data = self.client.get(reverse('etiketka_printerlar'), **remote).json()
+        self.assertTrue(data['brauzer'])
+        self.assertIn('serverga ulanmayapti (oxirgi aloqa:', data['sabab'])
+        self.assertIn('Brauzerdan chop etish', data['sabab'])
 
     def test_server_computer_uses_its_own_printers_even_if_helper_is_online_elsewhere(self):
         from sotuv.models import KassaTerminal, ChekVazifa

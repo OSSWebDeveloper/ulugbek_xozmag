@@ -89,8 +89,18 @@ def printer_source(request):
     from sotuv.models import KassaTerminal
     from django.utils import timezone
     terminal=KassaTerminal.objects.filter(kassir=request.user).first()
-    if not terminal or not terminal.oxirgi_aloqa or (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
-        raise BrauzerKerak('«Brauzerdan chop etish» ni bosing — yorliq shu kompyuterning printeriga chiqadi.')
+    brauzer=' Hozircha «Brauzerdan chop etish» ni bosish mumkin.'
+    if not terminal:
+        raise BrauzerKerak(f'«{request.user.username}» akkaunti uchun kassa yordamchisi o‘rnatilmagan. '
+                           'Qurilmalar sahifasidan shu akkaunt paketini yuklab, shu kompyuterda o‘rnating.'+brauzer)
+    if not terminal.oxirgi_aloqa:
+        raise BrauzerKerak('Kassa yordamchisi hali serverga ulanmagan. Traydagi BizaroPOS belgisini '
+                           'tekshiring: yordamchi ishga tushmagan yoki serverga ulana olmayapti.'+brauzer)
+    if (timezone.now()-terminal.oxirgi_aloqa).total_seconds()>60:
+        oxirgi=timezone.localtime(terminal.oxirgi_aloqa).strftime('%d.%m %H:%M')
+        raise BrauzerKerak(f'Kassa yordamchisi serverga ulanmayapti (oxirgi aloqa: {oxirgi}). Traydagi '
+                           'BizaroPOS belgisini tekshiring: yordamchi yopilgan, server IP o‘zgargan yoki '
+                           'brandmauer/antivirus ulanishni to‘sgan bo‘lishi mumkin.'+brauzer)
     if not terminal.etiketka_tayyor:
         raise RuntimeError('USB yordamchisini yangilang: yangi paketni yuklab olib shu kassada qayta o‘rnating.')
     return terminal.printerlar, terminal
@@ -101,9 +111,9 @@ def printer_source(request):
 def royxat(request):
     try:
         return JsonResponse({'printerlar': printer_source(request)[0]})
-    except BrauzerKerak:
-        # Sahifa brauzerning chop oynasini ochadi — u shu qurilmaning printerlarini ko'rsatadi.
-        return JsonResponse({'printerlar': [], 'brauzer': True})
+    except BrauzerKerak as exc:
+        # Brauzer oynasi o'zi ochilmaydi: sabab ko'rsatiladi, «Brauzerdan chop etish» tugmasi qoladi.
+        return JsonResponse({'printerlar': [], 'brauzer': True, 'sabab': str(exc)})
     except RuntimeError as exc:
         return JsonResponse({'xato': str(exc)},status=503)
     except Exception:
