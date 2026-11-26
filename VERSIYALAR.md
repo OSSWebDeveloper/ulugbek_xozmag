@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.47 — 2026-11-26
+
+Drive zaxirasi Google Drive ilovasi papkasi orqali (API kerak emas)
+
 ## 3.9.46 — 2026-11-26
 
 Kunlik Google Drive zaxirasi (20:00, ombor .xlsx); Qurilmalar sahifasi matnlari qisqartirildi
