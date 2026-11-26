@@ -125,11 +125,11 @@ def royxat(request):
     if terminal:
         if not terminal.oxirgi_aloqa or (timezone.now() - terminal.oxirgi_aloqa).total_seconds() > 60:
             if not mahalliymi(request):
-                return JsonResponse({'xato': 'Shu kassaning USB yordamchisi ulanmagan. Quyidagi paketni shu kompyuterda o‘rnating yoki BizaroPOS Kassa yarligini oching.'}, status=503)
+                return JsonResponse({'xato': 'USB yordamchi ulanmagan. Uni o‘rnating yoki BizaroPOS Kassa yorlig‘ini oching.'}, status=503)
         else:
             return JsonResponse({'qurilmalar': terminal.qurilmalar, 'vaqt': terminal.oxirgi_aloqa.isoformat()})
     if not mahalliymi(request):
-        return JsonResponse({'xato': 'USB qurilmalarni ko‘rish uchun shu kassada yordamchini o‘rnating.'}, status=503)
+        return JsonResponse({'xato': 'USB yordamchini o‘rnating.'}, status=503)
     try:
         # Bir nechta ochiq brauzer PowerShell'ni bir vaqtda ishga tushirmasin.
         with _lock:

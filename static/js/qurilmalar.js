@@ -26,7 +26,7 @@
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const response = await fetch(root.dataset.url, {cache: 'no-store', signal: controller.signal});
-      if (response.redirected) throw new Error('Seans tugadi. Sahifani qayta ochib, hisobingizga kiring.');
+      if (response.redirected) throw new Error('Seans tugadi. Qayta kiring.');
       const data = await response.json();
       if (!response.ok) throw new Error(data.xato || 'Ro‘yxatni olib bo‘lmadi.');
       const now = Date.now();
@@ -52,7 +52,7 @@
         card.append(detail);
         fragment.append(card);
       });
-      if (!data.qurilmalar.length) fragment.append(node('p', 'Klaviatura va sichqonchadan boshqa tashqi qurilma topilmadi.', 'quti'));
+      if (!data.qurilmalar.length) fragment.append(node('p', 'Qurilma topilmadi.', 'quti'));
       list.replaceChildren(fragment);
       stamp.textContent = `${data.qurilmalar.length} ta qurilma · Tekshirildi: ${new Date(data.vaqt).toLocaleTimeString()}`;
       error.hidden = true;
@@ -60,7 +60,7 @@
     } catch (e) {
       error.textContent = e.name === 'AbortError' ? 'Tekshirish vaqti tugadi. Qayta yangilang.' : e.message;
       error.hidden = false;
-      stamp.textContent = previous ? 'Yangilanmadi. Quyida oxirgi olingan ro‘yxat.' : 'Qurilmalar aniqlanmadi.';
+      stamp.textContent = previous ? 'Yangilanmadi. Oxirgi ro‘yxat ko‘rsatilgan.' : 'Qurilmalar aniqlanmadi.';
     } finally {
       clearTimeout(timeout);
       busy = false;
@@ -87,7 +87,7 @@
     message.textContent = 'Sinov yuborilmoqda…';
     try {
       const response = await fetch(form.action, {method: 'POST', body: new FormData(form)});
-      if (response.redirected) throw new Error('Seans tugadi. Hisobingizga qayta kiring.');
+      if (response.redirected) throw new Error('Seans tugadi. Qayta kiring.');
       const data = await response.json();
       if (!response.ok) throw new Error(data.xato || 'Sinov yuborilmadi.');
       message.textContent = data.xabar;
@@ -96,13 +96,13 @@
         for (let i = 0; i < 20; i++) {
           await new Promise(resolve => setTimeout(resolve, 1500));
           const result = await fetch(data.url, {cache: 'no-store'});
-          if (result.redirected) throw new Error('Seans tugadi. Hisobingizga qayta kiring.');
+          if (result.redirected) throw new Error('Seans tugadi. Qayta kiring.');
           const state = await result.json();
           if (!result.ok) throw new Error(state.xato || 'Sinov holatini olib bo‘lmadi.');
           message.textContent = state.xabar;
           if (['tayyor','xato'].includes(state.holat)) return;
         }
-        message.textContent = 'Sinov holati hali tasdiqlanmadi. Qog‘oz va USB yordamchisini tekshiring; qayta bosish navbatdagi sinovni takrorlamaydi.';
+        message.textContent = 'Sinov tasdiqlanmadi. Qog‘oz va USB yordamchisini tekshiring.';
       }
     } catch (error) {
       message.textContent = error.message;

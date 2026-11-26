@@ -31,10 +31,10 @@ def chop(request):
             chop_malumot(sinov_malumot(request.user, settings.CHEK_PRINTER))
         except (OSError, RuntimeError, subprocess.SubprocessError):
             return JsonResponse({'xato': 'Sinov cheki yuborilmadi. Printer ulanishini tekshiring.'}, status=503)
-        return JsonResponse({'xabar': 'Sinov Windows printer navbatiga yuborildi. Qog‘oz chiqqanini tekshiring.'})
+        return JsonResponse({'xabar': 'Sinov printerga yuborildi.'})
     if not online:
         # Yordamchisiz qurilma: sinov cheki shu brauzerning chop oynasiga chiqadi.
-        return JsonResponse({'xabar': 'Sinov cheki shu kompyuterning printeriga chiqarilmoqda. Chop oynasida printerni tasdiqlang.',
+        return JsonResponse({'xabar': 'Chop oynasida printerni tasdiqlang.',
                              'bosma': reverse('printer_sinov_bosma')})
     with transaction.atomic():
         terminal = KassaTerminal.objects.select_for_update().get(pk=terminal.pk)
@@ -55,6 +55,6 @@ def holat(request, pk):
                            terminal__kassir=request.user)
     messages = {'kutilmoqda': 'Sinov printer navbatida…',
         'yuborildi': 'Yordamchi sinov chekini printerga yuboryapti…',
-        'tayyor': 'Sinov Windows printer navbatiga yuborildi. Qog‘oz chiqqanini tekshiring.',
+        'tayyor': 'Sinov printerga yuborildi.',
         'xato': job.xato or 'Printerga yuborilmadi. USB ulanishini tekshiring.'}
     return JsonResponse({'holat': job.holat, 'xabar': messages.get(job.holat, job.holat)})
