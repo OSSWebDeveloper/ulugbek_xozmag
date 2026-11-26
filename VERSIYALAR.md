@@ -1,5 +1,9 @@
 # Versiyalar tarixi
 
+## 3.9.46 — 2026-11-26
+
+Kunlik Google Drive zaxirasi (20:00, ombor .xlsx); Qurilmalar sahifasi matnlari qisqartirildi
+
 ## 3.9.45 — 2026-11-23
 
 Yorliq chiqarishda 2-kassa yordamchisi ulanmagan bo'lsa brauzer oynasi o'zi ochilmaydi: BizaroPOS oynasida sababi va oxirgi aloqa vaqti ko'rsatiladi
