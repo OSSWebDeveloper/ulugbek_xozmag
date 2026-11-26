@@ -51,22 +51,16 @@ hech qachon omborga chiqmaydi.
 ## Kunlik Google Drive zaxirasi
 
 Server har kuni **20:00** da omborni (kod, nom, birlik, qoldiq, narx, kelish narxi)
-`Xozmag ombor YYYY-MM-DD.xlsx` qilib Google Drive'dagi `Xozmag zaxira` papkasiga yuklaydi.
-Fayl Ombor → Excel yuklagichiga to'g'ridan-to'g'ri qaytarib yuklanadi.
-Vaqt, papka nomi — `config/drive_zaxira.py` boshidagi konstantalar; ko'rinish (UI) yo'q.
+`Xozmag ombor YYYY-MM-DD.xlsx` qilib `G:\Мой диск\Xozmag zaxira\` ga yozadi — Google Drive
+ilovasi uni o'zi Drive'ga yuklaydi. Fayl Ombor → Excel yuklagichiga to'g'ridan-to'g'ri qaytarib yuklanadi.
+Vaqt va papka — `config/drive_zaxira.py` boshidagi konstantalar; ko'rinish (UI) yo'q.
 
-Bir martalik ulash (Google akkaunti shu yerda tanlanadi):
+Server kompyuterida **Google Drive for Desktop** o'rnatilgan va akkauntga kirilgan bo'lishi kerak.
+Drive diski harfidan, harf ko'rinmasa (server administrator bo'lib ishlaydi) tom yo'lidan
+(`\\?\Volume{…}`) topiladi; kerak bo'lsa `DRIVE_PAPKA_YOLI` ga aniq yo'l yoziladi.
 
-1. Google Cloud Console → loyiha → *Google Drive API* ni yoqish →
-   *OAuth consent screen* (External, **Publish app** — «Testing» holatida kalit 7 kunda o'ladi) →
-   *Credentials → OAuth client ID → Desktop app* → JSON faylni yuklab olish.
-2. `python google_ulash.py client_secret_XXXX.json` — brauzerda akkauntga kirib ruxsat berasiz,
-   `qurilmalar_data/google_drive.json` yoziladi (git'ga tushmaydi). Server kompyuteriga shu fayl
-   ko'chiriladi; serverni qayta yoqish shart emas.
-
-Ruxsat faqat `drive.file` — dastur Drive'dagi boshqa fayllarni ko'rmaydi. Hammasi bepul.
-Internet bo'lmasa fayl `qurilmalar_data/server/drive_zaxira/navbat/` da kutadi va har 10 daqiqada
-qayta yuboriladi; server 20:00 dan keyin yoqilsa o'sha kunning zaxirasi darhol olinadi.
+Drive topilmasa fayl `qurilmalar_data/server/drive_zaxira/navbat/` da kutadi va har 10 daqiqada
+qayta urinadi; server 20:00 dan keyin yoqilsa o'sha kunning zaxirasi darhol olinadi.
 Oxirgi 30 nusxa kompyuterda ham qoladi. Jurnal: `qurilmalar_data/server/boshqaruv.log`.
 
 ## Versiya

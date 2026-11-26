@@ -1,90 +1,74 @@
-"""Har kuni 20:00 da ombor .xlsx faylini Google Drive'ga yuklaydi (zaxira).
+"""Har kuni 20:00 da ombor .xlsx faylini Google Drive papkasiga yozadi (zaxira).
 
 Serverning ishchi jarayonida (bizaropos_server.py --worker) fon oqimi bo'lib ishlaydi.
-Sozlash — koddagi konstantalar va bir martalik `python google_ulash.py`:
-u Google akkauntiga kirib `qurilmalar_data/google_drive.json` ni yozadi.
-Bu fayl git'ga tushmaydi (ombor ochiq) — unda Drive'ga kirish kaliti turadi.
+Server kompyuterida «Google Drive for Desktop» o'rnatilgan va akkauntga kirilgan bo'lishi
+kerak: fayl `G:\\Мой диск\\Xozmag zaxira\\` ga yoziladi, Drive ilovasi uni o'zi yuklaydi.
+Sozlamalar — shu fayl boshidagi konstantalar, ko'rinish (UI) yo'q.
 
-Fayl avval `qurilmalar_data/server/drive_zaxira/navbat/` ga yoziladi, Drive'ga
-yuklangach bir papka yuqoriga ko'chadi. Internet bo'lmasa har 10 daqiqada qayta urinadi;
+Fayl avval `qurilmalar_data/server/drive_zaxira/navbat/` da yaratiladi, Drive papkasiga
+ko'chirilgach bir papka yuqoriga o'tadi. Drive topilmasa har 10 daqiqada qayta urinadi;
 server 20:00 dan keyin yoqilsa o'sha kunning zaxirasi darhol olinadi.
 """
+import ctypes
 import datetime
-import json
 import logging
+import shutil
+import string
 import threading
 import time
-import urllib.error
-import urllib.parse
-import urllib.request
-import uuid
 from pathlib import Path
 
 ZAXIRA_SOATI = datetime.time(20, 0)
-DRIVE_PAPKA = 'Xozmag zaxira'
+DRIVE_PAPKA_YOLI = ''            # bo'sh — Google Drive diski o'zi topiladi
+DRIVE_ICHKI_PAPKA = 'Xozmag zaxira'
+MENING_DISKIM = ('Мой диск', 'My Drive', 'Mening diskim')
 FAYL_NOMI = 'Xozmag ombor {sana}.xlsx'
 MAHALLIY_SAQLANADI = 30          # kompyuterda qoladigan oxirgi nusxalar
 QAYTA_URINISH = 600              # soniya
 
 ROOT = Path(__file__).resolve().parent.parent
-SOZLAMA = ROOT / 'qurilmalar_data' / 'google_drive.json'
 PAPKA = ROOT / 'qurilmalar_data' / 'server' / 'drive_zaxira'
 NAVBAT = PAPKA / 'navbat'
 OXIRGI = PAPKA / 'oxirgi_sana.txt'
 
 log = logging.getLogger('drive_zaxira')
-XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 
-def sozlama():
-    if not SOZLAMA.exists():
-        return None
-    s = json.loads(SOZLAMA.read_text(encoding='utf-8'))
-    return s if all(s.get(k) for k in ('client_id', 'client_secret', 'refresh_token')) else None
-
-
-def _sorov(url, data=None, headers=None, method=None):
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
+def _ildizlar():
+    """Disk harflari, keyin tomlar (Volume{...} yo'li): administrator bo'lib ishlagan
+    server Drive ilovasining G: harfini ko'rmasligi mumkin, tom yo'li esa hammaga ko'rinadi."""
+    for harf in string.ascii_uppercase:
+        yield f'{harf}:\\'
+    k = ctypes.windll.kernel32
+    k.FindFirstVolumeW.restype = ctypes.c_void_p
+    k.FindNextVolumeW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint]
+    k.FindVolumeClose.argtypes = [ctypes.c_void_p]
+    b = ctypes.create_unicode_buffer(300)
+    h = k.FindFirstVolumeW(b, 300)
+    if h in (None, ctypes.c_void_p(-1).value):
+        return
     try:
-        with urllib.request.urlopen(req, timeout=120) as r:
-            return json.loads(r.read() or b'{}')
-    except urllib.error.HTTPError as e:
-        raise RuntimeError(f'Google {e.code}: {e.read()[:300].decode("utf-8", "replace")}') from None
+        while True:
+            yield b.value
+            if not k.FindNextVolumeW(h, b, 300):
+                break
+    finally:
+        k.FindVolumeClose(h)
 
 
-def _token(s):
-    data = urllib.parse.urlencode({
-        'client_id': s['client_id'], 'client_secret': s['client_secret'],
-        'refresh_token': s['refresh_token'], 'grant_type': 'refresh_token',
-    }).encode()
-    return _sorov('https://oauth2.googleapis.com/token', data,
-                  {'Content-Type': 'application/x-www-form-urlencoded'})['access_token']
-
-
-def _papka_id(token, nom):
-    sarlavha = {'Authorization': 'Bearer ' + token}
-    q = (f"name = '{nom}' and mimeType = 'application/vnd.google-apps.folder' "
-         "and trashed = false")
-    topildi = _sorov('https://www.googleapis.com/drive/v3/files?' +
-                     urllib.parse.urlencode({'q': q, 'fields': 'files(id)'}), headers=sarlavha)
-    if topildi.get('files'):
-        return topildi['files'][0]['id']
-    meta = json.dumps({'name': nom, 'mimeType': 'application/vnd.google-apps.folder'}).encode()
-    return _sorov('https://www.googleapis.com/drive/v3/files', meta,
-                  {**sarlavha, 'Content-Type': 'application/json'})['id']
-
-
-def yukla(fayl, s):
-    token = _token(s)
-    papka = _papka_id(token, s.get('papka') or DRIVE_PAPKA)
-    chegara = uuid.uuid4().hex
-    meta = json.dumps({'name': fayl.name, 'parents': [papka]}).encode()
-    tana = (f'--{chegara}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'.encode() + meta +
-            f'\r\n--{chegara}\r\nContent-Type: {XLSX}\r\n\r\n'.encode() + fayl.read_bytes() +
-            f'\r\n--{chegara}--\r\n'.encode())
-    return _sorov('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-                  tana, {'Authorization': 'Bearer ' + token,
-                         'Content-Type': f'multipart/related; boundary={chegara}'})['id']
+def drive_papka():
+    if DRIVE_PAPKA_YOLI:
+        return Path(DRIVE_PAPKA_YOLI)
+    for ildiz in _ildizlar():
+        try:
+            if not Path(ildiz, '.shortcut-targets-by-id').is_dir():
+                continue
+            for nom in MENING_DISKIM:
+                if Path(ildiz, nom).is_dir():
+                    return Path(ildiz, nom, DRIVE_ICHKI_PAPKA)
+        except OSError:
+            continue
+    return None
 
 
 def fayl_yasa(sana):
@@ -98,25 +82,28 @@ def fayl_yasa(sana):
 
 
 def _tozala():
-    eski = sorted(PAPKA.glob('*.xlsx'))
-    for f in eski[:-MAHALLIY_SAQLANADI]:
+    for f in sorted(PAPKA.glob('*.xlsx'))[:-MAHALLIY_SAQLANADI]:
         f.unlink(missing_ok=True)
 
 
-def navbatni_yukla(s):
-    for fayl in sorted(NAVBAT.glob('*.xlsx')):
-        yukla(fayl, s)
+def navbatni_yubor():
+    fayllar = sorted(NAVBAT.glob('*.xlsx')) if NAVBAT.exists() else []
+    if not fayllar:
+        return
+    manzil = drive_papka()
+    if manzil is None:
+        raise RuntimeError('Google Drive diski topilmadi (Drive ilovasi o‘chiq yoki akkauntga kirilmagan)')
+    manzil.mkdir(exist_ok=True)
+    for fayl in fayllar:
+        shutil.copyfile(fayl, manzil / fayl.name)
         fayl.replace(PAPKA / fayl.name)
-        log.info('Drive zaxirasi yuklandi: %s', fayl.name)
+        log.info('Drive zaxirasi yozildi: %s', manzil / fayl.name)
     _tozala()
 
 
 def bir_qadam(hozir=None):
-    """Vaqti kelgan bo'lsa faylni yasaydi va navbatni yuklaydi. Yuklanmay qolsa xato chiqaradi."""
+    """Vaqti kelgan bo'lsa faylni yasaydi va navbatni Drive papkasiga ko'chiradi."""
     hozir = hozir or datetime.datetime.now()
-    s = sozlama()
-    if not s:
-        return
     PAPKA.mkdir(parents=True, exist_ok=True)
     oxirgi = OXIRGI.read_text().strip() if OXIRGI.exists() else ''
     if hozir.time() >= ZAXIRA_SOATI and oxirgi != hozir.date().isoformat():
@@ -126,8 +113,7 @@ def bir_qadam(hozir=None):
         finally:
             connection.close()
         OXIRGI.write_text(hozir.date().isoformat())
-    if NAVBAT.exists() and any(NAVBAT.glob('*.xlsx')):
-        navbatni_yukla(s)
+    navbatni_yubor()
 
 
 def _sikl():
@@ -143,5 +129,4 @@ def _sikl():
 
 
 def boshla():
-    # Sozlama fayli keyin qo'yilsa ham server qayta yoqilmasdan ishlaydi
     threading.Thread(target=_sikl, name='drive_zaxira', daemon=True).start()
