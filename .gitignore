@@ -30,3 +30,6 @@ kuzatuv.log
 qurilma_drivers/
 qurilmalar_data/
 BizaroPOS.vbs
+
+# Google Cloud OAuth mijozi fayli (google_ulash.py uchun)
+client_secret*.json

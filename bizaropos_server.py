@@ -36,6 +36,8 @@ def worker():
     from waitress import create_server, wasyncore
     call_command('migrate', interactive=False, verbosity=0)
     call_command('standart_akkauntlar', verbosity=0)
+    from config.drive_zaxira import boshla as drive_zaxira
+    drive_zaxira()
     server = create_server(StaticFilesHandler(WSGIHandler()), host='0.0.0.0', port=PORT, threads=8)
     stop_file = DATA / f'stop-{os.getpid()}'
     stop_file.unlink(missing_ok=True)
@@ -168,13 +170,13 @@ class Supervisor:
         changed = self.git('status', '--porcelain', '--untracked-files=no',
                            '--', '.', ':(exclude)db.sqlite3')
         if changed:
-            self.notify('Mahalliy kodda GitHub’ga saqlanmagan o‘zgarishlar bor. Yangilash ularni bosib yozmasligi uchun to‘xtatildi.')
+            self.notify('Mahalliy kodda saqlanmagan o‘zgarishlar bor — yangilash to‘xtatildi.')
             return
         self.git('merge-base', '--is-ancestor', current, latest)
         paths = self.git('diff', '--name-only', current, latest).splitlines()
         protected = {'db.sqlite3', '.secret_key', 'bizaropos_local.json'}
         if any(p in protected or p.startswith(('qurilmalar_data/', 'qurilma_drivers/')) for p in paths):
-            raise RuntimeError('Yangilanish mahalliy baza yoki qurilma fayliga tegadi. Avtomatik yangilash to‘xtatildi.')
+            raise RuntimeError('Yangilanish baza yoki qurilma fayliga tegadi — yangilash to‘xtatildi.')
         self.stop_worker()
         try:
             saved = backup()
